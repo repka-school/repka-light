@@ -1,0 +1,33 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    В судоку на рисунке числа от 1 до 6 не повторяются в ряду, столбце и выделенном прямоугольнике. Какое число нужно в третью клетку верхнего ряда?
+  images:
+    - file: images/sudoku-six.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "1"
+    - id: 2
+      text: "3"
+      correct: true
+    - id: 3
+      text: "2"
+    - id: 4
+      text: "4"
+    - id: 5
+      text: "5"
+points: 2
+classification:
+- subject: math
+  concept: logic-tables
+learning:
+  hint:
+    text: >-
+      Выпиши числа, которых нет в верхнем ряду, и вычеркни те, что уже стоят в третьем столбце или в выделенном прямоугольнике.
+explanation:
+  text: |
+    В верхнем ряду не хватает 2 и 3. В третьем столбце уже стоят 6, 4, 1, 5, 2. Единственное недостающее число — 3.

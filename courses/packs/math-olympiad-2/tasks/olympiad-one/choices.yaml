@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    В столовой выбирают один из двух супов и одно из трёх вторых блюд. Сколько разных обедов из этих двух блюд можно составить?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "4"
+    - id: 2
+      text: "5"
+    - id: 3
+      text: "7"
+    - id: 4
+      text: "8"
+    - id: 5
+      text: "6"
+      correct: true
+points: 2
+classification:
+- subject: math
+  concept: counting
+learning:
+  hint:
+    text: >-
+      Возьми первый суп и перечисли все обеды с ним. Потом сделай то же для второго супа и сложи.
+explanation:
+  text: |
+    Для первого супа есть три вторых блюда. Для второго — ещё три. Всего 3 + 3 = 6 обедов.

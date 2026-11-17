@@ -1,0 +1,33 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    На рисунке развёртка куба. Какая грань окажется напротив грани 2?
+  images:
+    - file: images/cube-net.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "1"
+    - id: 2
+      text: "4"
+      correct: true
+    - id: 3
+      text: "3"
+    - id: 4
+      text: "5"
+    - id: 5
+      text: "6"
+points: 2
+classification:
+- subject: math
+  concept: spatial-reasoning
+learning:
+  hint:
+    text: >-
+      Представь, что грань 2 лежит на столе, а соседние с ней квадраты поднимаются стенками. Какая грань закроет куб сверху?
+explanation:
+  text: |
+    Оставь грань 2 основанием. Грани 1 и 3 поднимутся по бокам, 5 и 6 — с двух других сторон. Грань 4 закроет куб сверху и окажется напротив 2.

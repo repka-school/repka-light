@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    Вычисли: 9 − (2 + 3).
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "4"
+      correct: true
+    - id: 2
+      text: "2"
+    - id: 3
+      text: "3"
+    - id: 4
+      text: "5"
+    - id: 5
+      text: "6"
+points: 1
+classification:
+- subject: math
+  concept: calculation-tricks
+learning:
+  hint:
+    text: >-
+      Сначала выполни действие в скобках, а потом остальное.
+explanation:
+  text: |
+    Сначала посчитай в скобках: 2 + 3 = 5. Теперь 9 − 5 = 4.

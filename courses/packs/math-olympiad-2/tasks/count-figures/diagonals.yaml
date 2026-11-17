@@ -1,0 +1,33 @@
+status: active
+difficulty: hard
+question:
+  text: |
+    В квадрате проведены обе диагонали. Сколько треугольников всех размеров на рисунке?
+  images:
+    - file: images/square-diagonals.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "6"
+    - id: 2
+      text: "7"
+    - id: 3
+      text: "8"
+      correct: true
+    - id: 4
+      text: "9"
+    - id: 5
+      text: "10"
+points: 3
+classification:
+- subject: math
+  concept: counting
+learning:
+  hint:
+    text: >-
+      Считай отдельно маленькие треугольники и большие, составленные из нескольких маленьких. Проверь, из скольких маленьких может состоять треугольник.
+explanation:
+  text: |
+    Вокруг середины находятся 4 маленьких треугольника. Ещё 4 больших треугольника занимают каждый половину квадрата. Всего 4 + 4 = 8.

@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    В мешке 3 белых и 6 синих бусин. Сколько бусин нужно взять не глядя, чтобы наверняка были две синие?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "3"
+    - id: 2
+      text: "4"
+    - id: 3
+      text: "6"
+    - id: 4
+      text: "5"
+      correct: true
+    - id: 5
+      text: "7"
+points: 2
+classification:
+- subject: math
+  concept: worst-case
+learning:
+  hint:
+    text: >-
+      Представь самый неудачный случай: какие бусины могут попадаться первыми, пока синих нет? Потом добавь столько, сколько нужно синих.
+explanation:
+  text: |
+    Сначала могут попасться все 3 белые. Для двух синих нужно взять ещё 2. Всего 3 + 2 = 5. При четырёх бусинах синих может оказаться только одна.

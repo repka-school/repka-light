@@ -1,0 +1,35 @@
+status: active
+difficulty: hard
+question:
+  text: |
+    На рисунке квадрат 3 на 3 клетки. Сколько в нём квадратов всех размеров?
+  images:
+    - file: images/grid-3-by-3.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "12"
+    - id: 2
+      text: "13"
+    - id: 3
+      text: "15"
+    - id: 4
+      text: "16"
+    - id: 5
+      text: "14"
+      correct: true
+points: 3
+classification:
+- subject: math
+  concept: counting
+- subject: math
+  concept: grid-geometry
+learning:
+  hint:
+    text: >-
+      Считай квадраты по размерам: сначала со стороной в одну клетку, потом в две, потом в три, и сложи.
+explanation:
+  text: |
+    Со стороной в одну клетку — 9 квадратов. Со стороной в две клетки — 4: по одному у каждого угла. Со стороной в три клетки — 1. Всего 9 + 4 + 1 = 14.

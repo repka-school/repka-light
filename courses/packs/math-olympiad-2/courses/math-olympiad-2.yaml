@@ -1,0 +1,374 @@
+title: Олимпиадная математика, 2 класс
+description: Учись рассуждать и решать задачи с рисунками и перебором.
+cover:
+  file: images/cover-math.png
+  origin: Сгенерировано OpenAI ImageGen для Repka
+tags:
+  topic:
+    - math
+    - olympiads
+  grade:
+    - "2"
+modules:
+  - slug: logic
+    title: "Логика: учимся рассуждать"
+    lessons:
+      - slug: read-carefully
+        title: "Читаем условие: что нужно узнать?"
+        tasks:
+          - reading/read-twice
+          - reading/sweets
+          - reading/cats
+          - reading/weight
+          - reading/stickers
+          - reading/candles
+          - reading/bus
+          - reading/horses
+          - reading/siblings
+      - slug: try-different-problems
+        title: "Пробуем разные задачи"
+        tasks:
+          - exploration/try-it
+          - reading/mushrooms
+          - exploration/beads
+          - exploration/outfits
+          - exploration/squares
+          - exploration/backwards
+          - exploration/fruits
+          - exploration/envelope
+          - exploration/even-sweets
+      - slug: logic-tables
+        title: "Таблица помогает найти ответ"
+        tasks:
+          - logic-tables/intro
+          - logic-tables/minus
+          - logic-tables/pets
+          - logic-tables/hats
+          - logic-tables/missing-clue
+          - logic-tables/contradiction
+      - slug: truth-and-lies
+        title: "Рыцари и лжецы: проверяем догадку"
+        tasks:
+          - truth-and-lies/intro
+          - truth-and-lies/number
+          - truth-and-lies/two-people
+          - truth-and-lies/self-and-friend
+          - truth-and-lies/three-heroes
+          - truth-and-lies/boxes
+      - slug: sets-and-circles
+        title: "Два круга: вместе и по отдельности"
+        tasks:
+          - sets-and-circles/intro
+          - sets-and-circles/both
+          - sets-and-circles/only-one
+          - sets-and-circles/union
+          - sets-and-circles/overlap
+          - sets-and-circles/outside
+  - slug: numbers-and-patterns
+    title: "Числа и закономерности"
+    lessons:
+      - slug: patterns
+        title: "Находим и проверяем правило"
+        tasks:
+          - patterns/intro
+          - patterns/rule
+          - patterns/descending
+          - patterns/bead-cycle
+          - patterns/growing-step
+          - patterns/wrong-bead
+      - slug: number-arrangements
+        title: "Расставляем числа по условию"
+        tasks:
+          - number-arrangements/intro
+          - number-arrangements/row
+          - number-arrangements/magic-center
+          - number-arrangements/triangle-side
+          - number-arrangements/shared-cell
+          - number-arrangements/impossible-square
+      - slug: signs-and-rebuses
+        title: "Знаки, скобки и числовые загадки"
+        tasks:
+          - signs-and-rebuses/intro
+          - signs-and-rebuses/brackets
+          - signs-and-rebuses/left-to-right
+          - signs-and-rebuses/put-brackets
+          - signs-and-rebuses/same-letter
+          - signs-and-rebuses/two-letters
+      - slug: parity
+        title: "Чётные числа: собираем пары"
+        tasks:
+          - parity/intro
+          - parity/even-number
+          - parity/leftover
+          - parity/odd-plus-odd
+          - parity/remove
+          - parity/three-odd
+  - slug: counting
+    title: "Перебор и умный подсчёт"
+    lessons:
+      - slug: systematic-search
+        title: "Перебираем без пропусков"
+        tasks:
+          - systematic-search/intro
+          - systematic-search/ice-cream
+          - systematic-search/routes
+          - systematic-search/different-colors
+          - systematic-search/two-digits
+          - systematic-search/even-ending
+      - slug: orders-and-pairs
+        title: "Порядок и пары"
+        tasks:
+          - orders-and-pairs/intro
+          - orders-and-pairs/three-toys
+          - orders-and-pairs/bear-middle
+          - orders-and-pairs/handshakes
+          - orders-and-pairs/matches
+          - orders-and-pairs/cards-zero
+      - slug: worst-case
+        title: "Сколько взять, чтобы наверняка?"
+        tasks:
+          - worst-case/intro
+          - worst-case/one-black
+          - worst-case/same-color
+          - worst-case/three-colors
+          - worst-case/two-green
+          - worst-case/three-same
+      - slug: heads-and-differences
+        title: "Головы, ноги, сумма и разность"
+        tasks:
+          - heads-and-differences/intro
+          - heads-and-differences/four-animals
+          - heads-and-differences/five-animals
+          - heads-and-differences/ribbons
+          - heads-and-differences/marbles
+          - heads-and-differences/bicycles
+  - slug: geometry
+    title: "Геометрия на клетчатой бумаге"
+    lessons:
+      - slug: count-figures
+        title: "Считаем фигуры по размерам"
+        tasks:
+          - count-figures/intro
+          - count-figures/six-cells
+          - count-figures/segments
+          - count-figures/diagonals
+          - count-figures/rectangles
+          - count-figures/nine-cells
+      - slug: cutting
+        title: "Разрезаем на равные части"
+        tasks:
+          - cutting/intro
+          - cutting/strip
+          - cutting/two-squares
+          - cutting/equal-shapes
+          - cutting/dominoes
+          - cutting/three-strips
+      - slug: matchsticks
+        title: "Палочки и общие стороны"
+        tasks:
+          - matchsticks/intro
+          - matchsticks/two-squares
+          - matchsticks/three-squares
+          - matchsticks/remove-middle
+          - matchsticks/four-cells
+          - matchsticks/move-one
+      - slug: symmetry-and-puzzles
+        title: "Зеркало, танграм и фигуры из клеток"
+        tasks:
+          - symmetry-and-puzzles/intro
+          - symmetry-and-puzzles/mirror-cell
+          - symmetry-and-puzzles/rectangle-axes
+          - symmetry-and-puzzles/tangram-triangles
+          - symmetry-and-puzzles/small-triangles
+          - symmetry-and-puzzles/pentomino-bars
+      - slug: olympiad-one
+        title: "Олимпиада № 1"
+        tasks:
+          - olympiad-one/intro
+          - olympiad-one/reading
+          - olympiad-one/pattern
+          - olympiad-one/arrangement
+          - olympiad-one/parity
+          - olympiad-one/choices
+          - olympiad-one/pairs
+          - olympiad-one/guarantee
+          - olympiad-one/difference
+          - olympiad-one/geometry
+          - olympiad-one/logic
+  - slug: word-problems
+    title: "Нестандартные текстовые задачи"
+    lessons:
+      - slug: work-backwards
+        title: "Идём с конца"
+        tasks:
+          - work-backwards/intro
+          - work-backwards/chain
+          - work-backwards/bus
+          - work-backwards/half
+          - work-backwards/two-boxes
+          - work-backwards/double
+      - slug: gaps-and-intervals
+        title: "Предметы и промежутки"
+        tasks:
+          - gaps-and-intervals/intro
+          - gaps-and-intervals/fence
+          - gaps-and-intervals/log
+          - gaps-and-intervals/stairs
+          - gaps-and-intervals/clock-strikes
+          - gaps-and-intervals/round-fence
+      - slug: age-and-family
+        title: "Возраст и родственные связи"
+        tasks:
+          - age-and-family/intro
+          - age-and-family/difference
+          - age-and-family/future-age
+          - age-and-family/mother-daughter
+          - age-and-family/two-mothers
+          - age-and-family/brothers
+      - slug: enough-information
+        title: "Лишние данные и недостающие подсказки"
+        tasks:
+          - enough-information/intro
+          - enough-information/extra-number
+          - enough-information/unknown-start
+          - enough-information/which-clue
+          - enough-information/two-ways
+          - enough-information/hidden-count
+  - slug: planning
+    title: "Действия и планирование"
+    lessons:
+      - slug: river-crossings
+        title: "Переправы: проверяем каждый рейс"
+        tasks:
+          - river-crossings/intro
+          - river-crossings/first-trip
+          - river-crossings/second-cargo
+          - river-crossings/two-children
+          - river-crossings/four-friends
+          - river-crossings/wolf-route
+      - slug: water-pouring
+        title: "Переливания: сколько в каждом сосуде?"
+        tasks:
+          - water-pouring/intro
+          - water-pouring/first-pour
+          - water-pouring/remainder
+          - water-pouring/one-liter
+          - water-pouring/four-liters
+          - water-pouring/shortest
+      - slug: balance-scales
+        title: "Чашечные весы"
+        tasks:
+          - balance-scales/intro
+          - balance-scales/fruit-weight
+          - balance-scales/remove-both
+          - balance-scales/three-coins
+          - balance-scales/nine-coins
+          - balance-scales/eight-coins
+      - slug: time-and-calendar
+        title: "Часы и календарь"
+        tasks:
+          - time-and-calendar/intro
+          - time-and-calendar/end-time
+          - time-and-calendar/duration
+          - time-and-calendar/weekday
+          - time-and-calendar/roman
+          - time-and-calendar/month-boundary
+  - slug: games-and-puzzles
+    title: "Игры, стратегии, головоломки"
+    lessons:
+      - slug: winning-moves
+        title: "Играем и думаем за соперника"
+        tasks:
+          - winning-moves/intro
+          - winning-moves/two-stones
+          - winning-moves/three-stones
+          - winning-moves/four-stones
+          - winning-moves/eight-stones
+          - winning-moves/mirror-piles
+      - slug: grids-and-dominoes
+        title: "Сетки, судоку и домино"
+        tasks:
+          - grids-and-dominoes/intro
+          - grids-and-dominoes/sudoku-four
+          - grids-and-dominoes/sudoku-six
+          - grids-and-dominoes/sum-cage
+          - grids-and-dominoes/paths
+          - grids-and-dominoes/domino-set
+          - grids-and-dominoes/domino-chain
+      - slug: coordinates-and-codes
+        title: "Координаты и шифры"
+        tasks:
+          - coordinates-and-codes/intro
+          - coordinates-and-codes/address
+          - coordinates-and-codes/move
+          - coordinates-and-codes/ship
+          - coordinates-and-codes/decode
+          - coordinates-and-codes/shift
+  - slug: graphs-and-space
+    title: "Графы и пространство"
+    lessons:
+      - slug: graphs
+        title: "Города, дороги и схемы"
+        tasks:
+          - graphs/intro
+          - graphs/roads
+          - graphs/neighbors
+          - graphs/shortest-path
+          - graphs/different-paths
+          - graphs/new-road
+      - slug: one-stroke
+        title: "Рисуем одним росчерком"
+        tasks:
+          - one-stroke/intro
+          - one-stroke/triangle
+          - one-stroke/diagonal
+          - one-stroke/branches
+          - one-stroke/house
+          - one-stroke/house-diagonal
+      - slug: cubes
+        title: "Куб: грани, развёртка и виды"
+        tasks:
+          - cubes/intro
+          - cubes/opposite
+          - cubes/other-opposite
+          - cubes/count-blocks
+          - cubes/top-view
+          - cubes/strip-net
+      - slug: chess
+        title: "Шахматные ходы и раскраска"
+        tasks:
+          - chess/intro
+          - chess/rook-corner
+          - chess/bishop-corner
+          - chess/knight-corner
+          - chess/knight-center
+          - chess/domino-color
+  - slug: finish
+    title: "Финиш: собираем все способы"
+    lessons:
+      - slug: year-mix
+        title: "Микс года: выбираем способ"
+        tasks:
+          - year-mix/intro
+          - year-mix/sets
+          - year-mix/pattern
+          - year-mix/guarantee
+          - year-mix/symmetry
+          - year-mix/backwards
+          - year-mix/calendar
+          - year-mix/strategy
+          - year-mix/cube
+      - slug: olympiad-two
+        title: "Олимпиада № 2"
+        tasks:
+          - olympiad-two/intro
+          - olympiad-two/reading
+          - olympiad-two/pattern
+          - olympiad-two/arrangement
+          - olympiad-two/parity
+          - olympiad-two/choices
+          - olympiad-two/pairs
+          - olympiad-two/guarantee
+          - olympiad-two/difference
+          - olympiad-two/geometry
+          - olympiad-two/logic

@@ -1,0 +1,33 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Из цифр 1, 2 и 3 составь двузначные числа. В одном числе цифры не повторяются. Сколько таких чисел?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "4"
+    - id: 2
+      text: "5"
+    - id: 3
+      text: "7"
+    - id: 4
+      text: "6"
+      correct: true
+    - id: 5
+      text: "8"
+points: 2
+classification:
+- subject: math
+  concept: counting
+- subject: math
+  concept: arrangements
+learning:
+  hint:
+    text: >-
+      Перебирай по первой цифре: ставь первой каждую цифру по очереди и выписывай все подходящие вторые.
+explanation:
+  text: |
+    С первой цифрой 1 получатся 12 и 13; с цифрой 2 — 21 и 23; с цифрой 3 — 31 и 32. Всего 6 чисел. Так учтён каждый возможный первый знак.

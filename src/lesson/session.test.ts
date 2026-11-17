@@ -18,7 +18,7 @@ const question = (id: string, correct: number[], answerKind: QuestionCard["answe
 const lesson: Lesson = {
   slug: "l",
   title: "L",
-  cards: [{ id: "th", kind: "theory", title: "T", body: "" }, question("q1", [2]), question("q2", [1, 3], "multi")],
+  cards: [{ id: "th", kind: "theory", title: "T", body: "", blocks: [] }, question("q1", [2]), question("q2", [1, 3], "multi")],
 };
 
 const run = (state: State, ...actions: Action[]) => actions.reduce((s, a) => reduce(lesson, s, a), state);

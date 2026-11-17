@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    Фишка стоит в столбце В, во втором ряду снизу. Как записать адрес её клетки?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: Б2
+    - id: 2
+      text: В2
+      correct: true
+    - id: 3
+      text: В3
+    - id: 4
+      text: Г2
+    - id: 5
+      text: А2
+points: 1
+classification:
+- subject: math
+  concept: coordinates-vectors
+learning:
+  hint:
+    text: >-
+      Адрес клетки записывают так: сначала букву столбца, потом номер ряда, считая снизу.
+explanation:
+  text: |
+    Сначала запиши букву столбца В, затем номер ряда 2. Получится В2.

@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    В верхнем ряду таблицы стоят 2 и неизвестное число. В нижнем — 5 и 1. Суммы двух рядов равны. Какое число пропущено?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "2"
+    - id: 2
+      text: "3"
+    - id: 3
+      text: "5"
+    - id: 4
+      text: "4"
+      correct: true
+    - id: 5
+      text: "6"
+points: 2
+classification:
+- subject: math
+  concept: magic-squares
+learning:
+  hint:
+    text: >-
+      Найди сумму того ряда, где известны оба числа. В другом ряду должно получиться столько же: подумай, что нужно добавить к числу, которое там уже стоит.
+explanation:
+  text: |
+    Сумма нижнего ряда: 5 + 1 = 6. В верхнем ряду уже стоит 2. Не хватает 6 − 2 = 4. Проверка: 2 + 4 = 5 + 1.

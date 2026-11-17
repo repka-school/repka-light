@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    На одной стороне числового треугольника три кружка: в концах стоят 2 и 4, в середине — неизвестное число. Сумма трёх чисел на этой стороне равна 9. Какое число в середине?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "1"
+    - id: 2
+      text: "2"
+    - id: 3
+      text: "3"
+      correct: true
+    - id: 4
+      text: "4"
+    - id: 5
+      text: "5"
+points: 1
+classification:
+- subject: math
+  concept: magic-squares
+learning:
+  hint:
+    text: >-
+      Сложи числа в концах стороны, а потом узнай, сколько не хватает до суммы всей стороны.
+explanation:
+  text: |
+    В концах уже есть 2 + 4 = 6. В средний кружок нужно добавить 9 − 6 = 3. Проверка: 2 + 3 + 4 = 9.

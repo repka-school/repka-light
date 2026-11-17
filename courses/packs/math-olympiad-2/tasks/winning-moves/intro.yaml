@@ -1,0 +1,31 @@
+kind: theory
+status: active
+learning:
+  title: Думай за двоих
+  subject: math
+blocks:
+- kind: says
+  text: В игре мало придумать свой ход. Подумай, чем ответит соперник!
+- kind: facts
+  title: Игра в камни
+  items:
+  - picture: stones
+    title: Ходят по очереди
+    text: За ход берут 1 или 2 камня.
+  - picture: medal
+    title: Последний камень
+    text: Кто его взял, тот и выиграл.
+- kind: steps
+  items:
+  - picture: magnifier
+    title: Начни с малого
+    text: Пусть камней совсем мало. Кому достанется последний ход?
+  - picture: swap
+    title: Проверь ответ соперника
+    text: Что он сделает после твоего хода?
+- kind: tip
+  picture: reread
+  text: В задаче другие правила? Сначала прочитай их.
+- kind: try
+  text: На столе 1 камень, и сейчас твой ход. Кто выиграет?
+  answer: Ты! Берёшь камень, и он последний.

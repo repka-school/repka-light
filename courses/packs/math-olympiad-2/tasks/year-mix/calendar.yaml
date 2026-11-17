@@ -1,0 +1,33 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Сегодня среда. Какой день недели будет через 16 дней?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: Среда
+    - id: 2
+      text: Пятница
+      correct: true
+    - id: 3
+      text: Четверг
+    - id: 4
+      text: Суббота
+    - id: 5
+      text: Воскресенье
+points: 2
+classification:
+- subject: math
+  concept: time-and-measures
+- subject: math
+  concept: remainders
+learning:
+  hint:
+    text: >-
+      Через каждые 7 дней снова наступает тот же день недели. Отсчитай столько целых недель, сколько помещается, а оставшиеся дни досчитай по одному.
+explanation:
+  text: |
+    Две недели — это 7 + 7 = 14 дней, снова среда. Ещё два дня — четверг и пятница.

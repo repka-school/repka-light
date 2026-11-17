@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    Рыцарь всегда говорит правду, а лжец — неправду. На столе лежат ровно 3 кубика. Тим говорит: «На столе 5 кубиков». Кто Тим?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: Лжец
+      correct: true
+    - id: 2
+      text: Рыцарь
+    - id: 3
+      text: И рыцарь, и лжец
+    - id: 4
+      text: Ни рыцарь, ни лжец
+    - id: 5
+      text: По условию узнать нельзя
+points: 1
+classification:
+- subject: math
+  concept: truth-and-lies
+learning:
+  hint:
+    text: >-
+      Сравни слова Тима с тем, что на самом деле лежит на столе. Он сказал правду или неправду? А кто говорит такие слова?
+explanation:
+  text: |
+    Кубиков 3, а не 5. Значит, слова Тима неверны. По правилам задачи Тим — лжец.

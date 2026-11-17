@@ -1,0 +1,33 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    У этой постройки весь нижний слой — квадрат 2 на 2 кубика. Один кубик стоит сверху на одном из нижних. Сколько квадратных мест занимает вид постройки сверху?
+  images:
+    - file: images/five-cubes.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "2"
+    - id: 2
+      text: "3"
+    - id: 3
+      text: "5"
+    - id: 4
+      text: "6"
+    - id: 5
+      text: "4"
+      correct: true
+points: 2
+classification:
+- subject: math
+  concept: spatial-reasoning
+learning:
+  hint:
+    text: >-
+      Вид сверху показывает места на столе, над которыми есть кубики, а не число кубиков. Подумай, над каким местом стоит верхний кубик.
+explanation:
+  text: |
+    Сверху видны четыре места нижнего квадрата. Верхний кубик занимает одно из тех же мест и не расширяет постройку. Поэтому мест 4, хотя кубиков 5.

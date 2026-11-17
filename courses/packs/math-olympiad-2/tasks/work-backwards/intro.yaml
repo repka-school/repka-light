@@ -1,0 +1,25 @@
+kind: theory
+status: active
+learning:
+  title: Отмотай назад
+  subject: math
+blocks:
+- kind: says
+  text: Известно, чем всё закончилось, а начало потерялось? Отмотай историю назад, как мультфильм!
+- kind: steps
+  items:
+  - picture: rewind
+    title: Начни с результата
+    text: Последнее действие отменяй первым.
+  - picture: plusminus
+    title: Делай наоборот
+    text: Прибавили — вычти. Вычли — прибавь.
+  - picture: pairs
+    title: Делили на две равные кучки?
+    text: Собери обе обратно.
+  - picture: check
+    title: Проверь
+    text: Пройди все действия вперёд.
+- kind: try
+  text: Задумали число, прибавили 3 и получили 10. Какое число задумали?
+  answer: '7. Отменяем действие: 10 − 3 = 7.'

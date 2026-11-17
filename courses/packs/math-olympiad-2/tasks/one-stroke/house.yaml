@@ -1,0 +1,33 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Домик на рисунке нужно обвести одним росчерком без повторения линий. Из каких отмеченных точек можно начать?
+  images:
+    - file: images/house-route.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: Из 1 или 2
+    - id: 2
+      text: Только из 5
+    - id: 3
+      text: Из любой точки
+    - id: 4
+      text: Такого пути нет
+    - id: 5
+      text: Из 3 или 4
+      correct: true
+points: 2
+classification:
+- subject: math
+  concept: graphs
+learning:
+  hint:
+    text: >-
+      Посчитай, сколько линий сходится в каждой отмеченной точке. Если в точке нечётное число линий, росчерк должен в ней начаться или закончиться.
+explanation:
+  text: |
+    У точек 3 и 4 по три линии, у остальных по две. Подходит путь 4 → 1 → 2 → 3 → 4 → 5 → 3. Обратный путь начинается в 3.

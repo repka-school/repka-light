@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    На замкнутой круглой ограде стоят 8 столбов. Между каждыми соседними столбами одна секция, в том числе между последним и первым. Сколько секций?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "6"
+    - id: 2
+      text: "7"
+    - id: 3
+      text: "9"
+    - id: 4
+      text: "10"
+    - id: 5
+      text: "8"
+      correct: true
+points: 2
+classification:
+- subject: math
+  concept: objects-and-gaps
+learning:
+  hint:
+    text: >-
+      Нарисуй столбы точками по кругу и соедини соседние. Сравни, сколько промежутков и сколько точек: в круге получается не так, как в прямом ряду.
+explanation:
+  text: |
+    Вдоль ряда из 8 столбов было бы 7 секций. Чтобы замкнуть круг, добавь секцию от последнего к первому: 7 + 1 = 8.

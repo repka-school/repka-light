@@ -1,0 +1,25 @@
+kind: theory
+status: active
+learning:
+  title: Что между столбами?
+  subject: math
+blocks:
+- kind: says
+  text: Между предметами есть промежутки. Их легко перепутать с самими предметами!
+- kind: facts
+  items:
+  - picture: posts
+    title: Столбы в ряд
+    text: У пяти столбов четыре промежутка.
+  - picture: log
+    title: Распил
+    text: Каждый новый разрез одного куска добавляет ещё один кусок.
+  - picture: bell
+    title: Удары часов
+    text: Считай паузы между ударами, а не сами удары.
+- kind: tip
+  picture: pencil
+  text: Рисуй предметы точками, а промежутки — линиями между ними.
+- kind: try
+  text: На руке 5 пальцев. Сколько промежутков между ними?
+  answer: 4. Посмотри на свою руку и проверь!

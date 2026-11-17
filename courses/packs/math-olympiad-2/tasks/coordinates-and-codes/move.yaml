@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Столбцы А, Б, В, Г идут слева направо, ряды 1–4 снизу вверх. Из клетки Б2 фишка сделала два шага вправо и один вверх. Где она?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: В3
+    - id: 2
+      text: Г1
+    - id: 3
+      text: Г3
+      correct: true
+    - id: 4
+      text: Б3
+    - id: 5
+      text: А3
+points: 2
+classification:
+- subject: math
+  concept: coordinates-vectors
+learning:
+  hint:
+    text: >-
+      Делай шаги по одному: шаг вправо меняет букву столбца, шаг вверх меняет номер ряда.
+explanation:
+  text: |
+    Два шага вправо: Б2 → В2 → Г2. Один вверх: Г2 → Г3. Конечная клетка — Г3.

@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    На пустой доске 8 на 8 слон стоит на a1. На сколько клеток он может пойти за один ход?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "5"
+    - id: 2
+      text: "6"
+    - id: 3
+      text: "7"
+      correct: true
+    - id: 4
+      text: "8"
+    - id: 5
+      text: "9"
+points: 1
+classification:
+- subject: math
+  concept: counting
+learning:
+  hint:
+    text: >-
+      Слон ходит только по диагонали. Найди диагонали, которые идут из угла внутрь доски, и пройди по ним клетка за клеткой до края.
+explanation:
+  text: |
+    Из угла внутрь доски идёт одна диагональ: b2, c3, d4, e5, f6, g7, h8. Это 7 клеток.

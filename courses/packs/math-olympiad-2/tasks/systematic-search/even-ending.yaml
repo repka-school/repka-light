@@ -1,0 +1,33 @@
+status: active
+difficulty: hard
+question:
+  text: |
+    Из цифр 1, 2, 3 и 4 составляют двузначные числа без повторения цифр. Сколько из них чётные?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "4"
+    - id: 2
+      text: "5"
+    - id: 3
+      text: "7"
+    - id: 4
+      text: "8"
+    - id: 5
+      text: "6"
+      correct: true
+points: 3
+classification:
+- subject: math
+  concept: counting
+- subject: math
+  concept: parity
+learning:
+  hint:
+    text: >-
+      Чётность числа зависит только от последней цифры. Сначала выбери последнюю цифру, потом перебери, какой может быть первая.
+explanation:
+  text: |
+    Чётное число должно заканчиваться на 2 или 4. На 2 заканчиваются 12, 32, 42. На 4 — 14, 24, 34. Всего 3 + 3 = 6 чисел.

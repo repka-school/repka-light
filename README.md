@@ -32,7 +32,7 @@ npm run preview    # serves dist/
 | `src/strings.ts` | Every user-visible string. The interface is in Russian. |
 | `docs/style-guide.md` | Type scale, colours, components and how the copy is written. |
 
-Routes are plain paths (`/course/olympiad-2`) under the path the site is
+Routes are plain paths (`/course/math-olympiad-2`) under the path the site is
 served from. A static host has no file for most of them, so the build also
 writes `404.html`, a copy of the page: GitHub Pages serves it for any address
 it does not know, and the app shows the right screen.
@@ -66,10 +66,58 @@ A question has `single` or `multi` choice options, one or more marked
 `correct`, and optionally a hint and a worked solution. `answer.hide: true`
 keeps the options hidden until the learner asks for them.
 
+A theory card (`kind: theory`) opens a lesson. Its title is `learning.title`.
+It shows plain text or markup from `question`, a list of `blocks`, or both.
+Blocks make a card a young learner will read: short lines with a drawing each,
+and something to try.
+
+```yaml
+kind: theory
+status: active
+learning:
+  title: Читай как сыщик
+blocks:
+  - kind: says            # the guide says it, in a speech bubble
+    text: В задачах прячутся ловушки.
+  - kind: steps           # numbered steps, each with a drawing
+    items:
+      - picture: reread
+        title: Прочитай два раза
+        text: Представь, что происходит.
+  - kind: facts           # the same rows without numbers: rules, not an order
+    title: Каждый герой — рыцарь или лжец
+    items:
+      - picture: shield
+        title: Рыцарь
+        text: Всегда говорит правду.
+  - kind: tiles           # things side by side
+    title: Что поможет
+    items:
+      - picture: pencil
+        title: Рисуй
+  - kind: image           # a picture of the pack, opened full-size on a click
+    file: images/sets-regions.png
+  - kind: try             # a riddle; the answer opens on a button
+    title: Разминка       # optional, «Попробуй» when absent
+    text: У листа бумаги 4 угла. Один уголок отрезали. Сколько углов стало?
+    answer: 5 углов!
+    picture: corner       # optional, shown with the answer
+  - kind: tip             # one line with a drawing
+    picture: cup
+    text: Хочется отдохнуть? Сделай перерыв.
+```
+
+Block text is plain. The `title` of `steps`, `facts` and `tiles` and the
+`text` of their items are optional. A `picture` is the name of one of the
+drawings in `src/ui/pictures/TheoryPicture.tsx` (`book`, `magnifier`, `check`,
+`pencil`, `scales`, `clock`, …). A new drawing is added there and to
+`THEORY_PICTURES` in the content build; a test keeps the two lists equal.
+
 The build writes only what a lesson shows: task text, options, the right
 answer, hint and solution. Other fields of a task file are not published. It
-fails on a missing task or picture, a question without a right answer, and
-markup outside a small allowed set of tags.
+fails on a missing task or picture, a question without a right answer, a
+theory block it does not know or one that names an unknown drawing, and markup
+outside a small allowed set of tags.
 
 Answers are checked in the browser, so the right answers are in the published
 files.
@@ -83,11 +131,11 @@ One key, `repka-light.v1`:
   "version": 1,
   "profile": { "name": "Маша", "avatar": "kitten", "frame": "stars" },
   "results": {
-    "olympiad-2/reading/sweets": { "outcome": "first", "choices": [3], "at": "2026-01-01T10:00:00.000Z" }
+    "math-olympiad-2/reading/sweets": { "outcome": "first", "choices": [3], "at": "2026-01-01T10:00:00.000Z" }
   },
   "runs": {
-    "olympiad-2/read-carefully": {
-      "cards": ["olympiad-2/reading/read-twice", "olympiad-2/reading/sweets"],
+    "math-olympiad-2/read-carefully": {
+      "cards": ["math-olympiad-2/reading/read-twice", "math-olympiad-2/reading/sweets"],
       "index": 1,
       "phase": "solving",
       "entries": [

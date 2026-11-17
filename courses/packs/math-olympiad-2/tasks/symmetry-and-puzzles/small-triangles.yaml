@@ -1,0 +1,35 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Две маленькие треугольные детали танграма — 3 и 5. Если соединить их самыми длинными сторонами, какая фигура получится?
+  images:
+    - file: images/tangram-seven.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: Круг
+    - id: 2
+      text: Пятиугольник
+    - id: 3
+      text: Шестиугольник
+    - id: 4
+      text: Квадрат
+      correct: true
+    - id: 5
+      text: Прямая линия
+points: 2
+classification:
+- subject: math
+  concept: grid-geometry
+- subject: math
+  concept: quadrilaterals-polygons
+learning:
+  hint:
+    text: >-
+      Найди на рисунке детали 3 и 5: одинаковые ли они и где у них прямой угол? Представь, что прикладываешь их друг к другу длинными сторонами, и посчитай стороны и углы.
+explanation:
+  text: |
+    Оба маленьких треугольника одинаковые, с прямым углом. Поверни один и соедини длинные стороны. Снаружи получатся четыре равные стороны и четыре прямых угла — квадрат.

@@ -1,0 +1,31 @@
+status: active
+difficulty: hard
+question:
+  text: |
+    В двух коробках 18 карандашей. В первой на 4 больше, чем во второй. Сколько во второй?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "5"
+    - id: 2
+      text: "6"
+    - id: 3
+      text: "7"
+      correct: true
+    - id: 4
+      text: "8"
+    - id: 5
+      text: "9"
+points: 3
+classification:
+- subject: math
+  concept: sum-difference
+learning:
+  hint:
+    text: >-
+      Если убрать из первой коробки лишние карандаши, в коробках станет поровну. Подумай, сколько карандашей тогда останется всего и как узнать, сколько в каждой коробке.
+explanation:
+  text: |
+    Убери из первой коробки лишние 4: останется 14 поровну в двух коробках, то есть по 7. Проверка: 7 и 11 вместе дают 18, разница 4.

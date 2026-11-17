@@ -1,0 +1,35 @@
+status: active
+difficulty: hard
+question:
+  text: |
+    Сколько прямоугольников всех размеров на рисунке? Квадраты тоже считай прямоугольниками.
+  images:
+    - file: images/four-squares.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "7"
+    - id: 2
+      text: "8"
+    - id: 3
+      text: "10"
+    - id: 4
+      text: "9"
+      correct: true
+    - id: 5
+      text: "11"
+points: 3
+classification:
+- subject: math
+  concept: counting
+- subject: math
+  concept: grid-geometry
+learning:
+  hint:
+    text: >-
+      Считай прямоугольники по размерам: из одной клетки, из двух клеток лёжа, из двух клеток стоя, из всех клеток сразу.
+explanation:
+  text: |
+    Есть 4 маленьких квадрата, 2 прямоугольника из двух клеток по горизонтали, 2 по вертикали и 1 большой квадрат. Всего 4 + 2 + 2 + 1 = 9.

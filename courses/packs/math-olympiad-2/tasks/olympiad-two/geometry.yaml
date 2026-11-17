@@ -1,0 +1,35 @@
+status: active
+difficulty: hard
+question:
+  text: |
+    Сколько квадратов всех размеров на рисунке? Стороны идут по линиям сетки.
+  images:
+    - file: images/grid-4-by-2.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "9"
+    - id: 2
+      text: "10"
+    - id: 3
+      text: "11"
+      correct: true
+    - id: 4
+      text: "12"
+    - id: 5
+      text: "13"
+points: 3
+classification:
+- subject: math
+  concept: grid-geometry
+- subject: math
+  concept: counting
+learning:
+  hint:
+    text: >-
+      Считай квадраты по размерам: сначала маленькие в одну клетку, потом со стороной в две клетки. Квадрат в две клетки двигай по рисунку на одну клетку и следи, сколько положений у него есть.
+explanation:
+  text: |
+    Маленьких квадратов 4 + 4 = 8. Со стороной в две клетки — 3: слева, посередине, справа. Квадратов большего размера нет. Всего 8 + 3 = 11.

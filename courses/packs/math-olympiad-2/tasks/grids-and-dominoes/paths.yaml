@@ -1,0 +1,33 @@
+status: active
+difficulty: hard
+question:
+  text: |
+    От нижнего левого угла квадрата 2 на 2 клетки нужно дойти до верхнего правого по линиям сетки. За шаг идёшь на одну клетку вправо или вверх. Сколько разных путей?
+  images:
+    - file: images/four-squares.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "4"
+    - id: 2
+      text: "5"
+    - id: 3
+      text: "7"
+    - id: 4
+      text: "6"
+      correct: true
+    - id: 5
+      text: "8"
+points: 3
+classification:
+- subject: math
+  concept: counting
+learning:
+  hint:
+    text: >-
+      Подпиши у каждого узла сетки, сколькими путями в него можно прийти. В узел приходят только слева или снизу, поэтому складывай числа этих двух соседей.
+explanation:
+  text: |
+    Нужно два шага вправо и два вверх. Выпиши порядки: ВВПП, ВПВП, ВППВ, ПВВП, ПВПВ, ППВВ, где В — вверх, П — вправо. Всего 6.

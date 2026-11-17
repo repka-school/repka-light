@@ -1,0 +1,33 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    Сколько дорог выходит из города 3 на схеме?
+  images:
+    - file: images/roads-five.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "2"
+    - id: 2
+      text: "3"
+    - id: 3
+      text: "4"
+      correct: true
+    - id: 4
+      text: "5"
+    - id: 5
+      text: "6"
+points: 1
+classification:
+- subject: math
+  concept: graphs
+learning:
+  hint:
+    text: >-
+      Найди на схеме город 3 и обведи пальцем по очереди каждую линию, которая из него выходит. Посчитай эти линии.
+explanation:
+  text: |
+    Из города 3 можно сразу попасть в города 1, 2, 4 и 5. Значит, из него выходят 4 дороги.

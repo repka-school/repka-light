@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Мультфильм начался в 10:45, а закончился в 11:10. Сколько минут он длился?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "23"
+    - id: 2
+      text: "25"
+      correct: true
+    - id: 3
+      text: "24"
+    - id: 4
+      text: "26"
+    - id: 5
+      text: "27"
+points: 2
+classification:
+- subject: math
+  concept: time-and-measures
+learning:
+  hint:
+    text: >-
+      Раздели время на два отрезка: сначала до ровного часа, потом от ровного часа до конца мультфильма.
+explanation:
+  text: |
+    От 10:45 до 11:00 прошло 15 минут. Потом ещё 10 минут. Всего 15 + 10 = 25.

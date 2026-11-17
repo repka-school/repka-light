@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    У Веры было 11 наклеек. Четыре она подарила брату, две — подруге. Сколько наклеек Вера подарила?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "4"
+    - id: 2
+      text: "5"
+    - id: 3
+      text: "7"
+    - id: 4
+      text: "8"
+    - id: 5
+      text: "6"
+      correct: true
+points: 1
+classification:
+- subject: math
+  concept: whole-number-operations
+learning:
+  hint:
+    text: >-
+      Прочитай вопрос ещё раз: спрашивают, сколько наклеек осталось или сколько подарено? Выбери из условия только те числа, которые для этого нужны.
+explanation:
+  text: |
+    Сложи подаренные наклейки: 4 + 2 = 6. Число 11 понадобилось бы, если бы спрашивали, сколько осталось.

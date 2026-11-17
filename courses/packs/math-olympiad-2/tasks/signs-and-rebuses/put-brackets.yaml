@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    В записи 8 − 3 + 2 нужно поставить одну пару скобок, не меняя числа и знаки. Какой результат можно получить?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "1"
+    - id: 2
+      text: "2"
+    - id: 3
+      text: "3"
+      correct: true
+    - id: 4
+      text: "4"
+    - id: 5
+      text: "6"
+points: 2
+classification:
+- subject: math
+  concept: calculation-tricks
+learning:
+  hint:
+    text: >-
+      Одну пару скобок здесь можно поставить только двумя способами. Посчитай обе записи и сравни результаты с вариантами.
+explanation:
+  text: |
+    Если поставить скобки вокруг 3 + 2, получится 8 − (3 + 2) = 8 − 5 = 3. Скобки вокруг 8 − 3 дали бы 7, такого ответа среди вариантов нет.

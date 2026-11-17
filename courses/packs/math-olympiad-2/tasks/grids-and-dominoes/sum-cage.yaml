@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    В головоломке используют числа 1, 2 и 3. Сумма двух клеток, стоящих друг над другом, равна 4. В нижней клетке стоит 1. Какое число в верхней?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "0"
+    - id: 2
+      text: "1"
+    - id: 3
+      text: "3"
+      correct: true
+    - id: 4
+      text: "2"
+    - id: 5
+      text: "4"
+points: 1
+classification:
+- subject: math
+  concept: magic-squares
+learning:
+  hint:
+    text: >-
+      Сумма двух клеток известна, и одно слагаемое тоже известно. Вспомни, как найти неизвестное слагаемое, и проверь, разрешено ли получившееся число.
+explanation:
+  text: |
+    До суммы 4 нижней единице не хватает 3. Проверка: 3 + 1 = 4. Число 3 разрешено правилами.

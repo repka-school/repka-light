@@ -1,0 +1,33 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Есть карточки с цифрами 0, 1 и 2. Составь двузначные числа из двух разных карточек. Ноль не может быть первым. Сколько чисел получится?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "2"
+    - id: 2
+      text: "3"
+    - id: 3
+      text: "5"
+    - id: 4
+      text: "6"
+    - id: 5
+      text: "4"
+      correct: true
+points: 2
+classification:
+- subject: math
+  concept: arrangements
+- subject: math
+  concept: digits-and-numeral-systems
+learning:
+  hint:
+    text: >-
+      Выбери, какая карточка стоит первой (ноль не годится), и для каждой такой выпиши все числа со второй, другой карточкой.
+explanation:
+  text: |
+    Первой может быть 1: получатся 10 и 12. Или 2: получатся 20 и 21. Записи 01 и 02 не двузначные числа. Всего 4 варианта.

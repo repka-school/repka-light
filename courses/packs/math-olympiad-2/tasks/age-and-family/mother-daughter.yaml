@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    Маме 32 года, дочери 8. Через сколько лет дочери исполнится 12?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "2"
+    - id: 2
+      text: "3"
+    - id: 3
+      text: "4"
+      correct: true
+    - id: 4
+      text: "5"
+    - id: 5
+      text: "6"
+points: 1
+classification:
+- subject: math
+  concept: ages-and-relations
+learning:
+  hint:
+    text: >-
+      Реши, какие числа из условия нужны для вопроса про дочь, а какие лишние. Сколько лет ей расти от нынешнего возраста до нужного?
+explanation:
+  text: |
+    Дочери нужно вырасти с 8 до 12: 12 − 8 = 4 года. Возраст мамы для этого вопроса не нужен.

@@ -1,0 +1,33 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    По дороге можно идти в обе стороны. Какое наименьшее число дорог нужно пройти из города 2 в город 5?
+  images:
+    - file: images/roads-five.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "0"
+    - id: 2
+      text: "1"
+    - id: 3
+      text: "3"
+    - id: 4
+      text: "2"
+      correct: true
+    - id: 5
+      text: "4"
+points: 2
+classification:
+- subject: math
+  concept: graphs
+learning:
+  hint:
+    text: >-
+      Выпиши, в какие города можно попасть из города 2 по одной дороге, потом — по двум, и так дальше, пока не встретишь город 5.
+explanation:
+  text: |
+    Иди 2 → 3 → 5. Это две дороги. Прямой дороги из 2 в 5 нет, поэтому за одну дорогу добраться нельзя.

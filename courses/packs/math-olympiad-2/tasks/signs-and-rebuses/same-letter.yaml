@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    В ребусе А + А = 8 буква А заменяет одну цифру. Какую?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "2"
+    - id: 2
+      text: "3"
+    - id: 3
+      text: "5"
+    - id: 4
+      text: "4"
+      correct: true
+    - id: 5
+      text: "6"
+points: 1
+classification:
+- subject: math
+  concept: number-rebuses
+learning:
+  hint:
+    text: >-
+      Одинаковые буквы обозначают одинаковые цифры. Подумай, на какие две равные части делится сумма.
+explanation:
+  text: |
+    Нужно найти два одинаковых числа с суммой 8. Это 4 и 4: 4 + 4 = 8. Значит, А = 4.

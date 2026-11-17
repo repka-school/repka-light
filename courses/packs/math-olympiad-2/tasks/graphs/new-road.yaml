@@ -1,0 +1,33 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    На схеме хотят добавить прямую дорогу из города 2 в город 5. Сколько дорог станет всего?
+  images:
+    - file: images/roads-five.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "7"
+      correct: true
+    - id: 2
+      text: "5"
+    - id: 3
+      text: "6"
+    - id: 4
+      text: "8"
+    - id: 5
+      text: "9"
+points: 1
+classification:
+- subject: math
+  concept: graphs
+learning:
+  hint:
+    text: >-
+      Сначала посчитай, сколько дорог на схеме сейчас, отмечая каждую линию, чтобы не посчитать её дважды. Потом подумай, что изменит новая дорога.
+explanation:
+  text: |
+    Сейчас дорог 6. Новая дорога 2–5 не повторяет ни одну из них. После добавления будет 6 + 1 = 7.

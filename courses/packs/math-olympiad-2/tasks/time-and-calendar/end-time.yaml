@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    Занятие началось в 9:20 и длилось 35 минут. Во сколько оно закончилось?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "9:55"
+      correct: true
+    - id: 2
+      text: "9:45"
+    - id: 3
+      text: "9:50"
+    - id: 4
+      text: "10:05"
+    - id: 5
+      text: "10:20"
+points: 1
+classification:
+- subject: math
+  concept: time-and-measures
+learning:
+  hint:
+    text: >-
+      Прибавь минуты занятия к минутам начала и проверь, не перешло ли время через ровный час.
+explanation:
+  text: |
+    К 20 минутам прибавь 35: получится 55 минут. До конца часа ещё не дошли, поэтому время 9:55.

@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    У Даши есть брат Коля. У Коли есть сестра Маша, которая не Даша. Все трое — дети одной мамы и одного папы. Других детей в семье нет. Кто Маша для Даши?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: Мама
+    - id: 2
+      text: Тётя
+    - id: 3
+      text: Бабушка
+    - id: 4
+      text: По условию узнать нельзя
+    - id: 5
+      text: Сестра
+      correct: true
+points: 2
+classification:
+- subject: math
+  concept: ages-and-relations
+learning:
+  hint:
+    text: >-
+      Нарисуй эту семью: маму, папу и всех их детей. Найди на рисунке Дашу и Машу и посмотри, кто они друг другу.
+explanation:
+  text: |
+    Даша и Маша — две сестры Коли в одной семье. Значит, они сёстры друг другу. В семье трое детей: Даша, Коля и Маша.

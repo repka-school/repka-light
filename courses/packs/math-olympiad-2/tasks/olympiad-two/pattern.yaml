@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    В ряду каждое следующее число на 4 больше: 2, 6, 10, … Какое число следующее?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "14"
+      correct: true
+    - id: 2
+      text: "12"
+    - id: 3
+      text: "13"
+    - id: 4
+      text: "15"
+    - id: 5
+      text: "16"
+points: 1
+classification:
+- subject: math
+  concept: patterns
+learning:
+  hint:
+    text: >-
+      Шаг ряда всё время одинаковый. Прибавь этот шаг к последнему числу ряда.
+explanation:
+  text: |
+    Прибавь к 10 ещё 4: 10 + 4 = 14.

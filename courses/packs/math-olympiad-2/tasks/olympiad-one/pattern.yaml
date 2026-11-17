@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    В ряду каждое следующее число на 3 больше: 3, 6, 9, … Какое число следующее?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "10"
+    - id: 2
+      text: "12"
+      correct: true
+    - id: 3
+      text: "11"
+    - id: 4
+      text: "13"
+    - id: 5
+      text: "14"
+points: 1
+classification:
+- subject: math
+  concept: patterns
+learning:
+  hint:
+    text: >-
+      Шаг ряда всё время одинаковый. Прибавь этот шаг к последнему числу ряда.
+explanation:
+  text: |
+    Прибавь к 9 ещё 3: 9 + 3 = 12.

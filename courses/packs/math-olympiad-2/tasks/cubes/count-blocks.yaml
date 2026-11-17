@@ -1,0 +1,33 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    В нижнем слое постройки заполнены все 4 места квадрата 2 на 2. Сверху стоит ещё один кубик, как на рисунке. Сколько всего кубиков?
+  images:
+    - file: images/five-cubes.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "3"
+    - id: 2
+      text: "4"
+    - id: 3
+      text: "6"
+    - id: 4
+      text: "5"
+      correct: true
+    - id: 5
+      text: "7"
+points: 1
+classification:
+- subject: math
+  concept: spatial-reasoning
+learning:
+  hint:
+    text: >-
+      Считай кубики по слоям: сначала нижний, потом верхний. Помни, что часть кубика может быть скрыта за другими.
+explanation:
+  text: |
+    Внизу 4 кубика, даже если часть одного скрыта. Наверху ещё 1. Всего 4 + 1 = 5.

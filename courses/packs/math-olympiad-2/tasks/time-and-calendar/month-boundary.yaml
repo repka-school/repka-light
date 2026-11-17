@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    30 апреля — понедельник. В апреле 30 дней. Какая дата и день недели будут через 3 дня?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: 2 мая, среда
+    - id: 2
+      text: 3 мая, среда
+    - id: 3
+      text: 2 мая, четверг
+    - id: 4
+      text: 33 апреля, четверг
+    - id: 5
+      text: 3 мая, четверг
+      correct: true
+points: 2
+classification:
+- subject: math
+  concept: time-and-measures
+learning:
+  hint:
+    text: >-
+      Шагай по одному дню. Помни, что после последнего дня апреля начинается май, а дни недели идут по кругу.
+explanation:
+  text: |
+    Через день будет 1 мая, вторник. Через два — 2 мая, среда. Через три — 3 мая, четверг.

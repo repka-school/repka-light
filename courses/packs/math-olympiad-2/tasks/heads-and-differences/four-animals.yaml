@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Во дворе куры и кролики: всего 4 головы и 10 ног. У курицы 2 ноги, у кролика 4. Сколько кроликов?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "1"
+      correct: true
+    - id: 2
+      text: "0"
+    - id: 3
+      text: "2"
+    - id: 4
+      text: "3"
+    - id: 5
+      text: "4"
+points: 2
+classification:
+- subject: math
+  concept: sum-difference
+learning:
+  hint:
+    text: >-
+      Представь, что все животные — куры, и посчитай их ноги. Потом подумай, на сколько ног станет больше, если одну курицу заменить кроликом.
+explanation:
+  text: |
+    Если бы все 4 животных были курами, ног было бы 2 + 2 + 2 + 2 = 8. Нужно ещё 2 ноги. Одна замена курицы кроликом добавляет как раз 2 ноги. Значит, кролик один.

@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    Задумали число, прибавили 4, затем вычли 3 и получили 12. Какое число задумали?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "11"
+      correct: true
+    - id: 2
+      text: "9"
+    - id: 3
+      text: "10"
+    - id: 4
+      text: "12"
+    - id: 5
+      text: "13"
+points: 1
+classification:
+- subject: math
+  concept: backward-reasoning
+learning:
+  hint:
+    text: >-
+      Начни с полученного числа и отменяй действия в обратном порядке: вместо вычитания прибавляй, вместо прибавления вычитай.
+explanation:
+  text: |
+    Верни последние 3: 12 + 3 = 15. Отмени прибавление 4: 15 − 4 = 11. Проверка: 11 + 4 − 3 = 12.

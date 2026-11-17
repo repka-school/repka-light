@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    В одном прямом ряду стоят 6 столбов. Между каждыми соседними столбами — одна секция забора. Сколько секций?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "5"
+      correct: true
+    - id: 2
+      text: "3"
+    - id: 3
+      text: "4"
+    - id: 4
+      text: "6"
+    - id: 5
+      text: "7"
+points: 1
+classification:
+- subject: math
+  concept: objects-and-gaps
+learning:
+  hint:
+    text: >-
+      Нарисуй столбы точками в ряд и посчитай промежутки между соседними точками. Сравни, сколько получилось промежутков и сколько точек.
+explanation:
+  text: |
+    Нарисуй 6 точек. Между первой и второй одна секция, затем ещё четыре. Всего промежутков на один меньше, чем столбов: 6 − 1 = 5.

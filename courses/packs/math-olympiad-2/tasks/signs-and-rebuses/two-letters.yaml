@@ -1,0 +1,33 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    В ребусе А + Б = 9, а А + А = 6. Буквы обозначают разные цифры. Какую цифру обозначает Б?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "4"
+    - id: 2
+      text: "5"
+    - id: 3
+      text: "7"
+    - id: 4
+      text: "8"
+    - id: 5
+      text: "6"
+      correct: true
+points: 2
+classification:
+- subject: math
+  concept: number-rebuses
+- subject: math
+  concept: equation-systems
+learning:
+  hint:
+    text: >-
+      Начни с записи, где стоит только одна буква: из неё найди А. Потом подставь А в другую запись.
+explanation:
+  text: |
+    Из А + А = 6 получаем А = 3, ведь 3 + 3 = 6. Тогда 3 + Б = 9, значит, Б = 6. Цифры 3 и 6 разные, как и требуется.

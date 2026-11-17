@@ -1,0 +1,33 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Начни с числа 1. Прибавь 1, потом 2, потом 3 и дальше каждый раз на 1 больше. Получится ряд 1, 2, 4, 7, … Какое число следующее?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "9"
+    - id: 2
+      text: "10"
+    - id: 3
+      text: "12"
+    - id: 4
+      text: "11"
+      correct: true
+    - id: 5
+      text: "13"
+points: 2
+classification:
+- subject: math
+  concept: patterns
+- subject: math
+  concept: sequences-progressions
+learning:
+  hint:
+    text: >-
+      Найди, какое число прибавили на последнем шаге, и подумай, какое число по правилу нужно прибавить следующим.
+explanation:
+  text: |
+    Последний раз прибавили 3. Теперь нужно прибавить 4: 7 + 4 = 11. Проверь первые шаги: 1 + 1 = 2, 2 + 2 = 4, 4 + 3 = 7.

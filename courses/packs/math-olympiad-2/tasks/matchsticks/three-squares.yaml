@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Три одинаковых квадрата из палочек стоят в ряд. Соседние квадраты имеют общую сторону. Каждая сторона — одна палочка. Сколько всего палочек?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "8"
+    - id: 2
+      text: "10"
+      correct: true
+    - id: 3
+      text: "9"
+    - id: 4
+      text: "11"
+    - id: 5
+      text: "12"
+points: 2
+classification:
+- subject: math
+  concept: matchstick-puzzles
+learning:
+  hint:
+    text: >-
+      Строй квадраты по одному: первому нужны все стороны, а у каждого следующего одна сторона уже есть — общая с соседом.
+explanation:
+  text: |
+    Первый квадрат требует 4 палочки. Каждый следующий добавляет по 3. Всего 4 + 3 + 3 = 10.

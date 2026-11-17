@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Есть 3 вида открыток и 2 цвета конвертов. Для подарка выбирают одну открытку и один конверт. Сколько разных сочетаний?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "4"
+    - id: 2
+      text: "5"
+    - id: 3
+      text: "7"
+    - id: 4
+      text: "6"
+      correct: true
+    - id: 5
+      text: "8"
+points: 2
+classification:
+- subject: math
+  concept: counting
+learning:
+  hint:
+    text: >-
+      Возьми первый вид открыток и перечисли все сочетания с ним. Потом сделай то же для остальных видов и сложи.
+explanation:
+  text: |
+    Для каждого из трёх видов открыток можно взять один из двух конвертов. Всего 2 + 2 + 2 = 6 сочетаний.

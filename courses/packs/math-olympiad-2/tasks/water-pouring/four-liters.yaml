@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    В сосуде на 3 литра находятся 2 литра воды. Сосуд на 5 литров полон. Из большого доливают маленький до края. Сколько литров останется в большом?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "2"
+    - id: 2
+      text: "3"
+    - id: 3
+      text: "5"
+    - id: 4
+      text: "4"
+      correct: true
+    - id: 5
+      text: "6"
+points: 2
+classification:
+- subject: math
+  concept: processes-algorithms
+learning:
+  hint:
+    text: >-
+      Сначала узнай, сколько литров не хватает маленькому сосуду до края. Ровно столько уйдёт из большого.
+explanation:
+  text: |
+    В маленьком не хватает 3 − 2 = 1 литра. Этот литр переливается из большого. В большом остаётся 5 − 1 = 4 литра.

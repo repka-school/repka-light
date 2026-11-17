@@ -3,7 +3,8 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
-import { basePath, buildContent, checkedHtml, textToHtml } from "./build-content.mjs";
+import { basePath, buildContent, checkedHtml, textToHtml, THEORY_PICTURES } from "./build-content.mjs";
+import { theoryPictureIds } from "../src/ui/pictures/TheoryPicture.tsx";
 
 const courses = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "courses");
 const temps = [];
@@ -66,6 +67,68 @@ describe("a pack", () => {
     ["a lesson of theory only", { task: "kind: theory\nstatus: active\nquestion:\n  text: T\n" }, /without questions/],
   ])("refuses %s", (_, options, message) => {
     expect(() => buildContent({ root: fixture(options), out: temp() })).toThrow(message);
+  });
+});
+
+describe("a theory card", () => {
+  const head = "kind: theory\nstatus: active\nlearning:\n  title: T\n";
+  /** The first card of a lesson that goes on to the fixture's question. */
+  const built = (theory) => {
+    const out = temp();
+    buildContent({ root: fixture({ lessonTasks: ["a/theory", "a/one"], files: { "tasks/a/theory.yaml": theory } }), out });
+    return JSON.parse(fs.readFileSync(path.join(out, "demo.json"), "utf8")).modules[0].lessons[0].cards[0];
+  };
+
+  it("keeps a plain body and has no blocks", () => {
+    expect(built(`${head}question:\n  text: Читай\n`)).toEqual({ id: "demo/a/theory", kind: "theory", title: "T", body: "<p>Читай</p>", blocks: [] });
+  });
+
+  it("builds blocks alone, with an empty body", () => {
+    const blocks = [
+      "blocks:",
+      "  - kind: says",
+      "    text: Привет",
+      "  - kind: steps",
+      "    items:",
+      "      - picture: book",
+      "        title: Читай",
+      "        text: Два раза",
+      "  - kind: tiles",
+      "    items:",
+      "      - picture: pencil",
+      "        title: Рисуй",
+      "  - kind: try",
+      "    text: Сколько?",
+      "    answer: Два",
+      "  - kind: tip",
+      "    picture: cup",
+      "    text: Отдохни",
+    ].join("\n");
+    expect(built(`${head}${blocks}\n`)).toMatchObject({
+      body: "",
+      blocks: [
+        { kind: "says", text: "Привет" },
+        { kind: "steps", title: "", items: [{ picture: "book", title: "Читай", text: "Два раза" }] },
+        { kind: "tiles", title: "", items: [{ picture: "pencil", title: "Рисуй", text: "" }] },
+        { kind: "try", title: "", text: "Сколько?", answer: "Два", picture: null },
+        { kind: "tip", picture: "cup", text: "Отдохни" },
+      ],
+    });
+  });
+
+  it.each([
+    ["with neither a body nor blocks", "", /nothing to show/],
+    ["with a block of an unknown kind", "blocks:\n  - kind: video\n    text: x\n", /unknown kind video/],
+    ["with a picture the site does not draw", "blocks:\n  - kind: tip\n    picture: dragon\n    text: x\n", /unknown picture dragon/],
+    ["with steps that have no items", "blocks:\n  - kind: steps\n    items: []\n", /has no items/],
+    ["with a picture file the pack lacks", "blocks:\n  - kind: image\n    file: images/none.png\n", /missing picture images\/none.png/],
+    ["with a riddle that has no answer", "blocks:\n  - kind: try\n    text: Сколько?\n", /answer of block 1 \(try\) is empty/],
+  ])("is refused %s", (_, blocks, message) => {
+    expect(() => built(`${head}${blocks}`)).toThrow(message);
+  });
+
+  it("may name exactly the pictures the site draws", () => {
+    expect([...THEORY_PICTURES].sort()).toEqual([...theoryPictureIds].sort());
   });
 });
 

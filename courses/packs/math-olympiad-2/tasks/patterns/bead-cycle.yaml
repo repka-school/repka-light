@@ -1,0 +1,33 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Бусины повторяются тройками: белая, чёрная, чёрная. Какого цвета 14-я бусина?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: Белая
+    - id: 2
+      text: Красная
+    - id: 3
+      text: Чёрная
+      correct: true
+    - id: 4
+      text: Синяя
+    - id: 5
+      text: Определить нельзя
+points: 2
+classification:
+- subject: math
+  concept: patterns
+- subject: math
+  concept: remainders
+learning:
+  hint:
+    text: >-
+      Узор повторяется каждые три бусины. Узнай, сколько полных троек уложится до нужной бусины, и посмотри, каким по счёту в своей тройке она будет.
+explanation:
+  text: |
+    Четыре полные тройки — это 3 + 3 + 3 + 3 = 12 бусин. 13-я начинает новую тройку и будет белой, 14-я — чёрной.

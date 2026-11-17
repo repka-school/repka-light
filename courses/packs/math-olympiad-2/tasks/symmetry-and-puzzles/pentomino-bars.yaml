@@ -1,0 +1,33 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    Два пентамино — полоски по 5 клеток — положили рядом длинными сторонами, без наложений. Сколько клеток в получившемся прямоугольнике?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "8"
+    - id: 2
+      text: "9"
+    - id: 3
+      text: "11"
+    - id: 4
+      text: "12"
+    - id: 5
+      text: "10"
+      correct: true
+points: 1
+classification:
+- subject: math
+  concept: grid-geometry
+- subject: math
+  concept: area-perimeter
+learning:
+  hint:
+    text: >-
+      Когда фигуры кладут рядом без наложений, клетки не пропадают и не появляются: форма меняется, а число клеток нет.
+explanation:
+  text: |
+    В каждой полоске 5 клеток. Рядом получаются два ряда по 5. Всего 5 + 5 = 10 клеток. Форма изменилась, но ни одна клетка не исчезла.

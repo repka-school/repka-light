@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    У прямоугольника длина 6 клеток, ширина 4 клетки. Сколько у него линий симметрии?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "0"
+    - id: 2
+      text: "2"
+      correct: true
+    - id: 3
+      text: "1"
+    - id: 4
+      text: "3"
+    - id: 5
+      text: "4"
+points: 2
+classification:
+- subject: math
+  concept: symmetry
+learning:
+  hint:
+    text: >-
+      Мысленно сложи прямоугольник пополам разными способами: вдоль, поперёк и по диагонали. Линия симметрии та, при которой половинки совпадут.
+explanation:
+  text: |
+    Можно сложить его пополам вдоль или поперёк через середины сторон. Получатся две линии симметрии. По диагонали половинки не совпадут: соседние стороны разной длины.

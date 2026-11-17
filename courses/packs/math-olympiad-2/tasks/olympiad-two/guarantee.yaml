@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    В коробке по 4 карандаша трёх цветов. Сколько нужно взять не глядя, чтобы наверняка получить два карандаша одного цвета?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "4"
+      correct: true
+    - id: 2
+      text: "2"
+    - id: 3
+      text: "3"
+    - id: 4
+      text: "5"
+    - id: 5
+      text: "6"
+points: 2
+classification:
+- subject: math
+  concept: worst-case
+learning:
+  hint:
+    text: >-
+      Представь самый неудачный случай: ты берёшь карандаши так, чтобы цвета не повторялись как можно дольше. Сколько карандашей можно взять так, и что будет со следующим?
+explanation:
+  text: |
+    Три карандаша могут быть разных цветов. Четвёртый повторит один из трёх цветов. Значит, 4 достаточно, а 3 ещё нет.

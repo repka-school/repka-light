@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    В верхнем ряду таблицы стоят 3 и неизвестное число, в нижнем — 5 и 2. Суммы рядов равны. Какое число пропущено?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "2"
+    - id: 2
+      text: "3"
+    - id: 3
+      text: "4"
+      correct: true
+    - id: 4
+      text: "5"
+    - id: 5
+      text: "6"
+points: 2
+classification:
+- subject: math
+  concept: magic-squares
+learning:
+  hint:
+    text: >-
+      Найди сумму того ряда, где известны оба числа. В другом ряду должно получиться столько же: подумай, что нужно добавить к числу, которое там уже стоит.
+explanation:
+  text: |
+    Внизу 5 + 2 = 7. Вверху к 3 нужно добавить 4, чтобы получить 7.

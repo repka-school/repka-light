@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    После того как из автобуса вышли 5 пассажиров и вошли 2, в нём стало 9 пассажиров. Сколько было сначала?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "10"
+    - id: 2
+      text: "12"
+      correct: true
+    - id: 3
+      text: "11"
+    - id: 4
+      text: "13"
+    - id: 5
+      text: "14"
+points: 2
+classification:
+- subject: math
+  concept: backward-reasoning
+learning:
+  hint:
+    text: >-
+      Иди с конца и отменяй действия по очереди: тех, кто вошёл, убери, а тех, кто вышел, верни.
+explanation:
+  text: |
+    Сначала убери тех двоих, кто вошёл: 9 − 2 = 7. Верни пятерых вышедших: 7 + 5 = 12. Проверка: 12 − 5 + 2 = 9.

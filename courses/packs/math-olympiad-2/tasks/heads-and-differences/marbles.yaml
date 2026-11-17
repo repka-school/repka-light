@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    У Ани и Бори вместе 15 шариков. У Ани на 3 больше. Сколько шариков у Ани?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "7"
+    - id: 2
+      text: "8"
+    - id: 3
+      text: "10"
+    - id: 4
+      text: "9"
+      correct: true
+    - id: 5
+      text: "11"
+points: 2
+classification:
+- subject: math
+  concept: sum-difference
+learning:
+  hint:
+    text: >-
+      Мысленно убери у Ани лишние шарики, на которые у неё больше. Тогда у ребят станет поровну: раздели остаток пополам и не забудь вернуть Ане убранное.
+explanation:
+  text: |
+    Убери из Аниной кучки лишние 3 шарика. Останется 12, поровну у двоих — по 6. Верни Ане 3: 6 + 3 = 9. Проверка: у Бори 6, вместе 15, разница 3.

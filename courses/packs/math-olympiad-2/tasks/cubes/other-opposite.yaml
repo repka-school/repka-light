@@ -1,0 +1,33 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Какая грань этой же развёртки после складывания куба окажется напротив грани 5?
+  images:
+    - file: images/cube-net.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "1"
+    - id: 2
+      text: "2"
+    - id: 3
+      text: "6"
+      correct: true
+    - id: 4
+      text: "3"
+    - id: 5
+      text: "4"
+points: 2
+classification:
+- subject: math
+  concept: spatial-reasoning
+learning:
+  hint:
+    text: >-
+      Грани, прикреплённые на развёртке к противоположным сторонам одного квадрата, при складывании поднимаются навстречу друг другу.
+explanation:
+  text: |
+    Грани 5 и 6 прикреплены к противоположным сторонам грани 2. При складывании они поднимутся навстречу друг другу и будут противоположными стенками куба.

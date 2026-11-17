@@ -1,0 +1,35 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    В квадрате сумма чисел в каждой строке, каждом столбце и каждой диагонали равна 15. Какое число должно стоять вместо вопроса?
+    8  1  6
+    3  ?  7
+    4  9  2
+  html: "<p>Сумма в каждой строке, столбце и диагонали равна 15. Какое число вместо вопроса?</p><table><tr><td>8</td><td>1</td><td>6</td></tr><tr><td>3</td><td>?</td><td>7</td></tr><tr><td>4</td><td>9</td><td>2</td></tr></table>"
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "3"
+    - id: 2
+      text: "5"
+      correct: true
+    - id: 3
+      text: "4"
+    - id: 4
+      text: "6"
+    - id: 5
+      text: "7"
+points: 2
+classification:
+- subject: math
+  concept: magic-squares
+learning:
+  hint:
+    text: >-
+      Возьми строку, столбец или диагональ, где неизвестна только одна клетка. Сложи известные числа и подумай, сколько не хватает до 15.
+explanation:
+  text: |
+    В средней строке уже есть 3 и 7. Их сумма 10, поэтому в центре нужно 15 − 10 = 5. Проверь средний столбец: 1 + 5 + 9 = 15. Диагонали тоже дают 15.

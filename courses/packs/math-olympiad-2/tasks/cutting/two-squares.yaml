@@ -1,0 +1,35 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Прямоугольник на рисунке нужно разделить одним прямым разрезом на два равных квадрата. Сколько клеток будет в каждом квадрате?
+  images:
+    - file: images/grid-4-by-2.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "2"
+    - id: 2
+      text: "4"
+      correct: true
+    - id: 3
+      text: "3"
+    - id: 4
+      text: "5"
+    - id: 5
+      text: "6"
+points: 2
+classification:
+- subject: math
+  concept: grid-geometry
+- subject: math
+  concept: area-perimeter
+learning:
+  hint:
+    text: >-
+      У квадрата длина и ширина одинаковые. Посмотри на ширину прямоугольника и найди, где разрезать, чтобы у каждой части стороны стали равными.
+explanation:
+  text: |
+    Разрежь между вторым и третьим столбцами. Получатся два квадрата 2 на 2 клетки, в каждом 2 + 2 = 4 клетки.

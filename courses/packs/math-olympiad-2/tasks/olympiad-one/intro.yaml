@@ -1,0 +1,22 @@
+kind: theory
+status: active
+learning:
+  title: Твоя первая олимпиада
+  subject: math
+blocks:
+- kind: says
+  text: Здесь десять задач из знакомых тем. Вперёд!
+- kind: steps
+  items:
+  - picture: pencil
+    title: Решай самостоятельно
+    text: Можно рисовать и делать записи.
+  - picture: swap
+    title: Не получается?
+    text: Перейди к другой задаче и вернись к этой позже.
+  - picture: talk
+    title: Разборы — потом
+    text: Обсуди их со взрослым после всей работы.
+- kind: tip
+  picture: medal
+  text: Главное — узнать, какие способы уже помогают тебе.

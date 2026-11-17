@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Два года назад Оле было 5 лет. Сколько лет ей будет через 3 года?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "8"
+    - id: 2
+      text: "10"
+      correct: true
+    - id: 3
+      text: "9"
+    - id: 4
+      text: "11"
+    - id: 5
+      text: "12"
+points: 2
+classification:
+- subject: math
+  concept: ages-and-relations
+learning:
+  hint:
+    text: >-
+      Сначала узнай, сколько Оле лет сейчас, а потом прибавь годы, которые ещё пройдут.
+explanation:
+  text: |
+    Сейчас Оле 5 + 2 = 7 лет. Ещё через 3 года будет 7 + 3 = 10.

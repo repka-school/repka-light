@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Одно бревно распилили на 7 частей. За один распил пилили только один кусок. Сколько распилов сделали?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "4"
+    - id: 2
+      text: "6"
+      correct: true
+    - id: 3
+      text: "5"
+    - id: 4
+      text: "7"
+    - id: 5
+      text: "8"
+points: 2
+classification:
+- subject: math
+  concept: objects-and-gaps
+learning:
+  hint:
+    text: >-
+      Следи, как меняется число кусков: сначала кусок один, а каждый распил прибавляет к ним ещё один кусок.
+explanation:
+  text: |
+    Сначала был один кусок. Каждый распил добавлял ещё один. Чтобы из 1 получить 7, нужно добавить 6 кусков — сделать 6 распилов.

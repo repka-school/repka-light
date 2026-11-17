@@ -1,0 +1,35 @@
+kind: theory
+status: active
+learning:
+  title: Кто говорит правду?
+  subject: math
+blocks:
+- kind: says
+  text: Мы попали в сказку. Здесь живут рыцари и лжецы, а с виду они одинаковые!
+- kind: facts
+  title: Каждый герой — рыцарь или лжец
+  items:
+  - picture: shield
+    title: Рыцарь
+    text: Всегда говорит правду.
+  - picture: mask
+    title: Лжец
+    text: Всегда говорит неправду.
+- kind: steps
+  title: Как узнать, кто есть кто
+  items:
+  - picture: bulb
+    title: Сделай догадку
+    text: 'Например: «Пусть этот герой — рыцарь».'
+  - picture: magnifier
+    title: Проверь слова героя
+    text: Правдивы ли они при такой догадке?
+  - picture: swap
+    title: Не подошло?
+    text: Попробуй другой вариант.
+- kind: try
+  text: 'Герой говорит: «У кошки шесть лап». Кто он?'
+  answer: Лжец. У кошки четыре лапы, значит, он сказал неправду.
+- kind: tip
+  picture: book
+  text: Это правила сказочной игры, а не оценка людей в жизни.

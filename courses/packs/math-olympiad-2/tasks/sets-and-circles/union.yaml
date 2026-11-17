@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Три ребёнка любят только шахматы, два — только шашки, а ещё четыре любят обе игры. Сколько детей любят хотя бы одну из этих игр?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "7"
+    - id: 2
+      text: "8"
+    - id: 3
+      text: "9"
+      correct: true
+    - id: 4
+      text: "10"
+    - id: 5
+      text: "11"
+points: 2
+classification:
+- subject: math
+  concept: sets-euler-circles
+learning:
+  hint:
+    text: >-
+      Группы «только шахматы», «только шашки» и «обе игры» не пересекаются. Нужно ли кого-то из них считать дважды?
+explanation:
+  text: |
+    Раздели детей на три группы: только шахматы, только шашки, обе игры. Никто не попал в две группы сразу. Сложи: 3 + 2 + 4 = 9. Детей, любящих обе игры, считаем один раз.

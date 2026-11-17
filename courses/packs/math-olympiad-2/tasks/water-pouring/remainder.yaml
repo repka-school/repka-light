@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    Сосуд на 5 литров полон, сосуд на 3 литра пуст. Из большого налили в маленький до края. Сколько литров осталось в большом?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "0"
+    - id: 2
+      text: "2"
+      correct: true
+    - id: 3
+      text: "1"
+    - id: 4
+      text: "3"
+    - id: 5
+      text: "4"
+points: 1
+classification:
+- subject: math
+  concept: processes-algorithms
+learning:
+  hint:
+    text: >-
+      Подумай, сколько воды заберёт пустой маленький сосуд, если налить его до края. Остальная вода останется в большом.
+explanation:
+  text: |
+    Маленький забрал 3 литра. В большом осталось 5 − 3 = 2 литра. Вместе воды по-прежнему 5 литров.

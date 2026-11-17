@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    В коробке 9 шариков: 4 красных, 3 синих, остальные зелёные. Сколько зелёных шариков?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "0"
+    - id: 2
+      text: "1"
+    - id: 3
+      text: "3"
+    - id: 4
+      text: "4"
+    - id: 5
+      text: "2"
+      correct: true
+points: 2
+classification:
+- subject: math
+  concept: data-sufficiency
+learning:
+  hint:
+    text: >-
+      Сначала узнай, сколько шариков не зелёные, а потом сравни это с числом всех шариков.
+explanation:
+  text: |
+    Первый способ: 4 + 3 = 7, затем 9 − 7 = 2. Второй: 9 − 4 = 5, затем 5 − 3 = 2. Третий: после 7 известных шариков досчитай до 9 — ещё два. Ответ один: 2.

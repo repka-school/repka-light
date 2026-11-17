@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    В кружке 12 детей. Только шахматы любят 4, только шашки — 3, обе игры — 2. Сколько детей не любят ни одну из этих игр?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "1"
+    - id: 2
+      text: "3"
+      correct: true
+    - id: 3
+      text: "2"
+    - id: 4
+      text: "4"
+    - id: 5
+      text: "5"
+points: 2
+classification:
+- subject: math
+  concept: sets-euler-circles
+learning:
+  hint:
+    text: >-
+      Нарисуй два пересекающихся круга: «шахматы» и «шашки», и впиши в каждую часть, сколько там детей. Сколько детей всего внутри кругов?
+explanation:
+  text: |
+    Нарисуй два круга. Внутри них 4 + 3 + 2 = 9 детей, причём каждый посчитан один раз. Вне кругов 12 − 9 = 3.

@@ -1,0 +1,34 @@
+kind: theory
+status: active
+learning:
+  title: Куда положить красный мяч?
+  subject: math
+blocks:
+- kind: says
+  text: Множество — это группа предметов с общим признаком. В левом круге красные игрушки, в правом — мячи. А куда положить красный мяч?
+- kind: image
+  file: images/sets-regions.png
+- kind: steps
+  title: Четыре области на рисунке
+  items:
+  - picture: venn-left
+    title: Красные, но не мячи
+    text: Только левый круг.
+  - picture: venn-both
+    title: Красные мячи
+    text: Сразу в двух кругах.
+  - picture: venn-right
+    title: Мячи других цветов
+    text: Только правый круг.
+  - picture: venn-out
+    title: Остальные игрушки
+    text: Снаружи кругов.
+- kind: tip
+  picture: magnifier
+  text: Числа на рисунке — это номера областей, а не количество игрушек.
+- kind: tip
+  picture: check
+  text: Слова «красные или мячи» включают и красные мячи тоже.
+- kind: try
+  text: Зелёный мяч. В какую область он попадёт?
+  answer: В область 3. Это мяч, но не красный.

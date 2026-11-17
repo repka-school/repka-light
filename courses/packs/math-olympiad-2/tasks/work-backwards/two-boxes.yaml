@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    В двух коробках было поровну кубиков. Из первой переложили во вторую 3 кубика. Во второй стало 11. Сколько кубиков было в каждой коробке сначала?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "6"
+    - id: 2
+      text: "7"
+    - id: 3
+      text: "9"
+    - id: 4
+      text: "8"
+      correct: true
+    - id: 5
+      text: "10"
+points: 2
+classification:
+- subject: math
+  concept: backward-reasoning
+learning:
+  hint:
+    text: >-
+      Посмотри только на вторую коробку: сколько в ней было до того, как туда переложили кубики? Вспомни, что сначала в коробках было поровну.
+explanation:
+  text: |
+    Во вторую добавили 3. До этого в ней было 11 − 3 = 8. В первой сначала было столько же — 8. После перекладывания стало 5 и 11, вместе всё ещё 16.

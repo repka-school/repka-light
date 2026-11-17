@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    Пустые сосуды вмещают 3 и 5 литров. Маленький наполнили и всю воду перелили в большой. Сколько литров теперь в большом?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "3"
+      correct: true
+    - id: 2
+      text: "1"
+    - id: 3
+      text: "2"
+    - id: 4
+      text: "4"
+    - id: 5
+      text: "5"
+points: 1
+classification:
+- subject: math
+  concept: processes-algorithms
+learning:
+  hint:
+    text: >-
+      Проверь, хватит ли в большом сосуде места для всей воды из маленького. Вода при переливании не исчезает и не появляется.
+explanation:
+  text: |
+    В маленьком было 3 литра. В большом достаточно места, поэтому все 3 литра перешли в него. Состояние сосудов: 0 и 3.

@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    Мишку, зайца и кота ставят в ряд. Мишка должен стоять посередине. Сколько разных порядков получится?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "1"
+    - id: 2
+      text: "2"
+      correct: true
+    - id: 3
+      text: "3"
+    - id: 4
+      text: "4"
+    - id: 5
+      text: "6"
+points: 1
+classification:
+- subject: math
+  concept: arrangements
+learning:
+  hint:
+    text: >-
+      Место мишки уже занято. Подумай, сколькими способами можно поставить зайца и кота на два оставшихся места.
+explanation:
+  text: |
+    Место мишки уже известно. По краям могут стоять заяц–кот или кот–заяц. Других вариантов нет.

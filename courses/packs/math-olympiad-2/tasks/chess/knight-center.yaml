@@ -1,0 +1,31 @@
+status: active
+difficulty: hard
+question:
+  text: |
+    На пустой доске 8 на 8 конь стоит на d4. На сколько клеток он может пойти за один ход?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "4"
+    - id: 2
+      text: "6"
+    - id: 3
+      text: "7"
+    - id: 4
+      text: "10"
+    - id: 5
+      text: "8"
+      correct: true
+points: 3
+classification:
+- subject: math
+  concept: counting
+learning:
+  hint:
+    text: >-
+      Конь ходит на две клетки в одну сторону и на одну вбок. Выпиши все такие ходы из d4 по направлениям и проверь, какие из них остаются на доске.
+explanation:
+  text: |
+    По два шага влево и вправо дают b3, b5, f3, f5. По два шага вниз и вверх дают c2, e2, c6, e6. Все восемь клеток внутри доски и различны.

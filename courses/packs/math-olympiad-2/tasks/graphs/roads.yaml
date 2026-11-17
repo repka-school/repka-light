@@ -1,0 +1,33 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    На схеме числа обозначают города, линии — дороги. Сколько всего дорог?
+  images:
+    - file: images/roads-five.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "4"
+    - id: 2
+      text: "6"
+      correct: true
+    - id: 3
+      text: "5"
+    - id: 4
+      text: "7"
+    - id: 5
+      text: "8"
+points: 1
+classification:
+- subject: math
+  concept: graphs
+learning:
+  hint:
+    text: >-
+      Отмечай каждую посчитанную линию галочкой. Дорогу из 1 в 2 и дорогу из 2 в 1 не считай дважды: это одна и та же линия.
+explanation:
+  text: |
+    Вокруг четырёх городов идут дороги 1–2, 2–3, 3–4, 4–1. Ещё есть 1–3 и 3–5. Всего 4 + 2 = 6. Одну и ту же дорогу в обратном направлении второй раз не считаем.

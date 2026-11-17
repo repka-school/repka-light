@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    У кур и кроликов вместе 5 голов и 14 ног. У курицы 2 ноги, у кролика 4. Сколько кроликов?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "0"
+    - id: 2
+      text: "2"
+      correct: true
+    - id: 3
+      text: "1"
+    - id: 4
+      text: "3"
+    - id: 5
+      text: "4"
+points: 2
+classification:
+- subject: math
+  concept: sum-difference
+learning:
+  hint:
+    text: >-
+      Представь, что все животные — куры, и посчитай их ноги. Потом подумай, на сколько ног станет больше, если одну курицу заменить кроликом.
+explanation:
+  text: |
+    У пяти кур было бы 10 ног. До 14 не хватает 4. Каждая замена добавляет 2 ноги, поэтому нужны две замены. Проверка: 3 курицы дают 6 ног, 2 кролика — 8; всего 14.

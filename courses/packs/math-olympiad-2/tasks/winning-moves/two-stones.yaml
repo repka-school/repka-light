@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    На столе 2 камня. За ход можно взять 1 или 2, последний камень приносит победу. Ты ходишь первым. Сколько камней нужно взять, чтобы сразу выиграть?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "2"
+      correct: true
+    - id: 2
+      text: "0"
+    - id: 3
+      text: "1"
+    - id: 4
+      text: "3"
+    - id: 5
+      text: "4"
+points: 1
+classification:
+- subject: math
+  concept: games-strategies
+learning:
+  hint:
+    text: >-
+      Ищи ход, после которого последний камень окажется у тебя в руке уже сейчас, и проверь, разрешён ли он правилами.
+explanation:
+  text: |
+    Возьми оба камня. Среди них последний, значит, игра закончится твоей победой.

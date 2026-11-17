@@ -1,0 +1,33 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Пять друзей хотят сфотографироваться парами. Каждая пара фотографируется один раз. Сколько фотографий получится?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "8"
+    - id: 2
+      text: "9"
+    - id: 3
+      text: "11"
+    - id: 4
+      text: "12"
+    - id: 5
+      text: "10"
+      correct: true
+points: 2
+classification:
+- subject: math
+  concept: counting
+- subject: math
+  concept: arrangements
+learning:
+  hint:
+    text: >-
+      Перечисли все пары с первым другом. Потом для второго считай только новые пары, которые ещё не посчитаны, и так дальше.
+explanation:
+  text: |
+    У первого друга 4 пары, у второго ещё 3 новые, у третьего ещё 2, у четвёртого ещё 1. Всего 4 + 3 + 2 + 1 = 10.

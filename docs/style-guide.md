@@ -20,7 +20,7 @@ two exceptions, both drawings rather than text: the `.brand` wordmark and the
 | `--type-label` | 13px | Form labels and legends, chips |
 | `--type-sm` | 14px | Secondary text, buttons, list rows |
 | `--type-base` | 16px | Body text |
-| `--type-lg` | 18px | Task text (`.rich-body`) |
+| `--type-lg` | 18px | Task markup by default (`.rich-body`): a plain theory card, a task in the lesson review |
 | `--type-xl` | 22px | — (used through the roles below) |
 | `--type-2xl` | 28px | — (used through the roles below) |
 | `--type-3xl` | 36px | Reserved |
@@ -36,9 +36,10 @@ the same kind of heading is the same size on every page.
 | Role | Size | Where |
 |---|---|---|
 | `--type-page-title` | 32–44px, fluid | The one `h1` of every page: index, course list, course, lesson summary, profile, «Такой страницы нет» |
-| `--type-task-title` | 28px, 22px on a phone | «Задание N» on the lesson screen and in the index page's samples |
+| `--type-task-title` | 28px, 22px on a phone | A theory card's title on the lesson screen |
+| `--type-task-text` | 20px, 18px on a phone | The text of the task being solved, in `--foreground`. It is the largest thing on its card: «Задание N» above it is the `h1`, drawn as an eyebrow |
 | `--type-section-title` | 22px | An `h2` that heads a section: a module, «Разберём задания», «Прогресс», «Как проходит урок»; also a course's title on its card in the course list |
-| `--type-card-title` | 18px | The title inside a card or row: a lesson, a step of «Как проходит урок», the feedback's verdict, the lesson's name above a task |
+| `--type-card-title` | 18px | The title inside a card or row: a lesson, a step of «Как проходит урок», the feedback's verdict, the lesson's name above a task, a step or a block's heading in a theory card |
 | `--type-lead` | 18px, 16px on a phone | The paragraph under a page title |
 | `--type-stat` | 28px | A number that is the point of a block: «3 из 8» in the score ring |
 
@@ -50,7 +51,8 @@ Phone sizes switch at 700px, in `theme.css`, not in each rule.
   (headings, titles, buttons) and 700 (eyebrows, numbers, step marks). No
   550, 650 or 750; the wordmark is the one exception.
 - Headings are tracked tighter: `h1` −0.03em, `h2` −0.02em, set once in
-  `app.css`. Do not override it per heading.
+  `app.css`. Do not override it per heading. The one exception is «Задание N»
+  on the lesson screen, which is an eyebrow.
 - Eyebrows (`.eyebrow`) are 12px, 700, uppercase or as written, tracked
   +0.13em.
 - Body paragraphs have a line height of 1.65, leads 1.75, task text 1.8.
@@ -69,6 +71,7 @@ never write a hex value in `app.css`.
 | `--accent` | Soft green panels: «Твой прогресс», a perfect lesson's result |
 | `--accent-warm` | Focus outlines, warm highlights in cover backgrounds |
 | `--muted` | Chips and quiet fills |
+| `--warm-soft` | The riddle panel of a theory card; its heading is `--note-text` |
 | `--border` | Card and row borders |
 
 ### Results
@@ -99,6 +102,34 @@ solves over them in `--progress-fill`.
   «Решить ошибки заново».
 - **Covers** are 192px squares. Never draw one larger than 192px; give it room
   with a tinted panel or blob behind it instead.
+
+## Theory cards
+
+A theory card is the first thing a lesson shows, often to a seven-year-old. It
+is built from blocks (see the README), not from a page of text.
+
+- **Title**: the card's own, as the `h1`, under a small «ТЕОРИЯ» label. Make it
+  a hook («Читай как сыщик»), not the lesson's title again: that one is already
+  in view.
+- **The guide** is the owlet, 64px (52px on a phone), with what it says in an
+  `--accent` bubble. One to three short sentences.
+- **Steps** are rows on `--tile` with a 64px drawing, a number on its corner,
+  a title and one line. Two columns from 860px, one below. Keep to four or
+  fewer. Use them for things done in order.
+- **Facts** are the same rows without numbers, for rules and definitions.
+- **Tiles** sit side by side and wrap, a drawing over a few words: tools and
+  choices, five at most.
+- **A picture of the pack** is shown whole and opens full-size, like one in a
+  task.
+- **A riddle** sits on a `--warm-soft` panel. Its answer stays closed until
+  «Показать ответ» and opens on `--card` under the button.
+- **Tips** are a 48px drawing and one line, with no frame.
+- **Drawings** are flat inline SVG on a tinted rounded square, in the avatars'
+  manner, and only decorate: the words beside them say the same.
+- **Words**: a title of two or three, a line of one sentence. No past-tense
+  verbs about the learner («нашёл», «устал»): they pick a gender.
+- Blocks arrive one after another and the guide hops once; with reduced motion
+  everything is simply there.
 
 ## Copy
 

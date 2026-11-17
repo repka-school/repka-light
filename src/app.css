@@ -411,7 +411,23 @@ select,
   padding: 20px 24px;
 }
 .solving-shell .question-heading {
-  margin-bottom: 16px;
+  margin-bottom: 10px;
+  min-height: 28px;
+}
+/* In a lesson the task's number is a small label, so the task text is what the eye lands on. */
+.solving-shell .question-heading h1 {
+  font-size: var(--type-xs);
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  line-height: 1.8;
+  color: var(--primary);
+}
+.solving-shell .question-card:not(.theory-card) > .question-body {
+  font-size: var(--type-task-text);
+  line-height: 1.5;
+  color: var(--foreground);
+  margin-bottom: 20px;
 }
 .solving-scroll > * {
   flex: none;
@@ -471,9 +487,314 @@ select,
 .numbers-panel[data-state="closed"] {
   animation: none;
 }
-.theory-title {
-  font-size: var(--type-xl);
+/* A theory card: its label and title, then its blocks one under another. */
+.theory-heading {
+  margin-bottom: 20px;
+}
+.theory-heading h1 {
+  font-size: var(--type-task-title);
+  margin: 0;
+}
+.theory-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 6px;
+  font-size: var(--type-xs);
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+.theory-label svg {
+  width: 15px;
+  height: 15px;
+}
+.theory-blocks {
+  display: grid;
+  gap: 20px;
+  margin-bottom: 6px;
+}
+.theory-card .question-body + .theory-blocks {
+  margin-top: 20px;
+}
+.theory-picture {
+  flex: none;
+  display: block;
+}
+/* The guide and what it says, in a bubble with a tail towards it. */
+.theory-says {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.theory-guide {
+  flex: none;
+}
+.theory-bubble {
+  position: relative;
+  margin: 0;
+  padding: 14px 18px;
+  border-radius: 18px;
+  background: var(--accent);
+  color: var(--rich-text);
+  font-size: var(--type-lg);
+  line-height: 1.55;
+}
+.theory-bubble::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin-top: -8px;
+  border-radius: 3px;
+  background: inherit;
+  transform: rotate(45deg);
+}
+.theory-rows,
+.theory-tiles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.theory-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px 12px 12px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--tile);
+}
+.theory-item-picture {
+  position: relative;
+  flex: none;
+}
+.theory-step-number {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 2px solid var(--tile);
+  box-sizing: content-box;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: var(--type-label);
+  font-weight: 700;
+  line-height: 1;
+}
+.theory-item-words {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  line-height: 1.45;
+  color: var(--rich-text);
+}
+.theory-item-words strong {
+  font-size: var(--type-card-title);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--foreground);
+}
+.theory-section h2,
+.theory-try h2 {
   margin: 0 0 12px;
+  font-size: var(--type-card-title);
+  letter-spacing: -0.01em;
+}
+.theory-tiles {
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+}
+.theory-image {
+  text-align: center;
+}
+.theory-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 10px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--tile);
+  text-align: center;
+}
+.theory-tile .theory-item-words strong {
+  font-size: var(--type-base);
+}
+.theory-tile .theory-item-words span {
+  font-size: var(--type-sm);
+}
+/* A riddle on a warm panel; the answer opens under its button. */
+.theory-try {
+  padding: 18px 20px 20px;
+  border-radius: 18px;
+  background: var(--warm-soft);
+}
+.theory-try h2 {
+  margin-bottom: 6px;
+  color: var(--note-text);
+}
+.theory-try-text {
+  margin: 0 0 16px;
+  font-size: var(--type-lg);
+  line-height: 1.55;
+  color: var(--rich-text);
+}
+.theory-answer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--card);
+}
+.theory-answer:empty {
+  display: none;
+}
+.theory-answer p {
+  margin: 0;
+  font-size: var(--type-lg);
+  font-weight: 600;
+  line-height: 1.5;
+}
+.theory-tip {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.theory-tip p {
+  margin: 0;
+  line-height: 1.5;
+  color: var(--rich-text);
+}
+.theory-tip + .theory-tip {
+  margin-top: -6px;
+}
+/* The blocks arrive one after another, and an opened answer pops in. */
+.theory-blocks > *,
+.theory-row {
+  animation: theory-in 0.42s cubic-bezier(0.2, 0.7, 0.3, 1) backwards;
+}
+.theory-blocks > :nth-child(2) {
+  animation-delay: 0.12s;
+}
+.theory-blocks > :nth-child(3) {
+  animation-delay: 0.24s;
+}
+.theory-blocks > :nth-child(n + 4) {
+  animation-delay: 0.36s;
+}
+.theory-row:nth-child(1) {
+  animation-delay: 0.14s;
+}
+.theory-row:nth-child(2) {
+  animation-delay: 0.22s;
+}
+.theory-row:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.theory-row:nth-child(n + 4) {
+  animation-delay: 0.38s;
+}
+.theory-guide {
+  animation: theory-hop 0.7s 0.3s cubic-bezier(0.3, 0.6, 0.4, 1) backwards;
+}
+.theory-answer {
+  animation: theory-pop 0.28s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+@keyframes theory-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@keyframes theory-hop {
+  0%,
+  100% {
+    transform: none;
+  }
+  35% {
+    transform: translateY(-9px) rotate(-6deg);
+  }
+  70% {
+    transform: translateY(0) rotate(3deg);
+  }
+}
+@keyframes theory-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+@media (min-width: 860px) {
+  .theory-rows {
+    grid-template-columns: 1fr 1fr;
+  }
+  /* A lone last row takes the whole width. */
+  .theory-row:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 700px) {
+  .theory-heading {
+    margin-bottom: 14px;
+  }
+  .theory-blocks {
+    gap: 16px;
+  }
+  .theory-says {
+    gap: 14px;
+  }
+  .theory-guide {
+    width: 52px;
+    height: 52px;
+  }
+  .theory-bubble {
+    padding: 11px 14px;
+    font-size: var(--type-base);
+  }
+  .theory-row {
+    gap: 14px;
+    padding: 10px 12px 10px 10px;
+  }
+  .theory-row .theory-picture,
+  .theory-tile .theory-picture {
+    width: 52px;
+    height: 52px;
+  }
+  .theory-tiles {
+    grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+    gap: 8px;
+  }
+  .theory-tile {
+    padding: 12px 6px;
+    gap: 8px;
+  }
+  .theory-tile .theory-item-words strong {
+    font-size: var(--type-sm);
+  }
+  .theory-try {
+    padding: 14px 16px 16px;
+  }
+  .theory-try-text {
+    font-size: var(--type-base);
+  }
+  .theory-reveal {
+    width: 100%;
+  }
+  .theory-answer p {
+    font-size: var(--type-base);
+  }
 }
 @media (min-width: 1280px) {
   .solving-shell {
@@ -521,16 +842,14 @@ select,
     padding: 16px;
   }
   .solving-shell .question-heading {
-    flex-wrap: wrap;
-    gap: 8px 12px;
-    margin-bottom: 4px;
-  }
-  .solving-shell .card-tags {
-    flex-basis: 100%;
-    justify-content: flex-start;
+    margin-bottom: 6px;
   }
   .solving-shell .question-body {
     line-height: 1.5;
+  }
+  .solving-shell .question-card:not(.theory-card) > .question-body {
+    line-height: 1.45;
+    margin-bottom: 14px;
   }
   .solving-shell .question-body p {
     line-height: inherit;

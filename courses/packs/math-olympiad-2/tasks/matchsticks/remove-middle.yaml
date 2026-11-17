@@ -1,0 +1,33 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Из фигуры на рисунке убрали общую вертикальную сторону двух квадратов. Сколько квадратов осталось?
+  images:
+    - file: images/two-match-squares.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "1"
+    - id: 2
+      text: "2"
+    - id: 3
+      text: "0"
+      correct: true
+    - id: 4
+      text: "3"
+    - id: 5
+      text: "4"
+points: 2
+classification:
+- subject: math
+  concept: matchstick-puzzles
+learning:
+  hint:
+    text: >-
+      Посмотри на фигуру, которая осталась после того, как убрали палочку: какие у неё стороны? Квадрат — это фигура, у которой все четыре стороны равны.
+explanation:
+  text: |
+    Останется только внешний прямоугольник: он вдвое шире, чем выше. Двух маленьких квадратов уже нет, потому что исчезла их общая сторона. Значит, квадратов осталось 0.

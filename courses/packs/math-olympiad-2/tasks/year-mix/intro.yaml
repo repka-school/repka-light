@@ -1,0 +1,32 @@
+kind: theory
+status: active
+learning:
+  title: Выбери свой способ
+  subject: math
+blocks:
+- kind: says
+  text: В этом уроке задачи перемешаны. Сначала реши, какой способ поможет!
+- kind: tiles
+  title: Твои способы
+  items:
+  - picture: table
+    title: Таблица
+  - picture: pencil
+    title: Рисунок
+  - picture: tree
+    title: Перебор
+  - picture: pairs
+    title: Пары
+  - picture: rewind
+    title: Ход с конца
+- kind: steps
+  items:
+  - picture: talk
+    title: Объясни после ответа
+    text: Почему выбранный способ сработал?
+  - picture: swap
+    title: Способ неудобен?
+    text: Попробуй другой.
+- kind: tip
+  picture: bulb
+  text: После урока придумай две свои задачи для взрослого и проверь их решения.

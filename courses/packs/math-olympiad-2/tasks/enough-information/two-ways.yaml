@@ -1,0 +1,33 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    На полке 12 книг. Сначала взяли 3 книги, потом ещё 4. Сколько книг осталось?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "3"
+    - id: 2
+      text: "4"
+    - id: 3
+      text: "6"
+    - id: 4
+      text: "5"
+      correct: true
+    - id: 5
+      text: "7"
+points: 1
+classification:
+- subject: math
+  concept: data-sufficiency
+- subject: math
+  concept: calculation-tricks
+learning:
+  hint:
+    text: >-
+      Узнай, сколько книг взяли всего, или вычитай взятые книги по очереди: оба способа должны дать одно и то же.
+explanation:
+  text: |
+    Можно по шагам: 12 − 3 = 9, 9 − 4 = 5. Или сначала узнать, сколько взяли: 3 + 4 = 7, затем 12 − 7 = 5. Оба способа дают 5.

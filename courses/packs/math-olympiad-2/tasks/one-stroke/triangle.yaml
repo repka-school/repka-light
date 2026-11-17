@@ -1,0 +1,33 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    Из каких отмеченных точек можно начать обводить треугольник на рисунке, чтобы пройти каждую сторону ровно один раз и не отрывать карандаш?
+  images:
+    - file: images/triangle-route.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: Только из 1
+    - id: 2
+      text: 'Из любой: 1, 2 или 3'
+      correct: true
+    - id: 3
+      text: Только из 2
+    - id: 4
+      text: Только из 3
+    - id: 5
+      text: Ни из одной
+points: 1
+classification:
+- subject: math
+  concept: graphs
+learning:
+  hint:
+    text: >-
+      Попробуй обвести треугольник, начиная с разных вершин. Посмотри, где закончится путь, если идти по кругу, и мешает ли что-нибудь начать в другой вершине.
+explanation:
+  text: |
+    Начни с любой вершины и обойди треугольник по кругу. Каждая сторона пройдена один раз, и путь закончится в начале.

@@ -2,7 +2,19 @@
 
 export type Choice = { id: number; label: string; text: string; html: string };
 
-export type TheoryCard = { id: string; kind: "theory"; title: string; body: string };
+/** A drawing with a title and, for most, a line under it. */
+export type TheoryItem = { picture: string; title: string; text: string };
+
+/** One piece of a theory card, in the order the card shows them. */
+export type TheoryBlock =
+  | { kind: "says"; text: string }
+  | { kind: "steps" | "facts" | "tiles"; title: string; items: TheoryItem[] }
+  | { kind: "image"; html: string }
+  | { kind: "try"; title: string; text: string; answer: string; picture: string | null }
+  | { kind: "tip"; picture: string; text: string };
+
+/** A theory card: a body, blocks, or both; `body` is empty when the card is blocks alone. */
+export type TheoryCard = { id: string; kind: "theory"; title: string; body: string; blocks: TheoryBlock[] };
 
 export type QuestionCard = {
   id: string;

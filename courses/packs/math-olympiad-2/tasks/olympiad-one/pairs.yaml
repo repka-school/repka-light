@@ -1,0 +1,33 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Четыре команды сыграли друг с другом по одному разу. Сколько было игр?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "6"
+      correct: true
+    - id: 2
+      text: "4"
+    - id: 3
+      text: "5"
+    - id: 4
+      text: "7"
+    - id: 5
+      text: "8"
+points: 2
+classification:
+- subject: math
+  concept: counting
+- subject: math
+  concept: arrangements
+learning:
+  hint:
+    text: >-
+      Перечисли игры первой команды. Потом для второй считай только новые игры, которые ещё не посчитаны, и так дальше до последней команды.
+explanation:
+  text: |
+    Первая команда играет три раза. Для второй остаются две новые встречи, для третьей одна. Всего 3 + 2 + 1 = 6.

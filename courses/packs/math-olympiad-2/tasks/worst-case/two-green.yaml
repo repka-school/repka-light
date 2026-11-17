@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    В коробке 5 красных и 2 зелёные фишки. Сколько фишек нужно взять не глядя, чтобы наверняка достать обе зелёные?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "5"
+    - id: 2
+      text: "6"
+    - id: 3
+      text: "8"
+    - id: 4
+      text: "7"
+      correct: true
+    - id: 5
+      text: "9"
+points: 2
+classification:
+- subject: math
+  concept: worst-case
+learning:
+  hint:
+    text: >-
+      Представь самый неудачный случай: какие фишки могут попадаться первыми, пока зелёных нет? Только после них начнут приходить зелёные.
+explanation:
+  text: |
+    Сначала могут попасться 5 красных. Потом первая зелёная и только затем вторая. Нужно взять все 7. Если взять 6, одна зелёная ещё может остаться в коробке.

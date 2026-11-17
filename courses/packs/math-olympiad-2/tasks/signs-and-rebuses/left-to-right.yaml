@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    Вычисли: 9 − 2 + 3.
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "8"
+    - id: 2
+      text: "10"
+      correct: true
+    - id: 3
+      text: "9"
+    - id: 4
+      text: "11"
+    - id: 5
+      text: "12"
+points: 1
+classification:
+- subject: math
+  concept: calculation-tricks
+learning:
+  hint:
+    text: >-
+      Когда скобок нет и есть только сложение и вычитание, действия выполняют по порядку слева направо.
+explanation:
+  text: |
+    Считай слева направо: 9 − 2 = 7, затем 7 + 3 = 10. Скобок здесь нет.

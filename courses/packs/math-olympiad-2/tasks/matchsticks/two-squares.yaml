@@ -1,0 +1,33 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    Два одинаковых квадрата из палочек имеют общую сторону, как на рисунке. Каждая сторона — одна палочка. Сколько всего палочек?
+  images:
+    - file: images/two-match-squares.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "7"
+      correct: true
+    - id: 2
+      text: "5"
+    - id: 3
+      text: "6"
+    - id: 4
+      text: "8"
+    - id: 5
+      text: "9"
+points: 1
+classification:
+- subject: math
+  concept: matchstick-puzzles
+learning:
+  hint:
+    text: >-
+      Посчитай палочки первого квадрата, а потом подумай, сколько новых нужно второму: одна его сторона уже стоит.
+explanation:
+  text: |
+    Для первого квадрата нужны 4 палочки. У второго одна сторона уже есть, поэтому добавь только 3. Всего 4 + 3 = 7.

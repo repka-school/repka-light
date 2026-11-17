@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Весы в равновесии: на одной чаше дыня и яблоко, на другой 5 таких же яблок. Сколько яблок весят столько же, сколько дыня?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "2"
+    - id: 2
+      text: "4"
+      correct: true
+    - id: 3
+      text: "3"
+    - id: 4
+      text: "5"
+    - id: 5
+      text: "6"
+points: 2
+classification:
+- subject: math
+  concept: linear-equations
+learning:
+  hint:
+    text: >-
+      Если снять с обеих чаш одно и то же, равновесие не нарушится. Что можно снять с обеих чаш, чтобы слева осталась одна дыня?
+explanation:
+  text: |
+    Убери по одному яблоку с обеих чаш. Слева останется дыня, справа 4 яблока. Равновесие сохранится, значит, дыня весит как 4 яблока.

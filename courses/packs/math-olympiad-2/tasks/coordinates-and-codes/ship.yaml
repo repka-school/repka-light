@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    Корабль занимает клетки Б2, Б3 и Б4. Какой выстрел попадёт в корабль?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: А3
+    - id: 2
+      text: В3
+    - id: 3
+      text: Г2
+    - id: 4
+      text: Б3
+      correct: true
+    - id: 5
+      text: Б1
+points: 1
+classification:
+- subject: math
+  concept: coordinates-vectors
+learning:
+  hint:
+    text: >-
+      Выстрел попадает, только если его адрес совпадает с одной из клеток корабля: сравни и букву, и номер.
+explanation:
+  text: |
+    Попадание должно иметь один из трёх адресов корабля. Среди вариантов только Б3 есть в списке.

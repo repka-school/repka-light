@@ -1,0 +1,22 @@
+kind: theory
+status: active
+learning:
+  title: Вторая олимпиада
+  subject: math
+blocks:
+- kind: says
+  text: Снова десять задач, как в первой олимпиаде. Правила те же.
+- kind: steps
+  items:
+  - picture: pencil
+    title: Рисуй и записывай
+    text: Как и в первый раз.
+  - picture: talk
+    title: Разборы — потом
+    text: Лучше обсудить их после всей работы.
+  - picture: magnifier
+    title: Сравни свои способы
+    text: Не только число ответов. Какие задачи теперь удаётся объяснить самостоятельно?
+- kind: tip
+  picture: medal
+  text: В конце расскажи взрослому, какой способ понравился больше всего и что хочется попробовать ещё.

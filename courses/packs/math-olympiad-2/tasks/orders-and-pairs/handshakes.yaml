@@ -1,0 +1,33 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Четверо друзей пожали друг другу руки. Каждая пара поздоровалась один раз. Сколько всего рукопожатий?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "4"
+    - id: 2
+      text: "5"
+    - id: 3
+      text: "6"
+      correct: true
+    - id: 4
+      text: "7"
+    - id: 5
+      text: "8"
+points: 2
+classification:
+- subject: math
+  concept: counting
+- subject: math
+  concept: arrangements
+learning:
+  hint:
+    text: >-
+      Посчитай рукопожатия первого друга. Потом для второго считай только новые, которые ещё не посчитаны, и так дальше.
+explanation:
+  text: |
+    Первый друг пожмёт руки троим. Для второго остаются две ещё не посчитанные встречи, для третьего — одна. Получается 3 + 2 + 1 = 6. Встречу первых двух друзей второй раз не считаем.

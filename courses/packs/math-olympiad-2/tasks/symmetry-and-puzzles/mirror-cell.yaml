@@ -1,0 +1,33 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    На листе 6 столбцов клеток. Зеркальная линия проходит между третьим и четвёртым столбцами. Закрашена клетка во втором столбце. В каком столбце нужно закрасить её зеркальную пару в том же ряду?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "5"
+      correct: true
+    - id: 2
+      text: "3"
+    - id: 3
+      text: "4"
+    - id: 4
+      text: "6"
+    - id: 5
+      text: "7"
+points: 1
+classification:
+- subject: math
+  concept: symmetry
+- subject: math
+  concept: grid-geometry
+learning:
+  hint:
+    text: >-
+      Посчитай, на сколько столбцов закрашенная клетка отстоит от зеркальной линии, и отложи столько же по другую сторону.
+explanation:
+  text: |
+    Ближайшая пара к линии — столбцы 3 и 4. Следующая пара — 2 и 5. Значит, клетке второго столбца соответствует клетка пятого.

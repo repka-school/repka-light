@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Есть красная и синяя футболки, а ещё красные, синие и зелёные шорты. В наряде одна футболка и одни шорты разного цвета. Сколько нарядов можно составить?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "2"
+    - id: 2
+      text: "3"
+    - id: 3
+      text: "4"
+      correct: true
+    - id: 4
+      text: "5"
+    - id: 5
+      text: "6"
+points: 2
+classification:
+- subject: math
+  concept: counting
+learning:
+  hint:
+    text: >-
+      Перебирай по футболкам: возьми одну футболку и выпиши все шорты другого цвета, потом сделай то же для второй.
+explanation:
+  text: |
+    К красной футболке подходят синие и зелёные шорты: 2 наряда. К синей — красные и зелёные: ещё 2. Всего 2 + 2 = 4.

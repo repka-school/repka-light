@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    У Лизы было 9 открыток. Три она подарила бабушке, две — другу. Сколько открыток Лиза подарила?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "5"
+      correct: true
+    - id: 2
+      text: "3"
+    - id: 3
+      text: "4"
+    - id: 4
+      text: "6"
+    - id: 5
+      text: "7"
+points: 1
+classification:
+- subject: math
+  concept: whole-number-operations
+learning:
+  hint:
+    text: >-
+      Прочитай вопрос ещё раз: спрашивают, сколько открыток осталось или сколько подарено? Выбери из условия только те числа, которые для этого нужны.
+explanation:
+  text: |
+    Сложи только подаренные открытки: 3 + 2 = 5. Число 9 говорит, сколько было сначала, но вопрос о подаренных.

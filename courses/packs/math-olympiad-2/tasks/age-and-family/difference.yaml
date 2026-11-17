@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    Саше 8 лет, его сестре 5. На сколько лет Саша будет старше сестры через 4 года?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "3"
+      correct: true
+    - id: 2
+      text: "1"
+    - id: 3
+      text: "2"
+    - id: 4
+      text: "4"
+    - id: 5
+      text: "5"
+points: 1
+classification:
+- subject: math
+  concept: ages-and-relations
+learning:
+  hint:
+    text: >-
+      Подумай, на сколько лет постареет каждый за одно и то же время. Меняется ли от этого, на сколько один старше другого?
+explanation:
+  text: |
+    Сейчас разница 8 − 5 = 3 года. Через 4 года им будет 12 и 9, разница снова 3. Оба стали старше на одинаковое число лет.

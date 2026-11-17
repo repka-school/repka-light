@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    Ключ шифра: 1 — К, 2 — О, 3 — Т, 4 — Д, 5 — М. Какое слово зашифровано числами 4, 2, 5?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: КОТ
+    - id: 2
+      text: ТОК
+    - id: 3
+      text: КОД
+    - id: 4
+      text: МОТ
+    - id: 5
+      text: ДОМ
+      correct: true
+points: 1
+classification:
+- subject: math
+  concept: ciphers-codes
+learning:
+  hint:
+    text: >-
+      Бери числа по очереди и для каждого находи в ключе его букву, не меняя порядок.
+explanation:
+  text: |
+    Замени каждое число буквой из ключа: 4 → Д, 2 → О, 5 → М. Получится ДОМ.

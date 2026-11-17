@@ -1,0 +1,33 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Сегодня понедельник. Какой день недели будет через 10 дней?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: Вторник
+    - id: 2
+      text: Среда
+    - id: 3
+      text: Четверг
+      correct: true
+    - id: 4
+      text: Пятница
+    - id: 5
+      text: Воскресенье
+points: 2
+classification:
+- subject: math
+  concept: time-and-measures
+- subject: math
+  concept: remainders
+learning:
+  hint:
+    text: >-
+      Через целую неделю, 7 дней, снова будет тот же день недели. Сначала отсчитай неделю, а потом досчитай оставшиеся дни по одному.
+explanation:
+  text: |
+    Через 7 дней снова понедельник. Остаются ещё 3 дня: вторник, среда, четверг.

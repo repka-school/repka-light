@@ -1,0 +1,33 @@
+status: active
+difficulty: hard
+question:
+  text: |
+    В домике добавили диагональ 1–3. Из каких точек теперь можно начать обводить все линии одним росчерком без повторов?
+  images:
+    - file: images/house-one-diagonal.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: Из 1 или 4
+      correct: true
+    - id: 2
+      text: Из 3 или 4
+    - id: 3
+      text: Из 1 или 2
+    - id: 4
+      text: Только из 5
+    - id: 5
+      text: Из любой точки
+points: 3
+classification:
+- subject: math
+  concept: graphs
+learning:
+  hint:
+    text: >-
+      Заново посчитай, сколько линий сходится в каждой точке после того, как добавили диагональ. Если в точке нечётное число линий, росчерк должен в ней начаться или закончиться.
+explanation:
+  text: |
+    Теперь в точке 1 три линии, в точке 4 тоже три. В точке 3 стало четыре. Подходит путь 1 → 2 → 3 → 1 → 4 → 3 → 5 → 4. Обратный путь начинается в 4.

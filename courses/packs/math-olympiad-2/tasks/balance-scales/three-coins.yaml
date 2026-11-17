@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    Из трёх монет 1, 2, 3 одна тяжелее, остальные одинаковые. Монеты 1 и 2 положили на разные чаши. Весы в равновесии. Какая монета тяжелее?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: Монета 1
+    - id: 2
+      text: Монета 2
+    - id: 3
+      text: Монета 3
+      correct: true
+    - id: 4
+      text: Все одинаковые
+    - id: 5
+      text: Узнать нельзя
+points: 1
+classification:
+- subject: math
+  concept: processes-algorithms
+learning:
+  hint:
+    text: >-
+      Равновесие значит, что монеты на чашах весят одинаково. Может ли тяжёлая монета лежать на одной из чаш?
+explanation:
+  text: |
+    Монеты 1 и 2 одинаковы по весу. Тяжёлая монета только одна, поэтому среди них её нет. Осталась монета 3.

@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    На часах написано VIII. Какое это число, если V означает 5, а каждая I справа добавляет 1?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "6"
+    - id: 2
+      text: "7"
+    - id: 3
+      text: "9"
+    - id: 4
+      text: "8"
+      correct: true
+    - id: 5
+      text: "10"
+points: 1
+classification:
+- subject: math
+  concept: digits-and-numeral-systems
+learning:
+  hint:
+    text: >-
+      Пересчитай по одному знаки I, которые стоят после V, — их легко пропустить, — и прибавь их к значению V.
+explanation:
+  text: |
+    После V стоят три знака I. Сложи: 5 + 1 + 1 + 1 = 8.

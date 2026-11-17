@@ -1,0 +1,30 @@
+kind: theory
+status: active
+learning:
+  title: Зеркало и две головоломки
+  subject: math
+blocks:
+- kind: says
+  text: 'Сегодня сразу три темы: зеркальная линия, танграм и пентамино.'
+- kind: facts
+  items:
+  - picture: mirror
+    title: Линия симметрии
+    text: Согни фигуру по этой линии, и половинки совпадут.
+  - picture: tangram
+    title: Танграм
+    text: Семь частей квадрата. Из них собирают фигуры без наложений.
+  - picture: pentomino
+    title: Пентамино
+    text: Фигура из пяти одинаковых клеток, соединённых целыми сторонами.
+- kind: tip
+  picture: tangram
+  text: На рисунке части танграма пронумерованы.
+- kind: image
+  file: images/tangram-seven.png
+- kind: tip
+  picture: pentomino
+  text: Перед подсчётом проверь, что в пентамино пять клеток.
+- kind: try
+  text: Сколько линий симметрии у квадрата?
+  answer: 4. Две проходят через середины сторон, ещё две — по диагоналям.

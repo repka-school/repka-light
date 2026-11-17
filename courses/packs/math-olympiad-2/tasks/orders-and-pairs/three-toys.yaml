@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Мишку, зайца и кота ставят в ряд. Сколько разных порядков получится?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "6"
+      correct: true
+    - id: 2
+      text: "4"
+    - id: 3
+      text: "5"
+    - id: 4
+      text: "7"
+    - id: 5
+      text: "8"
+points: 2
+classification:
+- subject: math
+  concept: arrangements
+learning:
+  hint:
+    text: >-
+      Выбери, кто стоит первым, и для каждого такого случая выпиши все порядки двух остальных. Потом сложи.
+explanation:
+  text: |
+    Сначала поставь мишку: дальше возможны заяц–кот или кот–заяц. С зайцем первым тоже 2 порядка, с котом первым — ещё 2. Всего 2 + 2 + 2 = 6.

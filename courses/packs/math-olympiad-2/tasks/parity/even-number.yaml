@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    Какое число пуговиц можно разложить парами без остатка?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "8"
+      correct: true
+    - id: 2
+      text: "3"
+    - id: 3
+      text: "5"
+    - id: 4
+      text: "7"
+    - id: 5
+      text: "9"
+points: 1
+classification:
+- subject: math
+  concept: parity
+learning:
+  hint:
+    text: >-
+      Раскладывай пуговицы каждого числа по две и смотри, что остаётся в конце: пара или одна пуговица.
+explanation:
+  text: |
+    Восемь пуговиц — это четыре пары: 2 + 2 + 2 + 2 = 8. У каждого из остальных чисел одна пуговица останется без пары.

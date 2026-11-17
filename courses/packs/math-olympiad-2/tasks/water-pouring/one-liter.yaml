@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    В большом сосуде на 5 литров уже 3 литра. Маленький сосуд на 3 литра полон. Из него доливают большой до края. Сколько литров останется в маленьком?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "0"
+    - id: 2
+      text: "2"
+    - id: 3
+      text: "1"
+      correct: true
+    - id: 4
+      text: "3"
+    - id: 5
+      text: "4"
+points: 2
+classification:
+- subject: math
+  concept: processes-algorithms
+learning:
+  hint:
+    text: >-
+      Сначала узнай, сколько места свободно в большом сосуде. Ровно столько перельётся из маленького.
+explanation:
+  text: |
+    В большом свободно 5 − 3 = 2 литра. Столько перельётся из маленького. В маленьком останется 3 − 2 = 1 литр.

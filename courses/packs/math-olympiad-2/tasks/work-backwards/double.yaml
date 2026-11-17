@@ -1,0 +1,31 @@
+status: active
+difficulty: hard
+question:
+  text: |
+    Петя взял несколько фишек, добавил ещё столько же, потом убрал 4. Осталось 10. Сколько фишек Петя взял сначала?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "5"
+    - id: 2
+      text: "6"
+    - id: 3
+      text: "8"
+    - id: 4
+      text: "9"
+    - id: 5
+      text: "7"
+      correct: true
+points: 3
+classification:
+- subject: math
+  concept: backward-reasoning
+learning:
+  hint:
+    text: >-
+      Сначала верни убранные фишки. Потом подумай: из каких двух равных кучек сложилось это число?
+explanation:
+  text: |
+    Верни убранные 4: получится 14. До этого были две равные кучки — начальная и добавленная. В каждой по 7, потому что 7 + 7 = 14. Проверка: 7 + 7 − 4 = 10.

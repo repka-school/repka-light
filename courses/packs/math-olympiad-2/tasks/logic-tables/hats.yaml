@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    У Димы, Коли и Лёвы шапки трёх разных цветов: белая, синяя и зелёная. Синяя шапка у Лёвы. У Димы не белая. Какая шапка у Коли?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: Синяя
+    - id: 2
+      text: Зелёная
+    - id: 3
+      text: Белая
+      correct: true
+    - id: 4
+      text: Красная
+    - id: 5
+      text: Определить нельзя
+points: 2
+classification:
+- subject: math
+  concept: logic-tables
+learning:
+  hint:
+    text: >-
+      Начерти таблицу: мальчики в строках, цвета в столбцах. Сначала отметь то, что известно точно, и вычеркни этот цвет у остальных.
+explanation:
+  text: |
+    Синюю шапку уже носит Лёва. Диме остаются белая и зелёная, но белая не подходит. Значит, у Димы зелёная, а у Коли белая.

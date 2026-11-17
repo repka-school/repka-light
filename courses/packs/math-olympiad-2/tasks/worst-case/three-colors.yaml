@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    В мешке по 4 шарика трёх цветов: белого, красного и синего. Сколько нужно взять не глядя, чтобы наверняка были два шарика одного цвета?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "2"
+    - id: 2
+      text: "3"
+    - id: 3
+      text: "4"
+      correct: true
+    - id: 4
+      text: "5"
+    - id: 5
+      text: "6"
+points: 2
+classification:
+- subject: math
+  concept: worst-case
+learning:
+  hint:
+    text: >-
+      Представь самый неудачный случай: сколько шариков можно взять так, чтобы все были разного цвета? Что тогда сделает следующий шарик?
+explanation:
+  text: |
+    Самая неудачная тройка — по одному шарику каждого цвета. У четвёртого цвет совпадёт с одним из них. Поэтому нужны 4 шарика.

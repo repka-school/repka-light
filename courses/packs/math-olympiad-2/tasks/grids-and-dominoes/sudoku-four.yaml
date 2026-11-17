@@ -1,0 +1,33 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    В судоку на рисунке в каждом ряду, столбце и маленьком квадрате должны быть числа 1, 2, 3, 4 без повторов. Какое число нужно во вторую клетку верхнего ряда?
+  images:
+    - file: images/sudoku-four.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "2"
+      correct: true
+    - id: 2
+      text: "1"
+    - id: 3
+      text: "3"
+    - id: 4
+      text: "4"
+    - id: 5
+      text: "5"
+points: 1
+classification:
+- subject: math
+  concept: logic-tables
+learning:
+  hint:
+    text: >-
+      Посмотри, каких чисел не хватает в верхнем ряду. Потом проверь столбец нужной клетки: какое из этих чисел там уже есть?
+explanation:
+  text: |
+    В верхнем ряду не хватает 2 и 3. Во втором столбце уже есть 4, 1 и 3, поэтому остаётся 2. Третьей клетке верхнего ряда достанется 3.

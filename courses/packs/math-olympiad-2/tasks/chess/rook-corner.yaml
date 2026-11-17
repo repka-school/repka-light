@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    На пустой шахматной доске 8 на 8 ладья стоит в углу a1. На сколько клеток она может пойти за один ход?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "7"
+    - id: 2
+      text: "14"
+      correct: true
+    - id: 3
+      text: "8"
+    - id: 4
+      text: "13"
+    - id: 5
+      text: "16"
+points: 1
+classification:
+- subject: math
+  concept: counting
+learning:
+  hint:
+    text: >-
+      Ладья ходит по прямой вдоль ряда и вдоль столбца. Посчитай клетки отдельно по ряду и по столбцу, а потом сложи.
+explanation:
+  text: |
+    По первому ряду вправо доступны 7 клеток. По столбцу a вверх — ещё 7. Эти клетки разные. Всего 7 + 7 = 14.

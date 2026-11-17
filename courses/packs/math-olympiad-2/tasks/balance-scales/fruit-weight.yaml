@@ -1,0 +1,33 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    Весы в равновесии: на одной чаше 2 одинаковых яблока, на другой 6 одинаковых слив. Сколько слив весят столько же, сколько одно яблоко?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "3"
+      correct: true
+    - id: 2
+      text: "1"
+    - id: 3
+      text: "2"
+    - id: 4
+      text: "4"
+    - id: 5
+      text: "5"
+points: 1
+classification:
+- subject: math
+  concept: linear-equations
+- subject: math
+  concept: whole-number-operations
+learning:
+  hint:
+    text: >-
+      Раздели содержимое каждой чаши на две равные части. Половинки тоже уравновесят друг друга.
+explanation:
+  text: |
+    Раздели яблоки на две равные группы — по одному. Сливы тоже раздели поровну: по 3. Значит, одно яблоко уравновесят 3 сливы.

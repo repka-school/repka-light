@@ -48,6 +48,7 @@
   --danger-soft: #faeadf;
   --danger-text: #785033;
   --note-text: #7a5a1e;
+  --warm-soft: #fbf1e0;
   --selected: #21382d;
   --selected-foreground: #ffffff;
   --choice-box: #67715f;
@@ -78,12 +79,14 @@
   --type-section-title: var(--type-xl);
   --type-card-title: var(--type-lg);
   --type-task-title: var(--type-2xl);
+  --type-task-text: 1.25rem;
   --type-lead: var(--type-lg);
   --type-stat: var(--type-2xl);
 }
 @media (max-width: 700px) {
   :root {
     --type-task-title: var(--type-xl);
+    --type-task-text: var(--type-lg);
     --type-lead: var(--type-base);
   }
 }

@@ -1,0 +1,33 @@
+status: active
+difficulty: hard
+question:
+  text: |
+    В группе 8 детей. Каждый любит яблоки или груши, а некоторые — оба фрукта. Яблоки любят 5 детей, груши — 6. Сколько детей любят оба фрукта?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "1"
+    - id: 2
+      text: "2"
+    - id: 3
+      text: "4"
+    - id: 4
+      text: "3"
+      correct: true
+    - id: 5
+      text: "5"
+points: 3
+classification:
+- subject: math
+  concept: inclusion-exclusion
+- subject: math
+  concept: sets-euler-circles
+learning:
+  hint:
+    text: >-
+      Сложи любителей яблок и любителей груш и сравни сумму с числом детей. Подумай, кого при таком сложении посчитали два раза.
+explanation:
+  text: |
+    Если сложить 5 + 6 = 11, любители обоих фруктов посчитаются дважды. Детей всего 8. Лишних подсчётов 11 − 8 = 3. Значит, оба фрукта любят 3 ребёнка.

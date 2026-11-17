@@ -1,0 +1,35 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    Сколько треугольных деталей в танграме на рисунке?
+  images:
+    - file: images/tangram-seven.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "3"
+    - id: 2
+      text: "4"
+    - id: 3
+      text: "5"
+      correct: true
+    - id: 4
+      text: "6"
+    - id: 5
+      text: "7"
+points: 1
+classification:
+- subject: math
+  concept: grid-geometry
+- subject: math
+  concept: angles-triangles
+learning:
+  hint:
+    text: >-
+      Пройди по номерам деталей от 1 до 7 и у каждой посчитай углы: у треугольника их три.
+explanation:
+  text: |
+    Треугольники имеют номера 1, 2, 3, 5 и 7 — всего 5. Деталь 4 — квадрат, а у детали 6 четыре стороны.

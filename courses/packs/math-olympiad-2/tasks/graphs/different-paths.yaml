@@ -1,0 +1,35 @@
+status: active
+difficulty: hard
+question:
+  text: |
+    Сколько путей из города 1 в город 3 на схеме, если ни один город в пути нельзя посещать повторно?
+  images:
+    - file: images/roads-five.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "1"
+    - id: 2
+      text: "2"
+    - id: 3
+      text: "4"
+    - id: 4
+      text: "5"
+    - id: 5
+      text: "3"
+      correct: true
+points: 3
+classification:
+- subject: math
+  concept: graphs
+- subject: math
+  concept: counting
+learning:
+  hint:
+    text: >-
+      Перебирай пути по порядку: сначала прямая дорога, потом пути через каждый соседний город. Следи, чтобы ни один город в пути не повторялся.
+explanation:
+  text: |
+    Есть пути 1 → 3, 1 → 2 → 3 и 1 → 4 → 3. Через город 5 новый путь не получится: он соединён только с 3, а повторять город нельзя. Всего 3.

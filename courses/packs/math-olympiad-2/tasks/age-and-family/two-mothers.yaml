@@ -1,0 +1,33 @@
+status: active
+difficulty: hard
+question:
+  text: |
+    За столом сидят две мамы и две дочери. У каждой из этих мам за столом есть её дочь, а у каждой дочери — её мама. Один человек может быть и мамой, и дочерью. Какое самое маленькое число людей может сидеть за столом?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "1"
+    - id: 2
+      text: "2"
+    - id: 3
+      text: "4"
+    - id: 4
+      text: "3"
+      correct: true
+    - id: 5
+      text: "5"
+points: 3
+classification:
+- subject: math
+  concept: ages-and-relations
+- subject: math
+  concept: constructions
+learning:
+  hint:
+    text: >-
+      Начни с одной пары «мама — дочь». Подумай, кого добавить, чтобы стало две мамы и две дочери, если новых людей брать как можно меньше.
+explanation:
+  text: |
+    Могут сидеть бабушка, её дочь и внучка. Бабушка и дочь — две мамы. Дочь и внучка — две дочери. Всего 3 человека; средний человек входит в обе пары.

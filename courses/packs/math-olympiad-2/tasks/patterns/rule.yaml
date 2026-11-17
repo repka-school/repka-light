@@ -1,0 +1,33 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    В ряду стоят числа 2, 5, 8, 11, 14. Какое правило подходит к каждому переходу?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: Прибавить 3
+      correct: true
+    - id: 2
+      text: Прибавить 2
+    - id: 3
+      text: Прибавить 4
+    - id: 4
+      text: Отнять 3
+    - id: 5
+      text: Прибавить 5
+points: 1
+classification:
+- subject: math
+  concept: patterns
+- subject: math
+  concept: sequences-progressions
+learning:
+  hint:
+    text: >-
+      Проверь каждое правило на всех соседних парах чисел, а не только на первой: подходящее правило должно работать на каждом шаге.
+explanation:
+  text: |
+    Проверь соседние числа: 2 + 3 = 5, 5 + 3 = 8, 8 + 3 = 11, 11 + 3 = 14. На каждом шаге прибавляется 3.

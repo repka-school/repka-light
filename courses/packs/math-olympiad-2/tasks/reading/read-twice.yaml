@@ -1,0 +1,25 @@
+kind: theory
+status: active
+learning:
+  title: Читай как сыщик
+  subject: math
+blocks:
+  - kind: says
+    text: В задачах прячутся ловушки. Сыщик в них не попадает. Вот его четыре шага.
+  - kind: steps
+    items:
+      - picture: reread
+        title: Прочитай два раза
+        text: Представь, что происходит, как в мультфильме.
+      - picture: question
+        title: Найди вопрос
+        text: Что нужно узнать?
+      - picture: magnifier
+        title: Выбери нужное
+        text: Какие числа и слова помогут ответить? Пригодятся не все.
+      - picture: check
+        title: Проверь себя
+        text: Когда найдёшь ответ, прочитай вопрос ещё раз.
+  - kind: try
+    text: У Тани 4 шарика и 2 мяча. Один шарик улетел. Сколько мячей у Тани?
+    answer: 2 мяча. Спрашивали про мячи, а шарики здесь для ловушки.

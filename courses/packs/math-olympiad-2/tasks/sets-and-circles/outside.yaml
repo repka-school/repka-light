@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    В группе 10 детей. Только рисованием занимаются 3 ребёнка, только музыкой — 2, обоими занятиями — 1. Остальные не занимаются ни тем ни другим. Сколько их?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "2"
+    - id: 2
+      text: "3"
+    - id: 3
+      text: "5"
+    - id: 4
+      text: "6"
+    - id: 5
+      text: "4"
+      correct: true
+points: 2
+classification:
+- subject: math
+  concept: sets-euler-circles
+learning:
+  hint:
+    text: >-
+      Нарисуй два пересекающихся круга и впиши числа в нужные части. Сначала посчитай всех детей внутри кругов.
+explanation:
+  text: |
+    Внутри двух кругов 3 + 2 + 1 = 6 детей. Остальные находятся вне обоих кругов: 10 − 6 = 4. Проверь: 3 + 2 + 1 + 4 = 10.

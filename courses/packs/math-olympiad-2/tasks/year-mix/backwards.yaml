@@ -1,0 +1,31 @@
+status: active
+difficulty: hard
+question:
+  text: |
+    Из коробки взяли половину кубиков, затем ещё 3. Осталось 5. Сколько было сначала?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "16"
+      correct: true
+    - id: 2
+      text: "14"
+    - id: 3
+      text: "15"
+    - id: 4
+      text: "17"
+    - id: 5
+      text: "18"
+points: 3
+classification:
+- subject: math
+  concept: backward-reasoning
+learning:
+  hint:
+    text: >-
+      Иди с конца: сначала верни в коробку последние взятые кубики. Сколько тогда было и какая это часть от начального количества?
+explanation:
+  text: |
+    До последних трёх в коробке было 5 + 3 = 8. Это половина начального количества. Значит, сначала было 8 + 8 = 16. Проверка: после половины осталось 8, после ещё трёх — 5.

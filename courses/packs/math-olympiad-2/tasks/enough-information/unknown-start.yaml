@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    Из автобуса вышли 3 пассажира, а вошли 2. Сколько пассажиров стало в автобусе?
+answer:
+  kind: single
+  hide: true
+  options:
+    - id: 1
+      text: "1"
+    - id: 2
+      text: Не хватает числа пассажиров, которые ехали сначала
+      correct: true
+    - id: 3
+      text: "2"
+    - id: 4
+      text: "3"
+    - id: 5
+      text: "5"
+points: 2
+classification:
+- subject: math
+  concept: data-sufficiency
+learning:
+  hint:
+    text: >-
+      Придумай, сколько пассажиров было сначала, и реши задачу для двух разных чисел. Получается ли один и тот же ответ?
+explanation:
+  text: |
+    Если сначала было 5 пассажиров, осталось 5 − 3 + 2 = 4. Если было 8, осталось 7. Оба случая подходят, но ответы разные. Начальное количество неизвестно.

@@ -12,6 +12,14 @@ const LETTERS = ["А", "Б", "В", "Г", "Д", "Е"];
 const IMAGE_ALT = "Иллюстрация к заданию";
 const ALLOWED_TAGS = new Set(["p", "br", "b", "strong", "i", "em", "sub", "sup", "ul", "ol", "li", "table", "caption", "thead", "tbody", "tr", "th", "td"]);
 const ALLOWED_ATTRIBUTES = new Set(["colspan", "rowspan"]);
+/** The drawings a theory block may name; the site draws each one (src/ui/pictures/TheoryPicture.tsx). */
+export const THEORY_PICTURES = [
+  "book", "reread", "question", "magnifier", "check", "pencil", "list", "counters", "cup", "corner", "plus", "minus", "plusminus", "brackets", "letter",
+  "zero", "two", "four", "roman", "arrow", "swap", "rewind", "table", "shield", "mask", "bulb", "venn-left", "venn-both", "venn-right", "venn-out",
+  "pattern", "cells", "pairs", "odd", "tree", "pair", "bag", "chicken", "rabbit", "grid-small", "grid-big", "scissors", "equal", "shapes", "sticks",
+  "medal", "talk", "posts", "log", "bell", "cake", "people", "boat", "jug-full", "jug-empty", "jug-pour", "scales", "clock", "calendar", "stones",
+  "sudoku", "domino", "coords", "key", "graph", "cube", "net", "blocks", "rook", "bishop", "knight", "tangram", "pentomino", "mirror",
+];
 
 const readYaml = (file) => parse(fs.readFileSync(file, "utf8"));
 
@@ -31,6 +39,58 @@ export function checkedHtml(html, where) {
   }
   if (/<(?![/a-zA-Z])/.test(html)) throw new Error(`${where}: a stray "<" in markup`);
   return html.replace(/<table[\s\S]*?<\/table>/g, (table) => `<div class="scroll-frame">${table}</div>`);
+}
+
+/**
+ * A theory card's blocks, checked: what the guide says, numbered steps, facts,
+ * a row of tiles, a picture of the pack, a riddle with a hidden answer, a tip.
+ * Their text is plain. `image` turns a picture's file into its address.
+ */
+export function theoryBlocks(blocks, where, image) {
+  if (blocks === undefined) return [];
+  if (!Array.isArray(blocks) || blocks.length === 0) throw new Error(`${where}: blocks is not a list of blocks`);
+  const text = (value, what) => {
+    if (typeof value !== "string" || !value.trim()) throw new Error(`${where}: ${what} is empty`);
+    return value.trim();
+  };
+  const optional = (value, what) => (value === undefined ? "" : text(value, what));
+  const picture = (name, what) => {
+    if (!THEORY_PICTURES.includes(name)) throw new Error(`${where}: ${what} names an unknown picture ${name}`);
+    return name;
+  };
+  const items = (list, what) => {
+    if (!Array.isArray(list) || list.length === 0) throw new Error(`${where}: ${what} has no items`);
+    return list.map((item, i) => ({
+      picture: picture(item?.picture, `${what} item ${i + 1}`),
+      title: text(item?.title, `the title of ${what} item ${i + 1}`),
+      text: optional(item?.text, `the text of ${what} item ${i + 1}`),
+    }));
+  };
+  return blocks.map((block, i) => {
+    const what = `block ${i + 1} (${block?.kind})`;
+    switch (block?.kind) {
+      case "says":
+        return { kind: "says", text: text(block.text, what) };
+      case "steps":
+      case "facts":
+      case "tiles":
+        return { kind: block.kind, title: optional(block.title, `the title of ${what}`), items: items(block.items, what) };
+      case "image":
+        return { kind: "image", html: `<img src="${image(text(block.file, `the file of ${what}`), where)}" alt="${escapeHtml(block.alt ?? IMAGE_ALT)}" loading="lazy">` };
+      case "try":
+        return {
+          kind: "try",
+          title: optional(block.title, `the title of ${what}`),
+          text: text(block.text, what),
+          answer: text(block.answer, `the answer of ${what}`),
+          picture: block.picture === undefined ? null : picture(block.picture, what),
+        };
+      case "tip":
+        return { kind: "tip", picture: picture(block.picture, what), text: text(block.text, what) };
+      default:
+        throw new Error(`${where}: block ${i + 1} has an unknown kind ${block?.kind}`);
+    }
+  });
 }
 
 /**
@@ -89,7 +149,11 @@ function buildPack(root, put, packId, base) {
     const where = `${packId}/${taskId}`;
     if (task.status !== "active") throw new Error(`${where}: status is ${task.status}, not active`);
     const id = where;
-    if (task.kind === "theory") return { id, kind: "theory", title: task.learning?.title ?? "", body: body(task.question, where) };
+    if (task.kind === "theory") {
+      // A theory card shows a body, blocks, or both.
+      const blocks = theoryBlocks(task.blocks, where, image);
+      return { id, kind: "theory", title: task.learning?.title ?? "", body: blocks.length && !task.question ? "" : body(task.question, where), blocks };
+    }
 
     const answer = task.answer;
     if (!answer || !["single", "multi"].includes(answer.kind)) throw new Error(`${where}: unknown answer kind ${answer?.kind}`);

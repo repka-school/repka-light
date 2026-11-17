@@ -1,0 +1,31 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    Числа в ряду каждый раз уменьшаются на 4: 22, 18, 14, … Какое число будет следующим?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "8"
+    - id: 2
+      text: "10"
+      correct: true
+    - id: 3
+      text: "9"
+    - id: 4
+      text: "11"
+    - id: 5
+      text: "12"
+points: 1
+classification:
+- subject: math
+  concept: patterns
+learning:
+  hint:
+    text: >-
+      Ряд каждый раз уменьшается на одно и то же число. Вычти этот шаг из последнего числа ряда.
+explanation:
+  text: |
+    Из 14 вычти ещё 4: 14 − 4 = 10. Проверь: между 22 и 18, 18 и 14, 14 и 10 одинаковый шаг.

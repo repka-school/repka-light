@@ -1,0 +1,33 @@
+status: active
+difficulty: hard
+question:
+  text: |
+    В турнире 5 игроков. Каждый сыграл с каждым один раз. Сколько матчей было?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "8"
+    - id: 2
+      text: "9"
+    - id: 3
+      text: "11"
+    - id: 4
+      text: "10"
+      correct: true
+    - id: 5
+      text: "12"
+points: 3
+classification:
+- subject: math
+  concept: counting
+- subject: math
+  concept: arrangements
+learning:
+  hint:
+    text: >-
+      Посчитай матчи первого игрока. Потом для второго считай только новые матчи, которые ещё не посчитаны, и так дальше до последнего игрока.
+explanation:
+  text: |
+    У первого игрока 4 встречи. У второго остаются 3 новые, у третьего — 2, у четвёртого — 1. Всего 4 + 3 + 2 + 1 = 10 матчей.

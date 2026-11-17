@@ -1,0 +1,28 @@
+kind: theory
+status: active
+learning:
+  title: Новая задача? Не беда!
+  subject: math
+blocks:
+  - kind: says
+    text: Дальше будут задачи на разные темы. Некоторые совсем новые. Не пугайся, а попробуй найти свой способ!
+  - kind: tiles
+    title: Что поможет
+    items:
+      - picture: pencil
+        title: Рисуй
+      - picture: list
+        title: Записывай варианты
+      - picture: counters
+        title: Считай на предметах
+  - kind: try
+    title: Разминка
+    text: У листа бумаги 4 угла. Один уголок отрезали ножницами. Сколько углов стало?
+    answer: 5 углов! Не веришь? Нарисуй лист, отрежь уголок и посчитай.
+    picture: corner
+  - kind: tip
+    picture: book
+    text: После ответа прочитай разбор. Сравни его со своим способом.
+  - kind: tip
+    picture: cup
+    text: Хочется отдохнуть? Сделай перерыв. Не обязательно решить всё за один раз.

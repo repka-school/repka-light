@@ -1,0 +1,31 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    В мешке 4 белых и 3 чёрных шарика. Ты достаёшь их не глядя. Сколько шариков нужно взять, чтобы среди них наверняка был чёрный?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "5"
+      correct: true
+    - id: 2
+      text: "3"
+    - id: 3
+      text: "4"
+    - id: 4
+      text: "6"
+    - id: 5
+      text: "7"
+points: 2
+classification:
+- subject: math
+  concept: worst-case
+learning:
+  hint:
+    text: >-
+      Представь самый неудачный случай: какие шарики могут попадаться тебе подряд, пока чёрного ещё нет, и сколько их может быть?
+explanation:
+  text: |
+    Сначала могут попасться все 4 белых. Пятый обязательно чёрный, потому что белые закончились. Четырёх шариков недостаточно: они могут быть все белыми.

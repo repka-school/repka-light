@@ -1,0 +1,35 @@
+status: active
+difficulty: medium
+question:
+  text: |
+    На рисунке прямоугольник из 2 рядов по 3 клетки. Сколько в нём квадратов всех размеров? Стороны квадратов идут по нарисованным линиям.
+  images:
+    - file: images/grid-3-by-2.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: "8"
+      correct: true
+    - id: 2
+      text: "6"
+    - id: 3
+      text: "7"
+    - id: 4
+      text: "9"
+    - id: 5
+      text: "10"
+points: 2
+classification:
+- subject: math
+  concept: counting
+- subject: math
+  concept: grid-geometry
+learning:
+  hint:
+    text: >-
+      Считай квадраты по размерам: сначала из одной клетки, потом со стороной в две клетки. Проверь, какой размер уже не помещается по высоте.
+explanation:
+  text: |
+    Маленьких квадратов 3 + 3 = 6. Квадратов со стороной в 2 клетки два: левый и правый. Всего 6 + 2 = 8. Больше квадрат не помещается по высоте.
