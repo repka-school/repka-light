@@ -145,3 +145,16 @@ Analytics scripts; their ids are at the top of `vite.config.ts`. They are
 added only when `ANALYTICS=1` is set for the build, which the workflow does,
 so `npm run dev` and a plain `npm run build` have none. Google Analytics tags
 are configured inside Google Tag Manager.
+
+## Licence
+
+- **Code** — everything outside `courses/`: [MIT](LICENSE).
+- **Course content** — tasks, hints, solutions, theory and illustrations in
+  `courses/` and their built copy in `public/content/`:
+  [CC BY-NC-SA 4.0](courses/LICENSE.md), © Repka School contributors. Each
+  pack names its licence in `pack.yaml`; a new pack under another licence
+  needs its own notice next to it.
+- **Bundled libraries** keep their own licences. The build writes them, with
+  their full texts, to `third-party-licenses.txt` next to the page.
+
+The site's footer links both licences.

@@ -67,6 +67,14 @@ main {
   font-size: var(--footer-text);
   color: var(--muted-foreground);
 }
+.footer-license a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.footer-license a:hover {
+  color: var(--primary);
+}
 .eyebrow {
   font-size: var(--type-xs);
   letter-spacing: 0.13em;

@@ -41,10 +41,24 @@ export function SiteHeader() {
   );
 }
 
+// The course content is CC BY-NC-SA 4.0 (courses/LICENSE.md), the code MIT (LICENSE).
+const CONTENT_LICENSE = "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ru";
+const CODE_LICENSE = "https://github.com/repka-school/repka-light/blob/main/LICENSE";
+
 export function SiteFooter() {
   return (
     <footer className="site-footer">
       <span>{t.footerNote}</span>
+      <span className="footer-license">
+        {t.footerContent}:{" "}
+        <a rel="license" href={CONTENT_LICENSE}>
+          CC BY-NC-SA 4.0
+        </a>{" "}
+        · {t.footerCode}:{" "}
+        <a rel="license" href={CODE_LICENSE}>
+          MIT
+        </a>
+      </span>
     </footer>
   );
 }

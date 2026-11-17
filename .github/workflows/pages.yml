@@ -46,6 +46,8 @@ jobs:
           grep -q 'googletagmanager.com/gtm.js?id=GTM-PGV3K8LL' dist/index.html
           grep -q 'static.cloudflareinsights.com/beacon.min.js' dist/index.html
           grep -q 'd29c42e7f1ff408d90a2294f73db3bd1' dist/index.html
+      - name: Check the third-party licences are published
+        run: grep -q '^react@' dist/third-party-licenses.txt
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
