@@ -7,7 +7,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 const GTM_URL = "https://www.googletagmanager.com/gtm.js?id=GTM-PGV3K8LL";
 const CF_URL = "https://static.cloudflareinsights.com/beacon.min.js";
-const CF_TOKEN = "42ea943f44b14746994f7cfa917cc3ab";
+const CF_TOKEN = "d29c42e7f1ff408d90a2294f73db3bd1";
 
 // Visitor analytics, added to the page only in the build that is published
 // (the deploy workflow sets ANALYTICS=1), so local runs are not counted.
