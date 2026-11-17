@@ -1,0 +1,33 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    В корзине было 9 грибов. Мама взяла 4 гриба, папа — 2.
+    Сколько всего грибов взяли родители?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: 6 грибов
+      correct: true
+    - id: 2
+      text: 3 гриба
+    - id: 3
+      text: 4 гриба
+    - id: 4
+      text: 2 гриба
+    - id: 5
+      text: 9 грибов
+points: 1
+classification:
+- subject: math
+  concept: careful-reading
+learning:
+  hint:
+    text: >-
+      Найди в вопросе, о каких грибах спрашивают: о тех, что взяли, или о тех, что остались. Нужно ли здесь число грибов в корзине?
+explanation:
+  text: |
+    Мама взяла 4 гриба, папа — ещё 2. Всего они взяли 4 + 2 = 6 грибов.
+    Вопрос не о том, сколько осталось в корзине. Ответ: 6 грибов.

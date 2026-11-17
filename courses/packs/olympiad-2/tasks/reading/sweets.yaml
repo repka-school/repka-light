@@ -1,0 +1,33 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    У Даши было 6 конфет. Две она отдала сестре, одну съела.
+    Сколько конфет Даша отдала сестре?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: 1 конфету
+    - id: 2
+      text: 3 конфеты
+    - id: 3
+      text: 2 конфеты
+      correct: true
+    - id: 4
+      text: 4 конфеты
+    - id: 5
+      text: 6 конфет
+points: 1
+classification:
+- subject: math
+  concept: careful-reading
+learning:
+  hint:
+    text: >-
+      Найди в условии слова о сестре. Нужно ли что-то вычислять, чтобы ответить на этот вопрос?
+explanation:
+  text: |
+    Нужно узнать, сколько конфет Даша отдала сестре. В условии сказано: две.
+    Конфета, которую Даша съела, сестре не досталась. Ответ: 2 конфеты.

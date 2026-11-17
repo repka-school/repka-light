@@ -1,0 +1,35 @@
+status: active
+difficulty: hard
+question:
+  text: |
+    В семье 5 сыновей. У каждого из них есть сестра.
+    Какое самое маленькое число детей может быть в этой семье?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: 5 детей
+    - id: 2
+      text: 7 детей
+    - id: 3
+      text: 10 детей
+    - id: 4
+      text: 11 детей
+    - id: 5
+      text: 6 детей
+      correct: true
+points: 3
+classification:
+- subject: math
+  concept: ages-and-relations
+- subject: math
+  concept: constructions
+learning:
+  hint:
+    text: >-
+      Может ли одна и та же девочка быть сестрой сразу нескольких братьев? Постарайся обойтись как можно меньшим числом дочерей.
+explanation:
+  text: |
+    Одна девочка может быть сестрой всех пяти братьев. Тогда в семье 5 + 1 = 6 детей.
+    Меньше быть не может: кроме пяти сыновей нужна хотя бы одна дочь. Ответ: 6 детей.

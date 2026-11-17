@@ -1,0 +1,33 @@
+status: active
+difficulty: easy
+question:
+  text: |
+    У Маши было 8 наклеек. Три она подарила Оле, две — Кате.
+    Сколько всего наклеек Маша подарила?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: 2 наклейки
+    - id: 2
+      text: 5 наклеек
+      correct: true
+    - id: 3
+      text: 3 наклейки
+    - id: 4
+      text: 8 наклеек
+    - id: 5
+      text: 6 наклеек
+points: 1
+classification:
+- subject: math
+  concept: careful-reading
+learning:
+  hint:
+    text: >-
+      Перечитай вопрос: спрашивают о подаренных наклейках. Какие числа в условии говорят именно о подарках?
+explanation:
+  text: |
+    Оле достались 3 наклейки, Кате — ещё 2. Сложи подаренные наклейки: 3 + 2 = 5.
+    Ответ: 5 наклеек. Число 8 пригодилось бы, если бы спрашивали, сколько осталось.
