@@ -177,9 +177,21 @@ The interface is in Russian, and all of it is in `src/strings.ts`.
 ## Homestead
 
 The homestead is a drawn scene, so it has a palette of its own: the
-`--homestead-*` tokens for the ground, buildings, trees, fences and beds, and
-`--turnip-<quality>-*` for a turnip of each quality. Its styles are in
-`src/homestead/homestead.css`, which loads with the page.
+`--homestead-*` tokens for the sky, the ground and its slab of earth,
+buildings, trees, fences, beds and animals, and `--turnip-<quality>-*` for a
+turnip of each quality. Its styles are in `src/homestead/homestead.css`, which
+loads with the page.
+
+- **Light** comes from the left. A face turned to the light takes the lighter
+  of a pair of tokens (`--homestead-wall`), the one turned away the darker
+  (`--homestead-wall-side`). Soft light and shade are laid over a face with
+  `--homestead-lit` and `--homestead-dim`, never with a new colour. Every
+  thing casts a shadow to the right, all of them drawn as one sheet in
+  `--homestead-shadow`.
+- **Motion** is small and slow: smoke, a swaying crown, drifting clouds, the
+  animals, a thing settling where it is put, the view gliding after a button
+  or a key. All of it stops under `prefers-reduced-motion`, and nothing that
+  moves by itself carries information.
 
 - **Quality** is never told by colour alone: a rare turnip or seed carries a
   diamond on a tag, an epic one a star, a legendary one a crown, a common one
@@ -188,10 +200,15 @@ The homestead is a drawn scene, so it has a palette of its own: the
   a bed the tool in hand can be used on, is `--success-soft` with a diagonal
   hatch; a tile it does not fit on is `--danger-soft` with a cross hatch and an
   outline over the drawings. The selected thing and a bed to act on are ringed
-  along their own outline.
+  along their own outline, and the selected thing's tiles are tinted with
+  `--primary`. A thing being moved is faint where it stood.
 - **Growth** is a strip in `--homestead-strip`, a warm colour that stands off
   the grass: a small one over a growing turnip, and two on its card, toward the
-  next stage and toward ripeness.
+  next stage and toward ripeness. A ripe turnip has an `--accent-warm` arrow
+  over it.
+- **The buttons over the scene** are one strip (closer, farther, the whole
+  ground) and one pad of arrows, on a translucent `--card`. The pad shows only
+  while part of the scene is out of view.
 - **The panels** (what is held, the tool's line, a thing's card, the seed
   chooser, the tray, the harvest) are cards on `--card` with a 1px `--border`.
   Their text is `--type-sm`; a card's title is `--type-card-title`. Every

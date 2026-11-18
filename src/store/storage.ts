@@ -73,6 +73,11 @@ const RANK: Record<Outcome, number> = { wrong: 0, second: 1, first: 2 };
 const isOutcome = (value: unknown): value is Outcome => OUTCOMES.includes(value as Outcome);
 const isRecord = (value: unknown): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value);
 const entriesOf = (value: unknown): [string, unknown][] => (isRecord(value) ? Object.entries(value) : []);
+/**
+ * An empty record to fill by keys read from storage or a backup file. It has
+ * no prototype, so any key is stored as written: `__proto__` is one more key.
+ */
+const record = <T>(): Record<string, T> => Object.create(null);
 const idList = (value: unknown): number[] | null => (Array.isArray(value) && value.every((c) => Number.isInteger(c)) ? (value as number[]) : null);
 
 /** A task id or a `<course>/<lesson>` key, split into its course and the rest. */
@@ -133,20 +138,20 @@ function packEntry({ first, final, seen, opened }: SavedEntry): PackedEntry {
 }
 
 export function toStored(saved: Saved): Stored {
-  const courses: Record<string, StoredCourse> = {};
+  const courses = record<StoredCourse>();
   const course = (slug: string) => (courses[slug] ??= {});
   for (const [slug, at] of Object.entries(saved.last)) course(slug).last = at;
   for (const [id, { outcome, choices }] of Object.entries(saved.results)) {
     const [slug, rest] = split(id);
-    (course(slug).results ??= {})[rest] = [outcome[0], ...choices];
+    (course(slug).results ??= record())[rest] = [outcome[0], ...choices];
   }
   for (const [id, amount] of Object.entries(saved.xp)) {
     const [slug, rest] = split(id);
-    (course(slug).xp ??= {})[rest] = amount;
+    (course(slug).xp ??= record())[rest] = amount;
   }
   for (const [key, run] of Object.entries(saved.runs)) {
     const [slug, rest] = split(key);
-    (course(slug).runs ??= {})[rest] = [run.cards, run.index, run.phase === "summary" ? 1 : 0, ...run.entries.map(packEntry)];
+    (course(slug).runs ??= record())[rest] = [run.cards, run.index, run.phase === "summary" ? 1 : 0, ...run.entries.map(packEntry)];
   }
   const stored: Stored = { version: STORED_VERSION, profile: saved.profile, courses };
   if (saved.homestead) stored.homestead = pack(saved.homestead);
@@ -182,9 +187,8 @@ function unpackRun(raw: unknown): SavedRun | null {
 
 /** The short form read back and made safe to use: malformed results, passes and amounts, and things that cannot stand where they are saved, are dropped. */
 export function fromStored(raw: unknown): Saved {
-  const saved = empty();
-  if (!isRecord(raw)) return saved;
-  saved.profile = cleanProfile(raw.profile);
+  if (!isRecord(raw)) return empty();
+  const saved: Saved = { profile: cleanProfile(raw.profile), results: record(), last: record(), runs: record(), xp: record() };
   for (const [slug, course] of entriesOf(raw.courses)) {
     if (!isRecord(course)) continue;
     if (typeof course.last === "string" && course.last) saved.last[slug] = course.last;
@@ -213,10 +217,10 @@ export function fromStored(raw: unknown): Saved {
  * backup's own) pass through.
  */
 export function upgradeV1({ results, runs, xp, version: _version, ...rest }: Record<string, unknown>): Record<string, unknown> {
-  const courses: Record<string, { last?: string; results: Record<string, unknown>; xp: Record<string, unknown>; runs: Record<string, unknown> }> = {};
+  const courses = record<{ last?: string; results: Record<string, unknown>; xp: Record<string, unknown>; runs: Record<string, unknown> }>();
   const place = (id: string) => {
     const [slug, key] = split(id);
-    return [(courses[slug] ??= { results: {}, xp: {}, runs: {} }), key] as const;
+    return [(courses[slug] ??= { results: record(), xp: record(), runs: record() }), key] as const;
   };
   for (const [id, result] of entriesOf(results)) {
     if (!isRecord(result)) continue;

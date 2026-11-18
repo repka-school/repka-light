@@ -1,11 +1,12 @@
-// A raised bed on its tile and the turnip in it, in ten stages for each of
-// four qualities. Each stage has its own outline: the leaves are counted up
+// A raised bed of boards on its tile and the turnip in it, in ten stages for
+// each of four qualities. Each stage has its own outline: the leaves are counted up
 // one by one, then the bulb shows and swells. Each quality has its palette
 // and a mark on a tag beside the bed (none, a diamond, a star, a crown), so
 // the quality is never told by colour alone. Fills are classes in
 // homestead.css; the names are written by the scene's cells and the card.
-import { poly, pt, viewBoxOf } from "./iso";
+import { pt, viewBoxOf } from "./iso";
 import { STAGES, type Quality } from "./rules";
+import { Box, Edge, Face, flat, onX, onY } from "./shapes";
 
 type V = [number, number];
 const add = (a: V, b: V, k = 1): V => [a[0] + b[0] * k, a[1] + b[1] * k];
@@ -82,6 +83,7 @@ function Bulb({ r, cy }: { r: number; cy: number }) {
       <ellipse cx="0" cy="1" rx={hx * 1.15 + 2} ry={hx * 0.45 + 1} className="g-bed-hole" />
       <path d={`M${-hx} 0A${r} ${r} 0 1 1 ${hx} 0A${hx} ${hx * 0.4} 0 0 1 ${-hx} 0Z`} className="t-bulb t-ink-line" />
       <path d={`M${-bx} ${blushY}A${r} ${r} 0 0 1 ${bx} ${blushY}A${bx} ${r * 0.36} 0 0 1 ${-bx} ${blushY}Z`} className="t-blush" />
+      <path d={`M${-hx} 0A${r} ${r} 0 1 1 ${hx} 0A${hx} ${hx * 0.4} 0 0 1 ${-hx} 0Z`} className="g-over g-ball" />
       <ellipse cx={-r * 0.42} cy={cy - r * 0.52} rx={r * 0.3} ry={r * 0.14} transform={`rotate(-35 ${-r * 0.42} ${cy - r * 0.52})`} className="g-gloss" />
       <path d={`M${-hx} 0A${hx} ${hx * 0.4} 0 0 0 ${hx} 0`} className="t-soil-cut" />
     </g>
@@ -132,7 +134,7 @@ function Mark({ type }: { type: Quality }) {
 /** The quality's mark on a tag staked at the bed's front corner. */
 function BedTag({ type }: { type: Quality }) {
   if (type === "common") return null;
-  const [x, y] = pt(1, 0.62, 7);
+  const [x, y] = pt(1, 0.62, 9);
   const cy = y - 24;
   return (
     <g className={`turnip-${type}`}>
@@ -162,27 +164,45 @@ export function Seed({ type }: { type: Quality }) {
   );
 }
 
-/** A raised bed exactly on its tile, with its turnip standing on the soil if it has one. */
+/** The corner of the frame at (x, y): a short post a little taller than the boards. */
+const Post = ({ x, y, z }: { x: number; y: number; z: number }) => (
+  <Box x={[x - 0.065, x + 0.065]} y={[y - 0.065, y + 0.065]} z={[0, z]} lit="g-bed-front g-line" shade="g-bed-side g-line" top="g-bed-top g-line" />
+);
+
+/** A raised bed exactly on its tile: a frame of two boards with a post at each corner, raked soil, and its turnip if it has one. */
 export function Bed({ turnip }: { turnip?: { type: Quality; stage: number } }) {
-  const z = 7;
+  const z = 9;
+  const lo = -0.04;
+  const hi = 1.04;
   const [sx, sy] = pt(0.5, 0.5, z);
   return (
     <svg viewBox={viewBoxOf("bed")} aria-hidden="true" focusable="false" className="homestead-sprite" data-kind="bed" data-quality={turnip?.type} data-stage={turnip?.stage}>
-      <polygon points={poly([-0.08, -0.08, 0], [1.08, -0.08, 0], [1.08, 1.08, 0], [-0.08, 1.08, 0])} className="g-ground" />
-      <polygon points={poly([0, 1.06, 0], [1.06, 1.06, 0], [1.06, 1.06, z], [0, 1.06, z])} className="g-bed-front g-line" />
-      <polygon points={poly([1.06, 1.06, 0], [1.06, 0, 0], [1.06, 0, z], [1.06, 1.06, z])} className="g-bed-side g-line" />
-      <polygon points={poly([-0.06, -0.06, z], [1.06, -0.06, z], [1.06, 1.06, z], [-0.06, 1.06, z])} className="g-bed-top g-line" />
-      <polygon points={poly([0.08, 0.08, z], [0.92, 0.08, z], [0.92, 0.92, z], [0.08, 0.92, z])} className="g-bed-soil g-furrow-line" />
-      {[0.3, 0.5, 0.7].map((y) => {
-        const [x1, y1] = pt(0.14, y, z);
-        const [x2, y2] = pt(0.86, y, z);
-        return <line key={y} x1={x1} y1={y1} x2={x2} y2={y2} className="g-furrow" />;
-      })}
+      <Face pts={flat(lo - 0.05, hi + 0.05, lo - 0.05, hi + 0.05, 0)} className="g-ground" />
+      <Post x={lo} y={lo} z={z + 3} />
+      <Face pts={onY(hi, lo, hi, 0, z)} className="g-bed-front g-line" />
+      <Face pts={onX(hi, lo, hi, 0, z)} className="g-bed-side g-line" />
+      <Edge pts={[[lo, hi, z / 2], [hi, hi, z / 2], [hi, lo, z / 2]]} className="g-seam" />
+      <Face pts={flat(lo, hi, lo, hi, z)} className="g-bed-top g-line" />
+      <Face pts={flat(0.07, 0.93, 0.07, 0.93, z)} className="g-bed-soil g-furrow-line" />
+      {/* The far boards shade the soil beside them. */}
+      <Face pts={[[0.07, 0.07, z], [0.16, 0.07, z], [0.16, 0.84, z], [0.93, 0.84, z], [0.93, 0.93, z], [0.07, 0.93, z]]} className="g-over g-shade" />
+      {[0.26, 0.46, 0.66].map((y) => (
+        <g key={y}>
+          <Edge pts={[[0.2, y, z], [0.88, y, z]]} className="g-furrow" />
+          <Edge pts={[[0.2, y - 0.07, z], [0.88, y - 0.07, z]]} className="g-furrow-lit" />
+        </g>
+      ))}
+      <Post x={lo} y={hi} z={z + 3} />
+      <Post x={hi} y={lo} z={z + 3} />
       {turnip && (
         <g transform={`translate(${sx} ${sy})`}>
-          <TurnipArt type={turnip.type} stage={turnip.stage} />
+          {/* Keyed by its stage: a turnip that has just grown is drawn anew, which shows it swelling. */}
+          <g key={turnip.stage} className="t-grown">
+            <TurnipArt type={turnip.type} stage={turnip.stage} />
+          </g>
         </g>
       )}
+      <Post x={hi} y={hi} z={z + 3} />
       {turnip && <BedTag type={turnip.type} />}
     </svg>
   );

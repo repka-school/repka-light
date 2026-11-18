@@ -7,9 +7,11 @@ import { useFocusAfter } from "@/ui/hooks/useFocusAfter";
 import { Page } from "@/components/Chrome";
 import { CHOOSER_CHIP_ID, HarvestShelf, ResourceBar, Tray } from "@/homestead/Panels";
 import { apply, dayOf, seedTotal, targetOf, thingAt, type Action, type Homestead, type Quality, type Thing, type Tile } from "@/homestead/rules";
+import type { Burst } from "@/homestead/IsoScene";
 import { Scene, SCENE_ID } from "@/homestead/Scene";
 import { afterOutcome, firstTile, fitsHere, intentAt, marksOf, modeLasts, startTile, type Mode } from "@/homestead/screen";
 import { CHOOSER_TITLE_ID, SeedChooser } from "@/homestead/SeedChooser";
+import { Paints } from "@/homestead/shapes";
 import { ThingCard } from "@/homestead/ThingCard";
 import { modeLine, saidWords } from "@/homestead/words";
 import { freeXpOf, getSaved, homesteadOf, saveHomestead, useSaved } from "@/store/store";
@@ -90,8 +92,9 @@ function Loaded({ home, free }: { home: Homestead; free: number }) {
   const [selected, setSelected] = useState<Tile | null>(null);
   const [mode, setMode] = useState<Mode | null>(null);
   const [chooser, setChooser] = useState(false);
-  // What the last press gave a turnip, and where that turnip stands.
-  const [given, setGiven] = useState<{ at: Tile; amount: number } | null>(null);
+  // What the last press gave a turnip, and where that turnip stands; each press is told from the one before.
+  const [given, setGiven] = useState<Burst | null>(null);
+  const presses = useRef(0);
   // What opened the chooser: the tray's button or the line's «Выбрать семечко».
   const opener = useRef<"chip" | "pick">("chip");
   const focusAfter = useFocusAfter();
@@ -111,7 +114,7 @@ function Loaded({ home, free }: { home: Homestead; free: number }) {
     if (result.ok) saveHomestead(result.home);
     const left = freeXpOf(getSaved());
     const after = afterOutcome(result.ok ? { ...result, action, free: left, thing } : { ...result, action, free: left, thing });
-    setGiven(result.ok && action.action === "grow" ? { at: action.at, amount: result.given } : null);
+    setGiven(result.ok && action.action === "grow" ? { at: action.at, amount: result.given, n: ++presses.current } : null);
     if (after.close) setSelected(null);
     if (result.ok && mode && !modeLasts(result.home, mode, left)) setMode(null);
     announce(saidWords(after.said));
@@ -177,12 +180,18 @@ function Loaded({ home, free }: { home: Homestead; free: number }) {
     startMode({ mode: "move", from: [target.x, target.y], kind: target.kind });
   };
   const buy = (seed: Quality) => run({ action: "buy", seed });
+  /** Turns the fence in hand, or the selected one. */
+  const rotate = () => {
+    if (mode?.mode === "place" && mode.kind === "fence") setMode({ ...mode, rot: mode.rot ? 0 : 1 });
+    else if (!mode && thing?.kind === "fence") run({ action: "rotate", at: [thing.x, thing.y] });
+  };
 
   const fits = fitsHere(home, mode, cursor);
   const moved = mode?.mode === "move" ? thingAt(home, mode.from[0], mode.from[1]) : undefined;
-  const placing = mode?.mode === "place" ? { kind: mode.kind, rot: mode.rot } : mode?.mode === "move" ? { kind: mode.kind, rot: moved?.rot ?? 0 } : null;
+  const placing = mode?.mode === "place" ? { kind: mode.kind, rot: mode.rot } : mode?.mode === "move" ? { kind: mode.kind, rot: moved?.rot ?? 0, from: mode.from } : null;
   return (
     <>
+      <Paints />
       <ResourceBar home={home} free={free} />
       <Lines home={home} free={free} onPick={pick} />
       <Scene
@@ -192,11 +201,14 @@ function Loaded({ home, free }: { home: Homestead; free: number }) {
         ghost={placing && { ...placing, x: cursor[0], y: cursor[1], ok: !!fits }}
         fits={fits}
         selected={thing ? selected : null}
+        burst={given}
         onCursor={setCursor}
         onActivate={activate}
+        onCarry={move}
+        onRotate={rotate}
         onEscape={escape}
       >
-        {mode && <ModeLine mode={mode} fits={fits} onRotate={() => mode.mode === "place" && setMode({ ...mode, rot: mode.rot ? 0 : 1 })} onCancel={() => startMode(null)} />}
+        {mode && <ModeLine mode={mode} fits={fits} onRotate={rotate} onCancel={() => startMode(null)} />}
         {chooser && <SeedChooser home={home} free={free} onBuy={buy} onClose={closeChooser} />}
         {thing && !mode && !chooser && (
           <ThingCard thing={thing} free={free} seedHeld={seedTotal(home) > 0} given={given && sameTile(given.at, [thing.x, thing.y]) ? given.amount : null} onAct={run} onMove={move} onClose={close} />

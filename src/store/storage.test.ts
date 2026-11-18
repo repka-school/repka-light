@@ -27,6 +27,85 @@ describe("parse", () => {
     const saved = withPractice(withResult(withProfile(empty(), { name: "Петя", avatar: "kitten", frame: "stars" }), "p/l/t", result("second", [3])), "p/l/t", "2026-01-01T00:00:00.000Z");
     expect(parse(written(saved))).toEqual(saved);
   });
+
+  it("keeps a key named __proto__ as one more key, in either shape", () => {
+    const short = parse('{"version":2,"courses":{"__proto__":{"last":"2026-01-01T00:00:00.000Z","results":{"x":["f",1]},"xp":{"x":10}},"":{"results":{"__proto__":["s",2],"__proto__/y":["w",3]}}}}');
+    expect(Object.keys(short.results).sort()).toEqual(["__proto__", "__proto__/x", "__proto__/y"]);
+    expect(Object.keys(short.last)).toEqual(["__proto__"]);
+    expect(short.xp["__proto__/x"]).toBe(10);
+    expect(parse(written(short))).toEqual(short);
+
+    const first = parse('{"version":1,"results":{"__proto__/x":{"outcome":"first","choices":[1],"at":"2026-01-01T00:00:00.000Z"},"__proto__":{"outcome":"second","choices":[2]}},"xp":{"__proto__/x":10}}');
+    expect(Object.keys(first.results).sort()).toEqual(["__proto__", "__proto__/x"]);
+    expect(parse(written(first))).toEqual(first);
+
+    // Nothing leaked onto every other object.
+    expect(Object.keys(Object.prototype)).toEqual([]);
+    expect(({} as Record<string, unknown>).results).toBeUndefined();
+  });
+});
+
+describe("what browsers already hold", () => {
+  // Text the site has written, kept here letter for letter. It has to read as
+  // it does below for as long as anyone may still have it saved: a change to
+  // the stored shape adds an upgrade step and leaves these expectations alone.
+  const text =
+    '{"version":2,"profile":{"name":"Маша","avatar":"kitten","frame":"sea"},' +
+    '"courses":{"c":{"last":"2026-01-02T03:04:05.000Z","results":{"q1":["f",2],"q2":["s",1,3],"q3":["w",4]},"xp":{"q1":20,"q2":5},' +
+    '"runs":{"l":["1prkutu",2,0,[1],[2,[1],[2]],[0,[4]],[0,0,[1]]],"m":["1prkutu",0,1,[1],[0,0,[2]],[0,0,[1,3]],[0,[2],[4]]]}}},' +
+    '"homestead":{"spent":75,"seeds":{"epic":1},"things":[["house",1,1],["fence",9,0,1],["bed",2,5,"rare",40],["bed",3,5,"common",100,"2026-03-04"]],"harvest":{"common":[1,"2026-03-04"]}}}';
+
+  it("reads the short form as it was written", () => {
+    expect(parse(text)).toEqual({
+      profile: { name: "Маша", avatar: "kitten", frame: "sea" },
+      results: { "c/q1": result("first", [2]), "c/q2": result("second", [1, 3]), "c/q3": result("wrong", [4]) },
+      last: { c: "2026-01-02T03:04:05.000Z" },
+      xp: { "c/q1": 20, "c/q2": 5 },
+      runs: {
+        "c/l": {
+          cards: "1prkutu",
+          index: 2,
+          phase: "solving",
+          entries: [
+            { first: null, final: null, seen: true, opened: false },
+            { first: [1], final: [2], seen: false, opened: true },
+            { first: [4], final: null, seen: false, opened: false },
+            { first: null, final: [1], seen: false, opened: false },
+          ],
+        },
+        "c/m": {
+          cards: "1prkutu",
+          index: 0,
+          phase: "summary",
+          entries: [
+            { first: null, final: null, seen: true, opened: false },
+            { first: null, final: [2], seen: false, opened: false },
+            { first: null, final: [1, 3], seen: false, opened: false },
+            { first: [2], final: [4], seen: false, opened: false },
+          ],
+        },
+      },
+      homestead: {
+        spent: 75,
+        seeds: { epic: 1 },
+        things: [
+          { kind: "house", x: 1, y: 1, rot: 0 },
+          { kind: "fence", x: 9, y: 0, rot: 1 },
+          { kind: "bed", x: 2, y: 5, rot: 0, turnip: { type: "rare", given: 40 } },
+          { kind: "bed", x: 3, y: 5, rot: 0, turnip: { type: "common", given: 100, ripened: "2026-03-04" } },
+        ],
+        harvest: { common: { count: 1, latest: "2026-03-04" } },
+      },
+    });
+  });
+
+  it("writes it back the same, letter for letter", () => {
+    expect(written(parse(text))).toBe(text);
+  });
+
+  it("still fits a saved pass to the cards it was saved for", () => {
+    expect(cardsKey(["c/th", "c/q1", "c/q2", "c/q3"])).toBe("1prkutu");
+  });
 });
 
 describe("the short form", () => {

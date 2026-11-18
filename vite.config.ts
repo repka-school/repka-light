@@ -96,5 +96,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss(), notFoundPage(), thirdPartyNotices(), ...(process.env.ANALYTICS === "1" ? [analytics()] : [])],
   resolve: { alias: { "@": path.resolve(import.meta.dirname, "src") } },
   build: { outDir: "dist", emptyOutDir: true },
+  // The browser tests build a site and write their traces under .e2e/; a dev server running beside them does not reload for those.
+  server: { watch: { ignored: ["**/.e2e/**"] } },
   test: { environment: "node", include: ["src/**/*.test.ts", "scripts/**/*.test.mjs"] },
 });

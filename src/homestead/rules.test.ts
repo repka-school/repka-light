@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { apply, bedsFull, dayOf, freeXp, growthOf, harvestTotal, OWNED, placeRefusal, SEEDS, stageOf, starter, stockOf, thingAt, type Action, type Homestead, type Quality } from "./rules";
+import { apply, bedCount, bedsFull, dayOf, freeXp, growthOf, harvestTotal, OWNED, placeRefusal, SEEDS, seedTotal, stageOf, starter, stockOf, thingAt, type Action, type Homestead, type Quality } from "./rules";
 
 const TODAY = "2026-03-04";
 
@@ -68,6 +68,20 @@ describe("buying a seed", () => {
   });
 });
 
+describe("the beds", () => {
+  it("are full only when each one on the ground is planted and none waits in stock", () => {
+    const plantAll = (home: Homestead, ...beds: [number, number][]) => beds.reduce((h, at) => after(h, 1000, { action: "buy", seed: "common" }, { action: "plant", at, seed: "common" }), home);
+    const three = plantAll(starter(), [2, 5], [3, 5], [4, 5]);
+    // The fourth bed is still in stock.
+    expect(bedsFull(three)).toBe(false);
+    const placed = after(three, 1000, { action: "place", kind: "bed", x: 5, y: 5 });
+    expect(bedsFull(placed)).toBe(false);
+    expect(bedsFull(plantAll(placed, [5, 5]))).toBe(true);
+    expect(bedCount(placed)).toBe(4);
+    expect(seedTotal(placed)).toBe(1);
+  });
+});
+
 describe("planting", () => {
   it("takes the seed and starts a turnip with nothing given", () => {
     const home = after(starter(), 0, { action: "plant", at: [2, 5], seed: "common" });
@@ -111,6 +125,11 @@ describe("growing a turnip", () => {
   it("is refused in an empty bed", () => {
     expect(reasonOf(starter(), { action: "grow", at: [2, 5], amount: 10 }, 100)).toBe("bed_empty");
   });
+
+  it("gives whole experience only, and refuses an amount that gives none", () => {
+    expect(apply(planted("common"), { action: "grow", at: [2, 5], amount: 10.7 }, 1000, TODAY)).toMatchObject({ ok: true, given: 10 });
+    for (const amount of [0, 0.5, -10, NaN]) expect(reasonOf(planted("common"), { action: "grow", at: [2, 5], amount }, 1000)).toBe("no_xp");
+  });
 });
 
 describe("gathering", () => {
@@ -129,6 +148,18 @@ describe("gathering", () => {
     const grown = apply(again, { action: "grow", at: [2, 5], amount: 100 }, 1000, "2026-01-01");
     const home = grown.ok ? after(grown.home, 1000, { action: "gather", at: [2, 5] }) : again;
     expect(home.harvest.common).toEqual({ count: 2, latest: TODAY });
+  });
+
+  it("dates the harvest by the day the turnip ripened, not the day it was gathered", () => {
+    const grown = apply(planted("common"), { action: "grow", at: [2, 5], amount: 100 }, 1000, "2026-01-01");
+    if (!grown.ok) throw new Error(grown.reason);
+    expect(after(grown.home, 1000, { action: "gather", at: [2, 5] }).harvest.common).toEqual({ count: 1, latest: "2026-01-01" });
+  });
+
+  it("counts each quality apart", () => {
+    const home = after(ripe(), 1000, { action: "gather", at: [2, 5] }, { action: "buy", seed: "rare" }, { action: "plant", at: [3, 5], seed: "rare" }, { action: "grow", at: [3, 5], amount: 200 }, { action: "gather", at: [3, 5] });
+    expect(home.harvest).toEqual({ common: { count: 1, latest: TODAY }, rare: { count: 1, latest: TODAY } });
+    expect(harvestTotal(home)).toBe(2);
   });
 
   it("is refused for a growing turnip and an empty bed", () => {

@@ -99,7 +99,8 @@ export function snapshot(lesson: Lesson, state: State): SavedRun {
 /**
  * A saved pass brought back, or null when it no longer fits the lesson (its
  * cards or options changed). Whether an answer was right is worked out again
- * from the lesson, never taken from what was stored.
+ * from the lesson, never taken from what was stored; a question whose saved
+ * first try has since become the right answer is asked again.
  */
 export function restore(lesson: Lesson, run: SavedRun): State | null {
   if (run.cards !== cardsKey(lesson.cards.map((c) => c.id)) || run.entries.length !== lesson.cards.length) return null;
@@ -112,6 +113,11 @@ export function restore(lesson: Lesson, run: SavedRun): State | null {
     }
     const known = (ids: number[]) => ids.length > 0 && ids.every((id) => card.choices.some((c) => c.id === id));
     if ((saved.first && !known(saved.first)) || (saved.final && !known(saved.final))) return null;
+    // A first try the lesson now counts as right was never a wrong one: the question is asked again, with nothing locked.
+    if (saved.first && sameSet(card.correct, saved.first)) {
+      entries.push({ ...blank(), opened: saved.opened });
+      continue;
+    }
     entries.push({ first: saved.first, final: saved.final ? { choices: saved.final, correct: sameSet(card.correct, saved.final) } : null, seen: false, opened: saved.opened });
   }
   const state: State = { index: run.index, selected: [], entries, phase: "solving" };

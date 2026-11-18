@@ -1,4 +1,4 @@
-.PHONY: start test
+.PHONY: start test test-e2e
 
 node_modules: package.json package-lock.json
 	npm install
@@ -10,3 +10,8 @@ start: node_modules
 
 test: node_modules
 	npm test
+
+# The built site in a real browser. The first run needs the browsers:
+# npx playwright install chromium webkit
+test-e2e: node_modules
+	npm run test:e2e

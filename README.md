@@ -15,9 +15,31 @@ Node 22 or later.
 npm install
 npm run dev        # builds the content, then serves the site with reload
 npm test           # unit tests
+npm run test:e2e   # browser tests (see below)
 npm run build      # content, typecheck and the production build in dist/
 npm run preview    # serves dist/
 ```
+
+### Browser tests
+
+`npm run test:e2e` builds the site and goes through it in a real browser with
+[Playwright](https://playwright.dev): on a desktop, on a phone, and on the
+same phone in WebKit, Safari's engine. The first run needs the browsers:
+`npx playwright install chromium webkit`.
+
+The tests (`e2e/`) run on the published courses and name no task: they read
+the built course files, as the page does, and take the right answers from
+there, so editing a course does not break them. They cover a lesson from its
+first card to the summary, the two tries, a reload in the middle, the course
+list and the level, the profile, the reset and the backup file, every screen
+opened by its own address, and an accessibility check by axe. The homestead
+has no browser tests yet.
+
+The site under test is built for a sub-path (`/repka-light/`) and served the
+way GitHub Pages serves it: plain files, and `404.html` for any other address
+(`e2e/site.mjs`). The build, the traces and the report go to `.e2e/`, which is
+not committed. A failed test leaves a screenshot and a trace there:
+`npx playwright show-report .e2e/report`.
 
 ## Layout
 
@@ -28,10 +50,11 @@ npm run preview    # serves dist/
 | `src/screens/` | The six screens: index page, course list, course, lesson (question and summary), profile, homestead. |
 | `src/lesson/` | The rules of a lesson run: two tries per task, progress, the summary. No DOM. |
 | `src/store/` | What is saved in `localStorage`, the hook the screens read it with, and the rules of experience and levels. |
-| `src/homestead/` | The homestead: its rules and saved form (no DOM), the isometric scene, its panels, drawings, styles and words. It is loaded when the page is first opened. |
+| `src/homestead/` | The homestead: its rules and saved form (no DOM), the isometric scene, its panels, drawings, animals, styles and words. It is loaded when the page is first opened. |
 | `src/content/` | Types of the built course files and their loader. |
 | `src/ui/` | Shared pieces: design tokens, answer tiles, task text, avatars and frames. |
 | `src/strings.ts` | Every user-visible string but the homestead's, which are in `src/homestead/strings.ts`. The interface is in Russian. |
+| `e2e/` | The browser tests, and the script that builds and serves the site for them. |
 | `docs/style-guide.md` | Type scale, colours, components and how the copy is written. |
 
 Routes are plain paths (`/course/math-olympiad-2`) under the path the site is
@@ -269,12 +292,21 @@ out when the data is read, which puts it back in stock.
 The scene is one grid for a keyboard and a screen reader: arrow keys move over
 the tiles, Enter selects or uses the tool in hand, Escape cancels, and every
 tile is named by its place and what stands on it. A drag pans and the wheel
-or a pinch zooms; round buttons do the same.
+or a pinch zooms; buttons over the scene and the `+`, `−` and `0` keys do the
+same, and the ground cannot be dragged out of sight. The selected thing is
+moved by dragging it, or with «Передвинуть» on its card; `R` turns a fence.
+
+The ground is drawn as a slab of earth under a sky, lit from the left: every
+thing casts a shadow, free tiles carry tufts, flowers and pebbles, and a ripe
+turnip has an arrow over it. A cat and a dog wander the free tiles and bees
+hover over the bushes and trees (`src/homestead/pets.ts`, `Critters.tsx`).
+They only decorate: they are not saved, take no tap and keep still for a
+reader who asked for less motion.
 
 ## Deploy
 
-`.github/workflows/pages.yml` tests, builds and publishes `dist/` to GitHub
-Pages on every push to `main`. In the repository settings, set Pages' source
+`.github/workflows/pages.yml` runs the unit and the browser tests, builds and
+publishes `dist/` to GitHub Pages on every push to `main`. In the repository settings, set Pages' source
 to "GitHub Actions".
 
 The build has to know the path the site is served from, because page and

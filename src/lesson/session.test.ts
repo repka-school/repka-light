@@ -83,6 +83,17 @@ describe("a single answer", () => {
     const state = run(fresh(), { type: "next" });
     expect(run(state, { type: "check" })).toBe(state);
   });
+
+  it("ignores an option the card does not have", () => {
+    const state = run(fresh(), { type: "next" });
+    expect(run(state, { type: "select", id: 9 })).toBe(state);
+  });
+
+  it("shows its hidden options once they are asked for", () => {
+    const state = run(fresh(), { type: "next" });
+    expect(state.entries[1].opened).toBe(false);
+    expect(run(state, { type: "openOptions" }).entries[1].opened).toBe(true);
+  });
 });
 
 describe("a multi answer", () => {
@@ -107,12 +118,34 @@ describe("a multi answer", () => {
     const wrong = run(atMulti(), { type: "select", id: 2 }, { type: "check" });
     expect(run(wrong, { type: "goTo", index: 1 }, { type: "goTo", index: 2 }).selected).toEqual([2]);
   });
+
+  it("marks nothing wrong between its tries, then the wrong tiles of the last set only", () => {
+    const card = lesson.cards[2] as QuestionCard;
+    const waiting = run(atMulti(), { type: "select", id: 1 }, { type: "select", id: 4 }, { type: "check" });
+    expect(marksOf(card, waiting.entries[2])).toEqual({ correct: [], wrong: [], mine: [1, 4] });
+    const settled = run(waiting, { type: "select", id: 1 }, { type: "select", id: 4 }, { type: "select", id: 2 }, { type: "select", id: 3 }, { type: "check" });
+    expect(cardState(settled.entries[2])).toBe("wrong");
+    expect(marksOf(card, settled.entries[2])).toEqual({ correct: [1, 3], wrong: [2], mine: [2, 3] });
+  });
 });
 
 describe("moving through the lesson", () => {
   it("numbers questions without the theory card", () => {
     expect(questionNumber(lesson, 1)).toBe(1);
     expect(questionNumber(lesson, 2)).toBe(2);
+  });
+
+  it("marks a theory card as seen once the learner moves on", () => {
+    const state = run(fresh(), { type: "next" });
+    expect(state.index).toBe(1);
+    expect(state.entries[0].seen).toBe(true);
+    expect(doneCount(lesson, state)).toBe(1);
+  });
+
+  it("stays where it is when sent to a card the lesson does not have", () => {
+    const state = fresh();
+    expect(run(state, { type: "goTo", index: 3 })).toBe(state);
+    expect(run(state, { type: "goTo", index: -1 })).toBe(state);
   });
 
   it("returns to an unanswered question before the summary", () => {
@@ -164,12 +197,41 @@ describe("a pass saved and brought back", () => {
     expect(reload(done)).toEqual(done);
   });
 
+  it("does not show a summary while a question is still unanswered", () => {
+    const done = snapshot(lesson, run(fresh(), { type: "next" }, { type: "select", id: 2 }, { type: "check" }, { type: "next" }, { type: "select", id: 1 }, { type: "select", id: 3 }, { type: "check" }, { type: "next" }));
+    const unanswered = { ...done, entries: done.entries.map((e, i) => (i === 2 ? { ...e, final: null } : e)) };
+    expect(restore(lesson, unanswered)!.phase).toBe("solving");
+  });
+
+  it("remembers that hidden options were opened", () => {
+    const opened = run(fresh(), { type: "next" }, { type: "openOptions" });
+    expect(reload(opened)!.entries[1].opened).toBe(true);
+  });
+
   it("works out again from the lesson whether an answer was right", () => {
     const saved = snapshot(lesson, run(fresh(), { type: "next" }, { type: "select", id: 1 }, { type: "check" }, { type: "select", id: 3 }, { type: "check" }));
     expect(saved.entries[1].final).toEqual([3]);
     expect(cardState(restore(lesson, saved)!.entries[1])).toBe("wrong");
     const fixed = { ...lesson, cards: [lesson.cards[0], question("q1", [3]), lesson.cards[2]] };
     expect(cardState(restore(fixed, saved)!.entries[1])).toBe("second");
+  });
+
+  it("asks a question again when its wrong first try has since become the right answer", () => {
+    const saved = snapshot(lesson, run(fresh(), { type: "next" }, { type: "select", id: 1 }, { type: "check" }));
+    const fixed = { ...lesson, cards: [lesson.cards[0], question("q1", [1]), lesson.cards[2]] };
+    const back = restore(fixed, saved)!;
+    expect(cardState(back.entries[1])).toBe("unanswered");
+    // The letter is free to pick, and picking it is a first try.
+    const again = reduce(fixed, reduce(fixed, back, { type: "select", id: 1 }), { type: "check" });
+    expect(cardState(again.entries[1])).toBe("first");
+  });
+
+  it("asks a multi question again when its first set has since become the right one", () => {
+    const saved = snapshot(lesson, run(fresh(), { type: "goTo", index: 2 }, { type: "select", id: 2 }, { type: "select", id: 4 }, { type: "check" }));
+    const fixed = { ...lesson, cards: [lesson.cards[0], lesson.cards[1], question("q2", [2, 4], "multi")] };
+    const back = restore(fixed, saved)!;
+    expect(cardState(back.entries[2])).toBe("unanswered");
+    expect(back.selected).toEqual([]);
   });
 
   it("is dropped when the lesson's cards or options are no longer the same", () => {
@@ -202,6 +264,11 @@ describe("open", () => {
     const state = open(lesson, { results }, undefined);
     expect(cardState(state.entries[2])).toBe("first");
     expect(state.index).toBe(1);
+  });
+
+  it("starts a lesson over once every question is solved on the first try", () => {
+    const solved = { q1: saved("first"), q2: { outcome: "first" as const, choices: [1, 3] } };
+    expect(open(lesson, { results: solved }, undefined)).toEqual(fresh());
   });
 
   it("knows a pass with answers from one without", () => {

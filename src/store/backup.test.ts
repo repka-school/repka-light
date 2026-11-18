@@ -51,6 +51,22 @@ describe("fromBackup", () => {
     expect("results" in backup).toBe(false);
   });
 
+  it("reads a version 4 file as it was downloaded", () => {
+    // A file the site has written, letter for letter: it has to keep loading as it does here.
+    const text =
+      '{"format":"repka-light-backup","version":4,"exportedAt":"2026-03-04T05:06:07.000Z","profile":{"name":"Маша","avatar":"fox-cub","frame":"sea"},' +
+      '"courses":{"c":{"last":"2026-03-01T00:00:00.000Z","results":{"t1":["f",2]},"xp":{"t1":20},"runs":{"l1":["bch440",1,0,[1,[1],[2]],[0]]}}}}';
+    expect(fromBackup(text)).toEqual({ ok: true, saved: filled(), exportedAt: "2026-03-04T05:06:07.000Z" });
+    expect(JSON.stringify(toBackup(filled(), now))).toBe(text);
+  });
+
+  it("loads a file with a course named __proto__ as any other", () => {
+    const read = fromBackup('{"format":"repka-light-backup","version":4,"courses":{"__proto__":{"results":{"x":["f",1]},"xp":{"x":10}}}}');
+    expect(read.ok && read.saved.results["__proto__/x"]).toEqual({ outcome: "first", choices: [1] });
+    expect(read.ok && toBackup(read.saved, now).courses["__proto__"]).toEqual({ results: { x: ["f", 1] }, xp: { x: 10 } });
+    expect(({} as Record<string, unknown>).results).toBeUndefined();
+  });
+
   it("loads a version 3 file, with every id in full", () => {
     expect(fromBackup(JSON.stringify(version3))).toEqual({ ok: true, saved: filled(), exportedAt: "2026-03-04T05:06:07.000Z" });
   });

@@ -30,14 +30,16 @@ export const textToHtml = (text) => `<p>${escapeHtml(text.trim()).replace(/\n/g,
 
 /** Authored markup, checked against the allowed tags; a table gets a frame that scrolls when it is too wide. */
 export function checkedHtml(html, where) {
-  for (const [, closing, tag, attributes] of html.matchAll(/<(\/?)([a-zA-Z][a-zA-Z0-9-]*)([^>]*)>/g)) {
+  const tags = /<(\/?)([a-zA-Z][a-zA-Z0-9-]*)([^<>]*)>/g;
+  for (const [, closing, tag, attributes] of html.matchAll(tags)) {
     if (!ALLOWED_TAGS.has(tag.toLowerCase())) throw new Error(`${where}: tag <${tag}> is not allowed`);
     if (closing) continue;
     for (const [, name] of attributes.matchAll(/([a-zA-Z-]+)\s*=/g)) {
       if (!ALLOWED_ATTRIBUTES.has(name.toLowerCase())) throw new Error(`${where}: attribute ${name} is not allowed on <${tag}>`);
     }
   }
-  if (/<(?![/a-zA-Z])/.test(html)) throw new Error(`${where}: a stray "<" in markup`);
+  // Whatever "<" is left opens no whole tag: a bare sign, or a tag that is never closed.
+  if (html.replace(tags, "").includes("<")) throw new Error(`${where}: a stray "<" in markup`);
   return html.replace(/<table[\s\S]*?<\/table>/g, (table) => `<div class="scroll-frame">${table}</div>`);
 }
 
@@ -159,6 +161,8 @@ function buildPack(root, put, packId, base) {
     if (!answer || !["single", "multi"].includes(answer.kind)) throw new Error(`${where}: unknown answer kind ${answer?.kind}`);
     const options = answer.options ?? [];
     if (options.length < 2 || options.length > LETTERS.length) throw new Error(`${where}: ${options.length} options`);
+    // Saved answers are kept as whole numbers; any other id would not come back after a reload.
+    if (options.some((o) => !Number.isInteger(o.id))) throw new Error(`${where}: an option id that is not a whole number`);
     if (new Set(options.map((o) => o.id)).size !== options.length) throw new Error(`${where}: repeated option id`);
     if (options.some((o) => !String(o.text ?? "").trim())) throw new Error(`${where}: an option without text`);
     const correct = options.filter((o) => o.correct).map((o) => o.id);

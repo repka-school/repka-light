@@ -1,4 +1,4 @@
-/* The homestead: the scene, the panels round it and the drawings' fills. Colours are tokens from ui/theme.css. */
+/* The homestead: the scene, the panels round it, the drawings' fills and what moves. Colours are tokens from ui/theme.css. */
 main.homestead-page {
   padding-top: 28px;
 }
@@ -110,7 +110,7 @@ main.homestead-page {
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: var(--homestead-grass-edge);
+  background: linear-gradient(180deg, var(--homestead-sky) 0%, var(--homestead-sky-low) 78%);
 }
 .homestead-viewport:active {
   cursor: grabbing;
@@ -124,6 +124,52 @@ main.homestead-page {
   left: 0;
   top: 0;
   transform-origin: 0 0;
+}
+/* A view asked for by a button or a key glides into place. */
+.homestead-world.is-gliding {
+  transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+/* Clouds far behind the ground: they stay where they are while the ground is moved. */
+.homestead-sky {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.homestead-sky span {
+  position: absolute;
+  width: 9rem;
+  height: 2.2rem;
+  border-radius: 999px;
+  background: var(--homestead-cloud);
+  opacity: 0.6;
+  box-shadow:
+    2.4rem -0.9rem 0 -0.2rem var(--homestead-cloud),
+    4.6rem -0.3rem 0 -0.5rem var(--homestead-cloud);
+  filter: blur(3px);
+  animation: homestead-drift 90s linear infinite alternate;
+}
+.homestead-sky span:nth-child(1) {
+  left: 6%;
+  top: 12%;
+}
+.homestead-sky span:nth-child(2) {
+  left: 58%;
+  top: 6%;
+  scale: 0.7;
+  animation-duration: 120s;
+}
+.homestead-sky span:nth-child(3) {
+  left: 78%;
+  top: 30%;
+  scale: 0.5;
+  opacity: 0.45;
+  animation-duration: 70s;
+}
+@keyframes homestead-drift {
+  to {
+    translate: 5rem 0;
+  }
 }
 .homestead-iso {
   position: relative;
@@ -156,6 +202,141 @@ main.homestead-page {
   stroke: var(--homestead-seam);
   stroke-width: 1;
 }
+/* The grid shows more plainly while a thing is being placed or moved. */
+.homestead-iso.is-placing .homestead-tile path {
+  stroke: var(--homestead-seam-strong);
+}
+/* What grows on a free tile; a tap on it is a tap on its tile. */
+.homestead-tile .homestead-decor * {
+  pointer-events: none;
+  stroke: none;
+}
+.homestead-tile .d-blade,
+.homestead-tile .d-blade-lit,
+.homestead-tile .d-stone-lit {
+  fill: none;
+  stroke: var(--homestead-blade);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+.homestead-tile .d-blade-lit {
+  stroke: var(--homestead-blade-lit);
+  stroke-width: 1.2;
+}
+.homestead-tile .d-petal {
+  fill: var(--homestead-petal);
+}
+.homestead-tile .d-petal.is-yellow {
+  fill: var(--homestead-petal-yellow);
+}
+.homestead-tile .d-petal.is-pink {
+  fill: var(--homestead-petal-pink);
+}
+.homestead-tile .d-eye {
+  fill: var(--homestead-petal-eye);
+}
+.homestead-tile .d-stone {
+  fill: var(--homestead-stone);
+}
+.homestead-tile .d-stone-lit {
+  stroke: var(--homestead-stone-top);
+  stroke-width: 1;
+}
+.homestead-tile .d-patch {
+  fill: var(--homestead-turf);
+  opacity: 0.4;
+}
+/* A marked tile shows its mark, not what grows on it. */
+.homestead-tile:is(.is-fits, .is-blocked, .is-target, .is-selected) .homestead-decor {
+  display: none;
+}
+/* The slab of earth under the ground, and the sheet of light and shadows over it: neither takes a tap. */
+.homestead-land,
+.homestead-sheet {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.homestead-sheet {
+  z-index: 1;
+}
+.l-under {
+  fill: url(#homestead-under);
+}
+.l-soil {
+  fill: var(--homestead-soil);
+}
+.l-soil.is-shade {
+  fill: var(--homestead-soil-shade);
+}
+.l-loam {
+  fill: var(--homestead-loam);
+}
+.l-loam.is-shade {
+  fill: var(--homestead-loam-shade);
+}
+.l-turf {
+  fill: var(--homestead-turf);
+}
+.l-turf.is-shade {
+  fill: var(--homestead-turf-shade);
+}
+.l-stone {
+  fill: var(--homestead-stone-side);
+}
+.l-stone.is-shade {
+  fill: var(--homestead-stone-deep);
+}
+.l-stone-lit {
+  fill: none;
+  stroke: var(--homestead-stone-top);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+.l-seam {
+  fill: none;
+  stroke: var(--homestead-loam);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  opacity: 0.35;
+}
+.l-top {
+  fill: var(--homestead-grass);
+  stroke: var(--homestead-grass-edge);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.homestead-daylight {
+  fill: url(#homestead-sweep);
+}
+.homestead-shadows {
+  opacity: 0.24;
+}
+.homestead-shadows polygon,
+.homestead-shadows ellipse {
+  fill: var(--homestead-shadow);
+}
+.homestead-shadows .s-stem {
+  stroke: var(--homestead-shadow);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+.hs-lit {
+  stop-color: var(--homestead-lit);
+}
+.hs-dim {
+  stop-color: var(--homestead-dim);
+}
+.hs-glass {
+  stop-color: var(--homestead-window);
+}
+.hs-glass-light {
+  stop-color: var(--homestead-window-light);
+}
 .homestead-tile.is-odd path {
   fill: var(--homestead-grass-light);
 }
@@ -177,8 +358,9 @@ main.homestead-page {
   stroke-width: 2;
 }
 .homestead-tile.is-selected path {
-  fill: var(--selected);
-  stroke: none;
+  fill: color-mix(in srgb, var(--primary) 30%, var(--homestead-grass));
+  stroke: var(--primary);
+  stroke-width: 2;
 }
 .homestead-tile path.homestead-tint-hatch {
   pointer-events: none;
@@ -284,6 +466,28 @@ main.homestead-page {
 .homestead-viewport:focus-visible .homestead-thing.is-cursor:is(.is-target, .is-selected) {
   filter: drop-shadow(2px 0 0 var(--ring)) drop-shadow(-2px 0 0 var(--ring)) drop-shadow(0 2px 0 var(--ring)) drop-shadow(0 -2px 0 var(--ring)) drop-shadow(2px 0 0 var(--cursor)) drop-shadow(-2px 0 0 var(--cursor)) drop-shadow(0 2px 0 var(--cursor)) drop-shadow(0 -2px 0 var(--cursor));
 }
+/* A thing being moved is in the hand: where it stood it is faint. */
+.homestead-thing.is-lifted {
+  opacity: 0.3;
+}
+/* The selected thing can be carried to another place. */
+.homestead-thing.is-selected {
+  cursor: grab;
+}
+/* A thing that has just been put down settles into place. */
+.homestead-thing > svg {
+  transform-origin: 50% 80%;
+  animation: homestead-settle 260ms cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+@keyframes homestead-settle {
+  from {
+    transform: scale(0.9) translateY(-6px);
+    opacity: 0.6;
+  }
+}
+.homestead-ghost > svg {
+  animation: none;
+}
 .homestead-ghost,
 .homestead-ghost svg * {
   pointer-events: none;
@@ -314,6 +518,71 @@ main.homestead-page {
   display: block;
   height: 100%;
   background: var(--homestead-strip);
+  transition: width 240ms ease-out;
+}
+/* The arrow over a ripe turnip: it can be gathered. */
+.homestead-ripe {
+  position: absolute;
+  left: calc(50% - 0.7rem);
+  top: 0.2rem;
+  width: 1.4rem;
+  height: 1.4rem;
+  animation: homestead-bob 1.1s ease-in-out infinite alternate;
+}
+.homestead-ripe svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.homestead-ripe circle {
+  fill: var(--accent-warm);
+  stroke: var(--card);
+  stroke-width: 2;
+}
+.homestead-ripe path {
+  fill: none;
+  stroke: var(--card);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+@keyframes homestead-bob {
+  to {
+    translate: 0 0.35rem;
+  }
+}
+/* The experience a press gave a turnip rises from it and fades. */
+.homestead-burst {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 38%;
+  text-align: center;
+  font-weight: 800;
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--homestead-strip);
+  -webkit-text-stroke: 3px var(--card);
+  paint-order: stroke fill;
+  opacity: 0;
+  animation: homestead-rise 1s ease-out;
+}
+@keyframes homestead-rise {
+  0% {
+    opacity: 0;
+    translate: 0 0.6rem;
+  }
+  20% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: 0 -2.2rem;
+  }
 }
 .homestead-sprite {
   overflow: visible;
@@ -345,27 +614,41 @@ main.homestead-page {
   color: var(--foreground);
 }
 
-/* The round buttons over the scene: zoom and fit at the top right, the arrows at the bottom right. */
+/* The buttons over the scene: zoom and fit in one strip at the top right, the arrows in one pad at the bottom right. */
 .homestead-zoom,
 .homestead-pan {
   position: absolute;
   right: 0.6rem;
   display: grid;
-  gap: 0.3rem;
-  pointer-events: none;
-}
-/* Only the buttons take a press: a tap or a drag between them reaches the scene. */
-.homestead-zoom > .homestead-round,
-.homestead-pan > .homestead-round {
-  pointer-events: auto;
+  border-radius: calc(var(--homestead-round) / 2);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--card) 80%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 1px 2px var(--shadow-card), 0 6px 16px var(--shadow-card);
 }
 .homestead-zoom {
   top: 0.6rem;
 }
+.homestead-zoom {
+  overflow: hidden;
+}
+.homestead-zoom > .homestead-round {
+  border-radius: 0;
+}
+.homestead-zoom > .homestead-round + .homestead-round {
+  border-top: 1px solid var(--divider);
+}
 .homestead-pan {
   bottom: 0.6rem;
   grid-template: repeat(3, var(--homestead-round)) / repeat(3, var(--homestead-round));
-  gap: 0;
+  border-radius: 999px;
+  transition: opacity 160ms ease-out, visibility 160ms;
+}
+/* Nowhere to pan to: the pad leaves, but never from under the keyboard's focus. */
+.homestead-pan[data-idle]:not(:focus-within) {
+  opacity: 0;
+  visibility: hidden;
 }
 .homestead-pan #homestead-pan-up {
   grid-area: 1 / 2;
@@ -386,11 +669,10 @@ main.homestead-page {
   align-items: center;
   justify-content: center;
   padding: 0;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--card);
+  border: 0;
+  border-radius: calc(var(--homestead-round) / 2);
+  background: none;
   color: var(--foreground);
-  box-shadow: 0 1px 2px var(--shadow-card), 0 6px 16px var(--shadow-card);
   cursor: pointer;
 }
 @media (hover: hover) {
@@ -398,17 +680,21 @@ main.homestead-page {
     background: var(--muted);
   }
 }
+.homestead-round:active {
+  background: var(--divider);
+}
 .homestead-round:focus-visible {
   outline: 3px solid var(--accent-warm);
-  outline-offset: 2px;
+  outline-offset: -3px;
+}
+.homestead-round[aria-disabled="true"] {
+  color: var(--muted-foreground);
+  opacity: 0.45;
+  cursor: default;
 }
 .homestead-round-icon {
-  width: 55%;
-  height: 55%;
-}
-.homestead-pan .homestead-round-icon {
-  width: 45%;
-  height: 45%;
+  width: 50%;
+  height: 50%;
 }
 
 /* The tool's line, a thing's card or the seed chooser: under the scene on a narrow page. */
@@ -424,6 +710,10 @@ main.homestead-page {
   .homestead-zoom {
     grid-auto-flow: column;
   }
+  .homestead-zoom > .homestead-round + .homestead-round {
+    border-top: 0;
+    border-left: 1px solid var(--divider);
+  }
   /* A phone's scene is too short for the cross of arrows: they sit in a row under it. */
   .homestead-frame {
     display: grid;
@@ -434,9 +724,12 @@ main.homestead-page {
     position: static;
     display: flex;
     flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 0.3rem;
-    pointer-events: auto;
+    justify-self: end;
+    border-radius: calc(var(--homestead-round) / 2);
+  }
+  /* Under the scene the pad takes a row of the page: it gives the row up while it has nothing to do. */
+  .homestead-pan[data-idle]:not(:focus-within) {
+    display: none;
   }
   .homestead-pan #homestead-pan-up,
   .homestead-pan #homestead-pan-left,
@@ -580,6 +873,16 @@ main.homestead-page {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   scrollbar-width: thin;
+}
+/* More tools lie past an edge: they fade out there, which says the strip scrolls. */
+.homestead-tray[data-more~="right"] {
+  mask-image: linear-gradient(to left, transparent, #000 3rem);
+}
+.homestead-tray[data-more~="left"] {
+  mask-image: linear-gradient(to right, transparent, #000 3rem);
+}
+.homestead-tray[data-more="left right"] {
+  mask-image: linear-gradient(to right, transparent, #000 3rem, #000 calc(100% - 3rem), transparent);
 }
 .homestead-tray-gap {
   flex: 0 0 1px;
@@ -786,17 +1089,36 @@ main.homestead-page {
 /* The drawings' fills and lines. */
 .g-ground {
   fill: var(--homestead-shadow);
-  opacity: 0.2;
+  opacity: 0.22;
 }
 .g-line {
   stroke: var(--homestead-edge);
-  stroke-width: 1.4;
+  stroke-width: 1.1;
   stroke-linejoin: round;
 }
 .g-line-roof {
   stroke: var(--homestead-roof-ink);
-  stroke-width: 1.4;
+  stroke-width: 1.1;
   stroke-linejoin: round;
+}
+/* Light and shade laid over a face: they only decorate, and leave the tap to the face under them. */
+.homestead-sprite .g-over {
+  pointer-events: none;
+  stroke: none;
+}
+.g-sweep {
+  fill: url(#homestead-sweep);
+}
+.g-ball {
+  fill: url(#homestead-ball);
+}
+.g-shade {
+  fill: var(--homestead-dim);
+  opacity: 0.16;
+}
+.g-glint {
+  fill: var(--homestead-lit);
+  opacity: 0.6;
 }
 .g-roof {
   fill: var(--homestead-roof);
@@ -804,17 +1126,112 @@ main.homestead-page {
 .g-roof-dark {
   fill: var(--homestead-roof-dark);
 }
+.g-roof-edge {
+  fill: var(--homestead-roof-edge);
+}
+.g-shingle,
+.g-seam,
+.g-board,
+.g-plank,
+.g-bark,
+.g-mullion,
+.g-ridge,
+.g-trim-line,
+.g-brace,
+.g-blade,
+.g-leaf-mark,
+.g-leaf-fold,
+.g-fence-lit,
+.g-furrow-lit {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.g-shingle {
+  stroke: var(--homestead-roof-ink);
+  stroke-width: 1;
+  opacity: 0.5;
+}
+.g-shingle-lap {
+  opacity: 0.28;
+}
+.g-ridge {
+  stroke: var(--homestead-roof-ink);
+  stroke-width: 2.4;
+}
+.g-seam {
+  stroke: var(--homestead-dim);
+  stroke-width: 1;
+  opacity: 0.35;
+}
+.g-seam-roof {
+  opacity: 0.3;
+}
+.g-board {
+  stroke: var(--homestead-edge);
+  stroke-width: 0.8;
+  opacity: 0.28;
+}
+.g-plank {
+  stroke: var(--homestead-barn-hatch);
+  stroke-width: 0.9;
+  opacity: 0.35;
+}
 .g-wall {
   fill: var(--homestead-wall);
 }
 .g-wall-side {
   fill: var(--homestead-wall-side);
 }
+.g-trim {
+  fill: var(--homestead-trim);
+}
+.g-trim-side {
+  fill: var(--homestead-trim-side);
+}
+.g-trim-line {
+  stroke: var(--homestead-trim);
+  stroke-width: 2.2;
+}
+.g-trim-line-side {
+  stroke: var(--homestead-trim-side);
+}
+.g-stone {
+  fill: var(--homestead-stone);
+}
+.g-stone-side {
+  fill: var(--homestead-stone-side);
+}
+.g-stone-top {
+  fill: var(--homestead-stone-top);
+}
+.g-brick {
+  fill: var(--homestead-brick);
+}
+.g-brick-side {
+  fill: var(--homestead-brick-side);
+}
+.g-shutter {
+  fill: var(--homestead-shutter);
+}
+.g-door {
+  fill: var(--homestead-door);
+}
+.g-panel {
+  fill: var(--homestead-dim);
+  opacity: 0.22;
+}
 .g-wood-dark {
   fill: var(--homestead-wood-dark);
 }
-.g-window {
-  fill: var(--homestead-window);
+.g-glass {
+  fill: url(#homestead-glass);
+  stroke: var(--homestead-edge);
+  stroke-width: 0.6;
+}
+.g-mullion {
+  stroke: var(--homestead-trim);
+  stroke-width: 1.4;
 }
 .g-flower {
   fill: var(--homestead-flower);
@@ -828,29 +1245,47 @@ main.homestead-page {
 .g-barn-side {
   fill: var(--homestead-barn-side);
 }
+.g-barn-door {
+  fill: var(--homestead-barn-door);
+}
 .g-barn-roof {
   fill: var(--homestead-barn-roof);
 }
 .g-barn-roof-dark {
   fill: var(--homestead-barn-roof-dark);
 }
+.g-barn-roof-edge {
+  fill: var(--homestead-barn-roof-edge);
+}
 .g-barn-hatch {
   fill: var(--homestead-barn-hatch);
 }
-.g-trim {
-  stroke: var(--homestead-wall);
-  stroke-width: 3;
+.g-hay {
+  fill: var(--homestead-hay);
 }
 .g-brace {
-  fill: none;
-  stroke: var(--homestead-roof-ink);
-  stroke-width: 2;
+  stroke: var(--homestead-trim-side);
+  stroke-width: 1.8;
 }
 .g-trunk {
   fill: var(--homestead-trunk);
 }
+.g-bark {
+  stroke: var(--homestead-edge);
+  stroke-width: 1;
+  opacity: 0.5;
+}
+.g-blade {
+  stroke: var(--homestead-blade);
+  stroke-width: 1.5;
+}
 .g-leaf {
   fill: var(--homestead-leaf);
+}
+/* Drawn first with a wide line, then again without one: only the outline round the whole crown is left. */
+.g-leaf-rim {
+  stroke: var(--homestead-leaf-rim);
+  stroke-width: 2.4;
 }
 .g-leaf-light {
   fill: var(--homestead-leaf-light);
@@ -861,11 +1296,29 @@ main.homestead-page {
 .g-leaf-bright {
   fill: var(--homestead-leaf-bright);
 }
+.g-leaf-mark {
+  stroke: var(--homestead-leaf-bright);
+  stroke-width: 1.3;
+  opacity: 0.8;
+}
+.g-leaf-fold {
+  stroke: var(--homestead-leaf-rim);
+  stroke-width: 1.3;
+  opacity: 0.55;
+}
 .g-fence {
   fill: var(--homestead-fence);
 }
+.g-fence-shade {
+  fill: var(--homestead-fence-shade);
+}
 .g-fence-post {
   fill: var(--homestead-fence-post);
+}
+.g-fence-lit {
+  stroke: var(--homestead-lit);
+  stroke-width: 1;
+  opacity: 0.45;
 }
 .g-bed-front {
   fill: var(--homestead-bed-front);
@@ -888,9 +1341,15 @@ main.homestead-page {
   stroke-width: 1;
 }
 .g-furrow {
+  fill: none;
   stroke: var(--homestead-bed-furrow);
-  stroke-width: 1.6;
+  stroke-width: 2;
   stroke-linecap: round;
+  opacity: 0.75;
+}
+.g-furrow-lit {
+  stroke: var(--homestead-bed-furrow-lit);
+  stroke-width: 1.6;
   opacity: 0.8;
 }
 .g-bed-shade {
@@ -911,6 +1370,11 @@ main.homestead-page {
   stroke-width: 2;
   stroke-linecap: round;
   opacity: 0.6;
+}
+/* The chimney's smoke: three puffs, hidden until they move. */
+.g-puff {
+  fill: var(--homestead-lit);
+  opacity: 0;
 }
 
 /* A turnip's palette by quality; the mark on its tag tells the quality without colour. */
@@ -1062,10 +1526,20 @@ main.homestead-page {
   .homestead-strip > span {
     background: CanvasText;
   }
-  .homestead-round {
+  .homestead-zoom,
+  .homestead-pan {
     border-color: ButtonText;
     background: ButtonFace;
+  }
+  .homestead-round {
     color: ButtonText;
+  }
+  .homestead-ripe circle {
+    fill: Highlight;
+    stroke: Canvas;
+  }
+  .homestead-burst {
+    color: CanvasText;
   }
   .homestead-hatch-ground-ok,
   .homestead-hatch-ground-bad {
@@ -1101,10 +1575,310 @@ main.homestead-page {
   .g-bed-shade,
   .g-bed-hole,
   .g-gloss,
-  .t-glow {
+  .g-over,
+  .g-smoke,
+  .g-shingle-lap,
+  .t-glow,
+  .l-under,
+  .l-seam,
+  .l-stone-lit,
+  .homestead-daylight,
+  .homestead-shadows,
+  .homestead-decor,
+  .homestead-sky,
+  .homestead-pet,
+  .homestead-bee {
     display: none;
+  }
+  .homestead-land [class] {
+    fill: Canvas;
+    stroke: CanvasText;
+  }
+  .homestead-sprite .g-leaf-rim {
+    stroke-width: 3;
   }
   .homestead-chip[aria-pressed="true"] {
     border-color: Highlight;
+  }
+}
+
+/* The animals: a pet stands on its tile's centre and walks to the next one in the time a step takes (Critters.tsx). */
+.homestead-pet,
+.homestead-bee {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.homestead-pet {
+  transition: translate 950ms linear;
+}
+.homestead-pet svg {
+  position: absolute;
+  left: -28px;
+  top: -38px;
+  width: 56px;
+  height: 44px;
+  overflow: visible;
+}
+/* Drawn looking to the right. */
+.homestead-pet.is-left svg {
+  transform: scaleX(-1);
+}
+.p-shadow {
+  fill: var(--homestead-shadow);
+  opacity: 0.22;
+}
+.p-cat {
+  fill: var(--homestead-cat);
+}
+.p-cat-light {
+  fill: var(--homestead-cat-light);
+}
+.p-dog {
+  fill: var(--homestead-dog);
+}
+.p-dog-dark {
+  fill: var(--homestead-dog-dark);
+}
+.p-dog-light {
+  fill: var(--homestead-dog-light);
+}
+.p-ink {
+  fill: var(--homestead-pet-ink);
+}
+.p-nose {
+  fill: var(--homestead-pet-nose);
+}
+.p-cat-line,
+.p-cat-line-far,
+.p-dog-line,
+.p-dog-line-far,
+.p-cat-mark,
+.p-collar {
+  fill: none;
+  stroke-linecap: round;
+  stroke-width: 3.2;
+}
+.p-cat-line {
+  stroke: var(--homestead-cat);
+}
+.p-cat-line-far,
+.p-cat-mark {
+  stroke: var(--homestead-cat-dark);
+}
+.p-cat-mark {
+  stroke-width: 1.3;
+}
+.p-dog-line {
+  stroke: var(--homestead-dog);
+  stroke-width: 3.6;
+}
+.p-dog-line-far {
+  stroke: var(--homestead-dog-dark);
+  stroke-width: 3.6;
+}
+.p-collar {
+  stroke: var(--homestead-berry);
+  stroke-width: 2;
+}
+.p-leg,
+.p-tail,
+.b-wing {
+  transform-box: fill-box;
+}
+.p-leg {
+  transform-origin: 50% 0;
+}
+.is-walking .p-leg-a {
+  animation: homestead-stride 320ms ease-in-out infinite alternate;
+}
+.is-walking .p-leg-b {
+  animation: homestead-stride 320ms ease-in-out infinite alternate-reverse;
+}
+@keyframes homestead-stride {
+  from {
+    transform: rotate(-24deg);
+  }
+  to {
+    transform: rotate(24deg);
+  }
+}
+.p-tail {
+  transform-origin: 100% 100%;
+  animation: homestead-tail 2.4s ease-in-out infinite alternate;
+}
+.p-wag {
+  animation-duration: 0.3s;
+}
+@keyframes homestead-tail {
+  from {
+    transform: rotate(-9deg);
+  }
+  to {
+    transform: rotate(11deg);
+  }
+}
+/* A bee flies to and fro over its bush, turning at each end, and bobs as it goes. */
+.homestead-bee {
+  animation: homestead-bee-across 6.4s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * -2.3s);
+}
+.homestead-bee > span {
+  position: absolute;
+  display: block;
+  animation: homestead-bee-bob 1.7s ease-in-out infinite alternate;
+  animation-delay: calc(var(--i, 0) * -0.6s);
+}
+.homestead-bee svg {
+  position: absolute;
+  left: -7px;
+  top: -7px;
+  width: 14px;
+  height: 14px;
+  overflow: visible;
+}
+@keyframes homestead-bee-across {
+  0% {
+    translate: -20px 0;
+    scale: 1 1;
+  }
+  48% {
+    translate: 20px 0;
+    scale: 1 1;
+  }
+  50% {
+    translate: 20px 0;
+    scale: -1 1;
+  }
+  98% {
+    translate: -20px 0;
+    scale: -1 1;
+  }
+  100% {
+    translate: -20px 0;
+    scale: 1 1;
+  }
+}
+@keyframes homestead-bee-bob {
+  from {
+    translate: 0 -9px;
+  }
+  to {
+    translate: 0 7px;
+  }
+}
+.b-body {
+  fill: var(--homestead-flower);
+  stroke: var(--homestead-pet-ink);
+  stroke-width: 0.6;
+}
+.b-stripe {
+  fill: none;
+  stroke: var(--homestead-pet-ink);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+.b-wing {
+  fill: var(--homestead-lit);
+  opacity: 0.8;
+  transform-origin: 50% 100%;
+  animation: homestead-buzz 90ms linear infinite alternate;
+}
+@keyframes homestead-buzz {
+  to {
+    transform: scaleY(0.35);
+  }
+}
+
+/* What moves by itself: the tree's crown, the chimney's smoke, a turnip that has just grown. */
+.g-sway {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: homestead-sway 5.5s ease-in-out infinite alternate;
+  animation-delay: calc(var(--i, 0) * -1.3s);
+}
+@keyframes homestead-sway {
+  from {
+    transform: rotate(-1.1deg);
+  }
+  to {
+    transform: rotate(1.3deg);
+  }
+}
+.g-puff {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: homestead-smoke 4.5s linear infinite;
+}
+.g-puff:nth-child(2) {
+  animation-delay: -1.5s;
+}
+.g-puff:nth-child(3) {
+  animation-delay: -3s;
+}
+@keyframes homestead-smoke {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.6);
+  }
+  15% {
+    opacity: 0.75;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(9px, -30px) scale(2);
+  }
+}
+.t-grown {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: homestead-grown 380ms cubic-bezier(0.2, 1.5, 0.4, 1);
+}
+@keyframes homestead-grown {
+  from {
+    transform: scale(0.82);
+  }
+}
+.t-sparkle {
+  animation: homestead-twinkle 1.6s ease-in-out infinite alternate;
+}
+.t-sparkle + .t-sparkle {
+  animation-delay: -0.8s;
+}
+@keyframes homestead-twinkle {
+  from {
+    opacity: 0.35;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .homestead-world.is-gliding {
+    transition: none;
+  }
+  .homestead-sky span,
+  .homestead-pet,
+  .homestead-pet *,
+  .homestead-bee,
+  .homestead-bee > span,
+  .homestead-bee *,
+  .is-walking .p-leg,
+  .homestead-thing > svg,
+  .homestead-ripe,
+  .g-sway,
+  .g-puff,
+  .t-grown,
+  .t-sparkle {
+    animation: none;
+  }
+  .homestead-growbar > span,
+  .homestead-pan,
+  .homestead-pet {
+    transition: none;
+  }
+  /* The card and the announcement already say what was given. */
+  .homestead-burst {
+    display: none;
   }
 }

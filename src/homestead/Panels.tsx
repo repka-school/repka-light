@@ -1,6 +1,6 @@
 // The panels round the scene: the line of what is held (seeds, free
 // experience, beds), the tray of tools, and the harvest shelf.
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { Plus, Sprout } from "lucide-react";
 import { w } from "./strings";
 import { Art } from "./IsoScene";
@@ -50,6 +50,32 @@ function Chip({ id, pressed, art, label, count, onClick, onRefused, disabled = f
   );
 }
 
+/** Marks a strip that scrolls sideways with the edges past which more of it lies: `data-more` is "left", "right" or both. */
+function useMore() {
+  const strip = useRef<HTMLDivElement>(null);
+  // After every render: a tool that came or went changes how far the strip scrolls.
+  useEffect(() => {
+    const el = strip.current;
+    if (!el) return;
+    const mark = () => {
+      const left = el.scrollLeft > 4;
+      const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
+      const more = [left && "left", right && "right"].filter(Boolean).join(" ");
+      if (more) el.dataset.more = more;
+      else delete el.dataset.more;
+    };
+    mark();
+    el.addEventListener("scroll", mark, { passive: true });
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(mark);
+    observer?.observe(el);
+    return () => {
+      el.removeEventListener("scroll", mark);
+      observer?.disconnect();
+    };
+  });
+  return strip;
+}
+
 type TrayProps = { home: Homestead; free: number; mode: Mode | null; onMode: (mode: Mode | null) => void; chooser: boolean; onChooser: () => void };
 
 /**
@@ -61,8 +87,9 @@ type TrayProps = { home: Homestead; free: number; mode: Mode | null; onMode: (mo
 export function Tray({ home, free, mode, onMode, chooser, onChooser }: TrayProps) {
   const toggle = (next: Mode, on: boolean) => onMode(on ? null : next);
   const growing = mode?.mode === "grow";
+  const strip = useMore();
   return (
-    <div className="homestead-tray" role="group" aria-label={w.tray.label}>
+    <div ref={strip} className="homestead-tray" role="group" aria-label={w.tray.label}>
       <Chip
         id="homestead-tray-grow"
         pressed={growing}

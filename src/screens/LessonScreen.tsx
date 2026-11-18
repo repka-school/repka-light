@@ -22,7 +22,7 @@ export function LessonScreen() {
   const lesson = course.data && lessonsOf(course.data).find((l) => l.slug === lessonSlug);
   if (course.data && lesson) return <LessonRun key={`${slug}/${lessonSlug}`} course={course.data} lesson={lesson} />;
   return (
-    <Page focusKey={`lesson:${slug}/${lessonSlug}`} busy={course.loading}>
+    <Page focusKey={`lesson:${slug}/${lessonSlug}:${course.loading ? "loading" : "shown"}`} busy={course.loading}>
       {course.loading && <Loading />}
       {course.error && !/404/.test(course.error.message) && <LoadError onRetry={course.retry} />}
       {(course.data || (course.error && /404/.test(course.error.message))) && <NotFound />}

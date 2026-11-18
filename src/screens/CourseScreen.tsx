@@ -27,8 +27,9 @@ export const lessonPath = (course: string, lesson: string) => `/course/${encodeU
 export function CourseScreen() {
   const { slug = "" } = useParams();
   const course = useLoaded(`course:${slug}`, () => loadCourse(slug));
+  // The heading comes with the course: the key changes when it has loaded, so focus moves to it then.
   return (
-    <Page focusKey={`course:${slug}`} busy={course.loading}>
+    <Page focusKey={`course:${slug}:${course.loading ? "loading" : "shown"}`} busy={course.loading}>
       {course.loading && <Loading />}
       {course.error && (/404/.test(course.error.message) ? <NotFound /> : <LoadError onRetry={course.retry} />)}
       {course.data && <CourseOutline course={course.data} />}

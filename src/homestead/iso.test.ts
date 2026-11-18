@@ -1,12 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { clampZoom, SCENE, showing, spriteBox, tileBox, tileCentre, ZOOM, zoomedAt } from "./iso";
+import { allInView, clampZoom, groundAt, held, hull, scatter, SCENE, scenePt, shadowOf, showing, spriteBox, tileBox, tileCentre, ZOOM, zoomedAt } from "./iso";
 
 describe("the projection", () => {
-  it("puts the ground's top corner in the middle and its side corners at the edges", () => {
+  it("puts the ground's top corner in the middle and leaves the same room beside both side corners", () => {
     expect(tileCentre(0, 0).x).toBe(SCENE.width / 2);
-    expect(tileBox(9, 0).left + tileBox(9, 0).width).toBe(SCENE.width);
-    expect(tileBox(0, 9).left).toBe(0);
-    expect(tileBox(9, 9).top + tileBox(9, 9).height).toBeLessThanOrEqual(SCENE.height);
+    const right = SCENE.width - (tileBox(9, 0).left + tileBox(9, 0).width);
+    expect(tileBox(0, 9).left).toBe(right);
+    expect(right).toBeGreaterThan(0);
+    expect(tileBox(9, 9).top + tileBox(9, 9).height).toBeLessThan(SCENE.height);
+  });
+
+  it("finds the ground point under a scene point", () => {
+    const [sx, sy] = scenePt(3.25, 6.5);
+    const [x, y] = groundAt(sx, sy);
+    expect(x).toBeCloseTo(3.25);
+    expect(y).toBeCloseTo(6.5);
+    const centre = tileCentre(4, 2);
+    expect(groundAt(centre.x, centre.y).map(Math.floor)).toEqual([4, 2]);
   });
 
   it("draws a thing nearer the viewer over one behind it", () => {
@@ -30,6 +40,23 @@ describe("the view", () => {
     expect(view.y + 30 * view.z).toBeCloseTo(50);
   });
 
+  it("holds the view over the ground, and leaves a view that is over it alone", () => {
+    const centred = { z: 1, x: 200 - SCENE.width / 2, y: 0 };
+    expect(held(centred, 400, 300)).toBe(centred);
+    // Dragged far to the right: the ground's left corner stops at the viewport's centre.
+    expect(held({ z: 1, x: 5000, y: 0 }, 400, 300).x).toBe(200 - tileBox(0, 9).left);
+    expect(held({ z: 1, x: -5000, y: 0 }, 400, 300).x).toBe(200 - (tileBox(9, 0).left + tileBox(9, 0).width));
+    const low = held({ z: 0.5, x: centred.x, y: 5000 }, 400, 300);
+    expect(low.y).toBe(150 - tileBox(0, 0).top * 0.5);
+    expect(held({ z: 1, x: 5000, y: 5000 }, 0, 0)).toEqual({ z: 1, x: 5000, y: 5000 });
+  });
+
+  it("knows when the whole scene is in view", () => {
+    expect(allInView({ z: 0.25, x: 10, y: 10 }, SCENE.width, SCENE.height)).toBe(true);
+    expect(allInView({ z: 0.25, x: -1, y: 10 }, SCENE.width, SCENE.height)).toBe(false);
+    expect(allInView({ z: 1, x: 0, y: 0 }, SCENE.width - 1, SCENE.height)).toBe(false);
+  });
+
   it("moves only as far as it takes to show a point, clear of what covers the bottom", () => {
     const view = { z: 1, x: 0, y: 0 };
     const size = { w: 400, h: 300, bottom: 0 };
@@ -37,5 +64,25 @@ describe("the view", () => {
     expect(showing(view, size, { x: 500, y: 150 })).toEqual({ z: 1, x: -164, y: 0 });
     expect(showing(view, { ...size, bottom: 120 }, { x: 200, y: 250 })).toEqual({ z: 1, x: 0, y: -134 });
     expect(showing(view, { w: 0, h: 0, bottom: 0 }, { x: 500, y: 500 })).toBe(view);
+  });
+});
+
+describe("shadows and scatter", () => {
+  it("draws the outline round a set of points, leaving out those inside", () => {
+    expect(hull([[0, 0], [4, 0], [4, 4], [0, 4], [2, 2], [1, 3]]).split(" ").length).toBe(8);
+  });
+
+  it("casts a shadow that holds the foot of the solid and leans away from the light", () => {
+    const flatOnGround = shadowOf([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]]);
+    const tall = shadowOf([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0], [0, 0, 50], [1, 0, 50], [1, 1, 50], [0, 1, 50]]);
+    const xs = (points: string) => points.split(" ").filter((_, i) => i % 2 === 0).map(Number);
+    expect(Math.min(...xs(tall))).toBe(Math.min(...xs(flatOnGround)));
+    expect(Math.max(...xs(tall))).toBeGreaterThan(Math.max(...xs(flatOnGround)));
+  });
+
+  it("gives a tile the same number every time, between 0 and 1", () => {
+    expect(scatter(3, 7)).toBe(scatter(3, 7));
+    expect(scatter(3, 7)).not.toBe(scatter(7, 3));
+    for (let x = 0; x < 10; x++) for (let y = 0; y < 10; y++) expect(scatter(x, y)).toBeGreaterThanOrEqual(0), expect(scatter(x, y)).toBeLessThan(1);
   });
 });
