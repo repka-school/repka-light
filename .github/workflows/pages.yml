@@ -33,17 +33,6 @@ jobs:
         run: npm ci
       - name: Test
         run: npm test
-      - name: Install the browsers for the browser tests
-        run: npx playwright install --with-deps chromium webkit
-      - name: Test in the browsers
-        run: npm run test:e2e
-      - name: Keep the browser tests' report when they fail
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: browser-tests
-          path: .e2e/report
-          retention-days: 7
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5

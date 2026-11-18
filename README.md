@@ -15,14 +15,14 @@ Node 22 or later.
 npm install
 npm run dev        # builds the content, then serves the site with reload
 npm test           # unit tests
-npm run test:e2e   # browser tests (see below)
+make test-e2e      # local browser tests (see below)
 npm run build      # content, typecheck and the production build in dist/
 npm run preview    # serves dist/
 ```
 
 ### Browser tests
 
-`npm run test:e2e` builds the site and goes through it in a real browser with
+`make test-e2e` builds the site and goes through it in a real browser with
 [Playwright](https://playwright.dev): on a desktop, on a phone, and on the
 same phone in WebKit, Safari's engine. The first run needs the browsers:
 `npx playwright install chromium webkit`.
@@ -305,9 +305,10 @@ reader who asked for less motion.
 
 ## Deploy
 
-`.github/workflows/pages.yml` runs the unit and the browser tests, builds and
-publishes `dist/` to GitHub Pages on every push to `main`. In the repository settings, set Pages' source
-to "GitHub Actions".
+`.github/workflows/pages.yml` runs the unit tests, builds the site and publishes
+`dist/` to GitHub Pages on every push to `main`. Run the browser tests locally
+with `make test-e2e`. In the repository settings, set Pages' source to
+"GitHub Actions".
 
 The build has to know the path the site is served from, because page and
 picture addresses start with it. It reads `BASE_PATH` (`/` when unset); the

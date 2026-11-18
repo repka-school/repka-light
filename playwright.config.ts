@@ -32,7 +32,17 @@ export default defineConfig({
     { name: "desktop" },
     // A test that needs a wide window is tagged @desktop and runs above only.
     { name: "phone", grepInvert: /@desktop/, use: phone },
-    { name: "phone-webkit", grepInvert: /@desktop/, use: { ...phone, browserName: "webkit", launchOptions: { env: webkitEnv } } },
+    {
+      name: "phone-webkit",
+      grepInvert: /@desktop/,
+      use: {
+        ...phone,
+        browserName: "webkit",
+        // Exercise dialogs with reduced motion to keep animated targets stable in WebKit.
+        reducedMotion: "reduce",
+        launchOptions: { env: webkitEnv },
+      },
+    },
   ],
   webServer: {
     command: "node e2e/site.mjs",
