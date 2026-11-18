@@ -32,8 +32,8 @@ describe("toBackup", () => {
     expect(backup).toMatchObject({ format: BACKUP_FORMAT, version: BACKUP_VERSION, exportedAt: "2026-03-04T05:06:07.000Z" });
   });
 
-  it("names the file by day", () => {
-    expect(backupFileName(now)).toBe("repka-progress-2026-03-04.json");
+  it("names the file by day and time", () => {
+    expect(backupFileName(new Date(2026, 2, 4, 5, 6, 7))).toBe("repka-progress-2026-03-04-0506.json");
   });
 });
 

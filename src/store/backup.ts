@@ -39,8 +39,12 @@ export function toBackup(saved: Saved, now = new Date()): Backup {
   return { format: BACKUP_FORMAT, version: BACKUP_VERSION, exportedAt: now.toISOString(), ...stored };
 }
 
-/** The file's name: the site and the day, so several downloads sort by date. */
-export const backupFileName = (now = new Date()) => `repka-progress-${now.toISOString().slice(0, 10)}.json`;
+/** The file's name: the site, the day and the time (local, HH-MM), so several downloads sort by date. */
+export const backupFileName = (now = new Date()) => {
+  const two = (n: number) => String(n).padStart(2, "0");
+  const day = `${now.getFullYear()}-${two(now.getMonth() + 1)}-${two(now.getDate())}`;
+  return `repka-progress-${day}-${two(now.getHours())}${two(now.getMinutes())}.json`;
+};
 
 export function fromBackup(text: string): ImportResult {
   if (text.length > BACKUP_MAX_BYTES) return { ok: false, error: "tooLarge" };
