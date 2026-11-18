@@ -1,0 +1,1110 @@
+/* The homestead: the scene, the panels round it and the drawings' fills. Colours are tokens from ui/theme.css. */
+main.homestead-page {
+  padding-top: 28px;
+}
+.homestead-shell {
+  container-type: inline-size;
+  container-name: homestead;
+  max-width: 72rem;
+  margin: 0 auto;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.6rem;
+}
+.homestead-shell > * {
+  min-width: 0;
+}
+.homestead-shell h1 {
+  font-size: var(--type-page-title);
+  margin: 0;
+}
+.homestead-shell h2 {
+  margin: 0;
+  font-size: var(--type-card-title);
+}
+.homestead-shell p {
+  margin: 0;
+  line-height: 1.5;
+}
+/* A long word still fits on a narrow page: buttons shrink and break it. */
+.homestead-shell button {
+  flex-shrink: 1;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.homestead-back {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  min-height: 44px;
+  font-size: var(--type-sm);
+  font-weight: 600;
+  color: var(--primary);
+}
+
+/* What is held, and the lines above the scene. */
+.homestead-resources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: var(--type-sm);
+}
+.homestead-resources li {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.3rem 0.6rem;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+.homestead-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+  background: var(--second-soft);
+  color: var(--second-text);
+  font-size: var(--type-sm);
+}
+.homestead-line button {
+  min-height: 44px;
+}
+.homestead-note {
+  color: var(--note-text);
+  font-weight: 600;
+}
+
+/* The scene: a viewport of a set height over the zoomed ground, dragged to
+   pan, with round buttons floating over it. The heading, the scene and the
+   tray fit a laptop screen without scrolling. */
+.homestead-stage {
+  container-type: inline-size;
+  container-name: homestead-stage;
+  --homestead-round: max(44px, 2.75rem);
+  --homestead-scene-h: clamp(16rem, 100dvh - 22rem, 34rem);
+}
+.homestead-stage-scene {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.4rem;
+}
+.homestead-frame {
+  position: relative;
+}
+.homestead-viewport {
+  position: relative;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+  height: var(--homestead-scene-h);
+  /* A phone's narrow scene shows the ground small: no taller than it needs. */
+  max-height: max(16rem, 75cqw);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--homestead-grass-edge);
+}
+.homestead-viewport:active {
+  cursor: grabbing;
+}
+.homestead-viewport:focus-visible {
+  outline: 3px solid var(--accent-warm);
+  outline-offset: 2px;
+}
+.homestead-world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+}
+.homestead-iso {
+  position: relative;
+}
+.homestead-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+.homestead-row {
+  display: block;
+  height: 0;
+}
+/* A tile's box is a rectangle round a diamond: only the painted diamond takes a tap. */
+.homestead-tile {
+  position: absolute;
+  cursor: pointer;
+  pointer-events: none;
+}
+.homestead-tile svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.homestead-tile path {
+  pointer-events: visiblePainted;
+  fill: var(--homestead-grass);
+  stroke: var(--homestead-seam);
+  stroke-width: 1;
+}
+.homestead-tile.is-odd path {
+  fill: var(--homestead-grass-light);
+}
+@media (hover: hover) {
+  .homestead-tile:hover path {
+    fill: var(--homestead-grass-rim);
+  }
+}
+/* Tints under the drawings; a fine hatch tells a tile that fits from one that does not without colour. */
+.homestead-tile.is-fits path,
+.homestead-tile.is-target path {
+  fill: var(--success-soft);
+  stroke: var(--success-text);
+  stroke-width: 2;
+}
+.homestead-tile.is-blocked path {
+  fill: var(--danger-soft);
+  stroke: var(--danger-text);
+  stroke-width: 2;
+}
+.homestead-tile.is-selected path {
+  fill: var(--selected);
+  stroke: none;
+}
+.homestead-tile path.homestead-tint-hatch {
+  pointer-events: none;
+  stroke: none;
+  opacity: 0.25;
+}
+.homestead-tile.is-fits path.homestead-tint-hatch,
+.homestead-tile.is-target path.homestead-tint-hatch {
+  fill: url(#homestead-hatch-ok);
+}
+.homestead-tile.is-blocked path.homestead-tint-hatch {
+  fill: url(#homestead-hatch-bad);
+  opacity: 0.35;
+}
+.homestead-tile.is-selected path.homestead-tint-hatch {
+  display: none;
+}
+.homestead-hatch-ground-ok {
+  fill: var(--success-soft);
+}
+.homestead-hatch-line-ok {
+  stroke: var(--success-text);
+  stroke-width: 2;
+}
+.homestead-hatch-ground-bad {
+  fill: var(--danger-soft);
+}
+.homestead-hatch-line-bad {
+  stroke: var(--danger-text);
+  stroke-width: 1.5;
+}
+/* The marks drawn over the things. */
+.homestead-mark {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+  cursor: pointer;
+}
+.homestead-mark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.homestead-mark path {
+  pointer-events: visible;
+  fill: none;
+}
+.homestead-mark.is-blocked path {
+  stroke: var(--danger-text);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+/* The cursor shows only for the keyboard: after a tool is picked with a mouse the scene has focus, and a ring would hide the footprint's tint. */
+.homestead-mark.is-cursor {
+  display: none;
+}
+.homestead-viewport:focus-visible .homestead-mark.is-cursor {
+  display: block;
+}
+.homestead-cursor-outer {
+  stroke: var(--homestead-cursor);
+  stroke-width: 4;
+}
+.homestead-cursor-inner {
+  stroke: var(--accent-warm);
+  stroke-width: 2;
+}
+/* The drawings' boxes overlap on an isometric grid, so only painted shapes take a tap. */
+.homestead-thing {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+  cursor: pointer;
+}
+.homestead-thing > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.homestead-thing svg * {
+  pointer-events: visiblePainted;
+}
+@media (hover: hover) {
+  .homestead-thing:hover > * {
+    filter: brightness(1.06);
+  }
+}
+/* A ring along a drawing's own outline: four hard shadows trace it, so the ring never spills onto the ground beside a raised drawing. */
+.homestead-thing.is-target {
+  --ring: var(--success-text);
+  filter: drop-shadow(2px 0 0 var(--ring)) drop-shadow(-2px 0 0 var(--ring)) drop-shadow(0 2px 0 var(--ring)) drop-shadow(0 -2px 0 var(--ring));
+}
+.homestead-thing.is-selected {
+  --ring: var(--primary);
+  filter: drop-shadow(2px 0 0 var(--ring)) drop-shadow(-2px 0 0 var(--ring)) drop-shadow(0 2px 0 var(--ring)) drop-shadow(0 -2px 0 var(--ring));
+}
+.homestead-viewport:focus-visible .homestead-thing.is-cursor {
+  --cursor: var(--accent-warm);
+  filter: drop-shadow(2px 0 0 var(--cursor)) drop-shadow(-2px 0 0 var(--cursor)) drop-shadow(0 2px 0 var(--cursor)) drop-shadow(0 -2px 0 var(--cursor));
+}
+.homestead-viewport:focus-visible .homestead-thing.is-cursor:is(.is-target, .is-selected) {
+  filter: drop-shadow(2px 0 0 var(--ring)) drop-shadow(-2px 0 0 var(--ring)) drop-shadow(0 2px 0 var(--ring)) drop-shadow(0 -2px 0 var(--ring)) drop-shadow(2px 0 0 var(--cursor)) drop-shadow(-2px 0 0 var(--cursor)) drop-shadow(0 2px 0 var(--cursor)) drop-shadow(0 -2px 0 var(--cursor));
+}
+.homestead-ghost,
+.homestead-ghost svg * {
+  pointer-events: none;
+  opacity: 0.65;
+}
+.homestead-ghost.is-bad {
+  filter: grayscale(0.6) sepia(0.4) hue-rotate(-40deg);
+}
+/* The strip over a growing turnip, in a slot the size of the bed's drawing. */
+.homestead-strip-slot {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+}
+.homestead-growbar {
+  position: absolute;
+  left: 30%;
+  width: 40%;
+  bottom: 9%;
+  height: 0.4rem;
+  display: block;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid var(--homestead-strip);
+  overflow: hidden;
+}
+.homestead-growbar > span {
+  display: block;
+  height: 100%;
+  background: var(--homestead-strip);
+}
+.homestead-sprite {
+  overflow: visible;
+}
+.homestead-scene-hint,
+.homestead-scene-keys {
+  font-size: var(--type-xs);
+  color: var(--muted-foreground);
+}
+/* The keys' line describes the grid for a screen reader at all times; it is shown, in place of the drag hint, while the scene has keyboard focus. */
+.homestead-scene-keys {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.homestead-stage:has(.homestead-viewport:focus-visible) .homestead-scene-hint {
+  display: none;
+}
+.homestead-stage:has(.homestead-viewport:focus-visible) .homestead-scene-keys {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip-path: none;
+  white-space: normal;
+  color: var(--foreground);
+}
+
+/* The round buttons over the scene: zoom and fit at the top right, the arrows at the bottom right. */
+.homestead-zoom,
+.homestead-pan {
+  position: absolute;
+  right: 0.6rem;
+  display: grid;
+  gap: 0.3rem;
+  pointer-events: none;
+}
+/* Only the buttons take a press: a tap or a drag between them reaches the scene. */
+.homestead-zoom > .homestead-round,
+.homestead-pan > .homestead-round {
+  pointer-events: auto;
+}
+.homestead-zoom {
+  top: 0.6rem;
+}
+.homestead-pan {
+  bottom: 0.6rem;
+  grid-template: repeat(3, var(--homestead-round)) / repeat(3, var(--homestead-round));
+  gap: 0;
+}
+.homestead-pan #homestead-pan-up {
+  grid-area: 1 / 2;
+}
+.homestead-pan #homestead-pan-left {
+  grid-area: 2 / 1;
+}
+.homestead-pan #homestead-pan-right {
+  grid-area: 2 / 3;
+}
+.homestead-pan #homestead-pan-down {
+  grid-area: 3 / 2;
+}
+.homestead-round {
+  width: var(--homestead-round);
+  height: var(--homestead-round);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: 0 1px 2px var(--shadow-card), 0 6px 16px var(--shadow-card);
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .homestead-round:hover {
+    background: var(--muted);
+  }
+}
+.homestead-round:focus-visible {
+  outline: 3px solid var(--accent-warm);
+  outline-offset: 2px;
+}
+.homestead-round-icon {
+  width: 55%;
+  height: 55%;
+}
+.homestead-pan .homestead-round-icon {
+  width: 45%;
+  height: 45%;
+}
+
+/* The tool's line, a thing's card or the seed chooser: under the scene on a narrow page. */
+.homestead-overlay {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem;
+}
+.homestead-overlay:empty {
+  display: none;
+}
+@container homestead-stage (width < 48rem) {
+  .homestead-zoom {
+    grid-auto-flow: column;
+  }
+  /* A phone's scene is too short for the cross of arrows: they sit in a row under it. */
+  .homestead-frame {
+    display: grid;
+    gap: 0.4rem;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .homestead-pan {
+    position: static;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.3rem;
+    pointer-events: auto;
+  }
+  .homestead-pan #homestead-pan-up,
+  .homestead-pan #homestead-pan-left,
+  .homestead-pan #homestead-pan-right,
+  .homestead-pan #homestead-pan-down {
+    grid-area: auto;
+  }
+}
+/* On a wide page it floats over the scene's bottom left, clear of the arrows. */
+@container homestead-stage (width >= 48rem) {
+  .homestead-stage-scene {
+    grid-template-areas: "scene" "hint";
+  }
+  .homestead-frame {
+    grid-area: scene;
+  }
+  .homestead-scene-hint,
+  .homestead-scene-keys {
+    grid-area: hint;
+  }
+  .homestead-overlay {
+    grid-area: scene;
+    align-self: end;
+    justify-self: start;
+    z-index: 1;
+    margin: 0 0 0.6rem 0.6rem;
+    width: min(26rem, 100% - 3 * var(--homestead-round) - 2.4rem);
+    max-height: calc(var(--homestead-scene-h) - 1.2rem);
+    overflow: auto;
+    pointer-events: none;
+  }
+  .homestead-overlay > * {
+    pointer-events: auto;
+    box-shadow: 0 1px 2px var(--shadow-card), 0 10px 28px var(--shadow-card);
+  }
+  /* The seed chooser is wider than a card, so each quality is one line and nothing scrolls inside it. */
+  .homestead-overlay:has(> .homestead-chooser) {
+    width: min(34rem, 100% - 3 * var(--homestead-round) - 2.4rem);
+  }
+}
+
+/* The tool's line and a thing's card. */
+.homestead-mode,
+.homestead-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem;
+  overflow-wrap: anywhere;
+  font-size: var(--type-sm);
+}
+.homestead-mode {
+  background: var(--success-soft);
+  color: var(--success-text);
+  border-color: var(--success);
+}
+.homestead-mode-actions,
+.homestead-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.homestead-card-actions button,
+.homestead-mode-actions button {
+  min-height: 44px;
+  height: auto;
+  white-space: normal;
+}
+.homestead-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.homestead-card-head h2 {
+  flex: 1;
+  min-width: 0;
+}
+.homestead-card-art {
+  flex: none;
+  width: 3rem;
+  height: 3rem;
+  display: inline-flex;
+}
+.homestead-card-art svg {
+  width: 100%;
+  height: 100%;
+}
+@container homestead (width < 16rem) {
+  .homestead-card-art {
+    display: none;
+  }
+}
+.homestead-shell .homestead-close {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  font-size: var(--type-xl);
+}
+.homestead-card-facts {
+  display: grid;
+  gap: 0.3rem;
+}
+.homestead-card-given {
+  font-weight: 700;
+  color: var(--primary);
+}
+.homestead-strip-row {
+  display: grid;
+  gap: 0.15rem;
+}
+.homestead-strip {
+  display: block;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--progress-track);
+  border: 1px solid var(--control-border);
+  overflow: hidden;
+}
+.homestead-strip > span {
+  display: block;
+  height: 100%;
+  background: var(--homestead-strip);
+}
+.homestead-strip-label {
+  font-size: var(--type-xs);
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The tray: a strip of tools that scrolls sideways. */
+.homestead-tray {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 0.4rem;
+  padding: 0.5rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  scrollbar-width: thin;
+}
+.homestead-tray-gap {
+  flex: 0 0 1px;
+  align-self: stretch;
+  background: var(--divider);
+  margin: 0 0.3rem;
+}
+/* A tool's name breaks only between words; the button grows to fit instead. */
+.homestead-shell .homestead-chip {
+  flex: 0 0 auto;
+  display: grid;
+  overflow-wrap: break-word;
+  justify-items: center;
+  gap: 0.1rem;
+  min-width: 5rem;
+  min-height: 44px;
+  padding: 0.35rem 0.5rem;
+  border: 2px solid var(--control-border);
+  border-radius: var(--radius);
+  background: var(--background);
+  color: var(--foreground);
+  font-size: var(--type-xs);
+  line-height: 1.3;
+  cursor: pointer;
+}
+.homestead-chip:focus-visible {
+  outline: 3px solid var(--accent-warm);
+  outline-offset: 2px;
+}
+.homestead-chip[aria-pressed="true"] {
+  border-color: var(--primary);
+  background: var(--selected);
+  color: var(--selected-foreground);
+}
+.homestead-chip[aria-disabled="true"] {
+  border-style: dashed;
+  background: var(--muted);
+  color: var(--muted-foreground);
+  cursor: default;
+}
+.homestead-chip[aria-disabled="true"] .homestead-chip-art {
+  opacity: 0.45;
+}
+.homestead-chip-count {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.homestead-chip-art {
+  display: inline-flex;
+  width: 2.4rem;
+  height: 2.2rem;
+  align-items: flex-end;
+  justify-content: center;
+}
+.homestead-chip-art svg {
+  width: 100%;
+  height: 100%;
+}
+.homestead-chip-art .homestead-chip-icon {
+  width: 70%;
+  height: 70%;
+  align-self: center;
+}
+
+/* The seed chooser: a row for each quality; a row wraps only on a narrow page. */
+.homestead-chooser {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.75rem 0.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.3rem;
+  overflow-wrap: anywhere;
+  font-size: var(--type-sm);
+}
+.homestead-chooser-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.75rem;
+}
+.homestead-chooser-head h2 {
+  flex: 1;
+  min-width: 0;
+}
+.homestead-chooser-balance {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.homestead-chooser-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.2rem;
+}
+.homestead-chooser-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.5rem;
+}
+.homestead-chooser-row + .homestead-chooser-row {
+  border-top: 1px solid var(--divider);
+  padding-top: 0.2rem;
+}
+.homestead-chooser-art {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+}
+.homestead-chooser-art svg {
+  width: 100%;
+  height: 100%;
+}
+/* The name takes the room the button leaves, so a row stays one line on a phone;
+   it never breaks inside a word: on a narrower page the button goes under it instead. */
+.homestead-chooser-name {
+  flex: 1 1 5rem;
+  min-width: min-content;
+  overflow-wrap: normal;
+  display: grid;
+  line-height: 1.3;
+}
+.homestead-chooser-name small {
+  font-size: var(--type-xs);
+  color: var(--muted-foreground);
+}
+.homestead-chooser button {
+  min-height: 44px;
+  height: auto;
+  white-space: normal;
+}
+.homestead-chooser .homestead-chooser-action {
+  flex: none;
+  margin-left: auto;
+  padding-inline: 0.6rem;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+/* Right-aligned, so «Купить» takes the place of the row's button and a double tap's second tap lands on it. */
+.homestead-chooser-confirm {
+  flex: none;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.homestead-chooser-confirm button {
+  padding-inline: 0.5rem;
+}
+.homestead-chooser-confirm .homestead-chooser-buy {
+  min-width: 4.75rem;
+}
+/* A seed that costs too much keeps its button in the Tab order, drawn as the tray draws a tool there is none of. */
+.homestead-chooser button[aria-disabled="true"] {
+  border: 1px dashed var(--control-border);
+  background: var(--muted);
+  color: var(--muted-foreground);
+  cursor: default;
+}
+
+/* The harvest. */
+.homestead-harvest {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  overflow-wrap: anywhere;
+  font-size: var(--type-sm);
+  display: grid;
+  gap: 0.35rem;
+}
+.homestead-harvest ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+}
+.homestead-harvest li {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.1rem 0.5rem;
+}
+.homestead-harvest small {
+  color: var(--muted-foreground);
+  font-size: var(--type-xs);
+}
+.homestead-harvest-art {
+  display: inline-flex;
+  width: 2.4rem;
+  height: 2.6rem;
+}
+.homestead-harvest-art svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* The drawings' fills and lines. */
+.g-ground {
+  fill: var(--homestead-shadow);
+  opacity: 0.2;
+}
+.g-line {
+  stroke: var(--homestead-edge);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+.g-line-roof {
+  stroke: var(--homestead-roof-ink);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+.g-roof {
+  fill: var(--homestead-roof);
+}
+.g-roof-dark {
+  fill: var(--homestead-roof-dark);
+}
+.g-wall {
+  fill: var(--homestead-wall);
+}
+.g-wall-side {
+  fill: var(--homestead-wall-side);
+}
+.g-wood-dark {
+  fill: var(--homestead-wood-dark);
+}
+.g-window {
+  fill: var(--homestead-window);
+}
+.g-flower {
+  fill: var(--homestead-flower);
+}
+.g-berry {
+  fill: var(--homestead-berry);
+}
+.g-barn {
+  fill: var(--homestead-barn);
+}
+.g-barn-side {
+  fill: var(--homestead-barn-side);
+}
+.g-barn-roof {
+  fill: var(--homestead-barn-roof);
+}
+.g-barn-roof-dark {
+  fill: var(--homestead-barn-roof-dark);
+}
+.g-barn-hatch {
+  fill: var(--homestead-barn-hatch);
+}
+.g-trim {
+  stroke: var(--homestead-wall);
+  stroke-width: 3;
+}
+.g-brace {
+  fill: none;
+  stroke: var(--homestead-roof-ink);
+  stroke-width: 2;
+}
+.g-trunk {
+  fill: var(--homestead-trunk);
+}
+.g-leaf {
+  fill: var(--homestead-leaf);
+}
+.g-leaf-light {
+  fill: var(--homestead-leaf-light);
+}
+.g-leaf-mid {
+  fill: var(--homestead-leaf-mid);
+}
+.g-leaf-bright {
+  fill: var(--homestead-leaf-bright);
+}
+.g-fence {
+  fill: var(--homestead-fence);
+}
+.g-fence-post {
+  fill: var(--homestead-fence-post);
+}
+.g-bed-front {
+  fill: var(--homestead-bed-front);
+}
+.g-bed-side {
+  fill: var(--homestead-bed-side);
+}
+.g-bed-top {
+  fill: var(--homestead-bed-top);
+}
+.g-bed-soil {
+  fill: var(--homestead-bed-soil);
+}
+.g-bed-furrow {
+  fill: var(--homestead-bed-furrow);
+  opacity: 0.8;
+}
+.g-furrow-line {
+  stroke: var(--homestead-bed-furrow);
+  stroke-width: 1;
+}
+.g-furrow {
+  stroke: var(--homestead-bed-furrow);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  opacity: 0.8;
+}
+.g-bed-shade {
+  fill: var(--homestead-bed-shade);
+  opacity: 0.3;
+}
+.g-bed-hole {
+  fill: var(--homestead-bed-furrow);
+  opacity: 0.6;
+}
+.g-gloss {
+  fill: var(--homestead-gloss);
+  opacity: 0.55;
+}
+.g-seed-shine {
+  fill: none;
+  stroke: var(--homestead-gloss);
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: 0.6;
+}
+
+/* A turnip's palette by quality; the mark on its tag tells the quality without colour. */
+.turnip-common {
+  --t-bulb: var(--turnip-common-bulb);
+  --t-deep: var(--turnip-common-deep);
+  --t-blush: var(--turnip-common-blush);
+  --t-ink: var(--turnip-common-ink);
+  --t-leaf: var(--turnip-common-leaf);
+  --t-leaf-light: var(--turnip-common-leaf-light);
+  --t-leaf-dark: var(--turnip-common-leaf-dark);
+  --t-vein: var(--turnip-common-vein);
+}
+.turnip-rare {
+  --t-bulb: var(--turnip-rare-bulb);
+  --t-deep: var(--turnip-rare-deep);
+  --t-blush: var(--turnip-rare-blush);
+  --t-ink: var(--turnip-rare-ink);
+  --t-leaf: var(--turnip-rare-leaf);
+  --t-leaf-light: var(--turnip-rare-leaf-light);
+  --t-leaf-dark: var(--turnip-rare-leaf-dark);
+  --t-vein: var(--turnip-rare-vein);
+}
+.turnip-epic {
+  --t-bulb: var(--turnip-epic-bulb);
+  --t-deep: var(--turnip-epic-deep);
+  --t-blush: var(--turnip-epic-blush);
+  --t-ink: var(--turnip-epic-ink);
+  --t-leaf: var(--turnip-epic-leaf);
+  --t-leaf-light: var(--turnip-epic-leaf-light);
+  --t-leaf-dark: var(--turnip-epic-leaf-dark);
+  --t-vein: var(--turnip-epic-vein);
+}
+.turnip-legendary {
+  --t-bulb: var(--turnip-legendary-bulb);
+  --t-deep: var(--turnip-legendary-deep);
+  --t-blush: var(--turnip-legendary-blush);
+  --t-ink: var(--turnip-legendary-ink);
+  --t-leaf: var(--turnip-legendary-leaf);
+  --t-leaf-light: var(--turnip-legendary-leaf-light);
+  --t-leaf-dark: var(--turnip-legendary-leaf-dark);
+  --t-vein: var(--turnip-legendary-vein);
+}
+.t-line {
+  stroke: var(--homestead-edge);
+  stroke-width: 0.8;
+  stroke-linejoin: round;
+}
+.t-ink-line {
+  stroke: var(--t-ink);
+  stroke-width: 1.3;
+}
+.t-leaf {
+  fill: var(--t-leaf);
+}
+.t-leaf-light {
+  fill: var(--t-leaf-light);
+}
+.t-leaf-dark {
+  fill: var(--t-leaf-dark);
+}
+.t-vein {
+  fill: none;
+  stroke: var(--t-vein);
+  stroke-width: 1.1;
+  stroke-linecap: round;
+}
+.t-bulb {
+  fill: var(--t-bulb);
+}
+.t-deep {
+  fill: var(--t-deep);
+}
+.t-blush {
+  fill: var(--t-blush);
+  opacity: 0.78;
+}
+.t-soil-cut {
+  fill: none;
+  stroke: var(--homestead-bed-shade);
+  stroke-width: 1.4;
+  opacity: 0.6;
+}
+.t-sparkle {
+  fill: var(--t-ink);
+}
+.t-glow {
+  fill: var(--turnip-legendary-glow);
+  opacity: 0.55;
+}
+.t-stake {
+  stroke: var(--homestead-edge);
+  stroke-width: 2;
+}
+.t-tag {
+  fill: var(--homestead-gloss);
+  stroke: var(--t-ink);
+  stroke-width: 1.5;
+}
+.t-mark {
+  fill: var(--t-ink);
+}
+.t-mark-outline {
+  fill: none;
+  stroke: var(--t-ink);
+  stroke-width: 2;
+}
+
+@media (forced-colors: active) {
+  .homestead-viewport {
+    background: Canvas;
+    border-color: CanvasText;
+  }
+  .homestead-tile path,
+  .homestead-tile.is-odd path {
+    fill: Canvas;
+    stroke: CanvasText;
+  }
+  .homestead-mark.is-blocked path {
+    stroke: CanvasText;
+    stroke-width: 4;
+  }
+  .homestead-tile.is-fits path,
+  .homestead-tile.is-target path,
+  .homestead-tile.is-blocked path,
+  .homestead-tile.is-selected path {
+    fill: Canvas;
+    stroke: Highlight;
+    stroke-width: 4;
+  }
+  .homestead-tile.is-fits path.homestead-tint-hatch,
+  .homestead-tile.is-target path.homestead-tint-hatch,
+  .homestead-tile.is-blocked path.homestead-tint-hatch {
+    opacity: 1;
+  }
+  .homestead-thing.is-target {
+    --ring: CanvasText;
+  }
+  .homestead-thing.is-selected,
+  .homestead-viewport:focus-visible .homestead-thing.is-cursor {
+    --ring: Highlight;
+    --cursor: Highlight;
+  }
+  .homestead-growbar {
+    background: Canvas;
+    border-color: CanvasText;
+  }
+  .homestead-growbar > span,
+  .homestead-strip > span {
+    background: CanvasText;
+  }
+  .homestead-round {
+    border-color: ButtonText;
+    background: ButtonFace;
+    color: ButtonText;
+  }
+  .homestead-hatch-ground-ok,
+  .homestead-hatch-ground-bad {
+    fill: Canvas;
+  }
+  .homestead-hatch-line-ok,
+  .homestead-hatch-line-bad {
+    stroke: CanvasText;
+  }
+  .homestead-cursor-outer {
+    stroke: Highlight;
+    stroke-width: 8;
+  }
+  .homestead-cursor-inner {
+    stroke: Canvas;
+  }
+  .homestead-sprite polygon,
+  .homestead-sprite rect,
+  .homestead-sprite circle,
+  .homestead-sprite ellipse,
+  .homestead-sprite path {
+    fill: Canvas;
+    stroke: CanvasText;
+  }
+  .homestead-sprite .t-mark {
+    fill: CanvasText;
+  }
+  .homestead-sprite line,
+  .homestead-sprite polyline {
+    stroke: CanvasText;
+  }
+  .g-ground,
+  .g-bed-shade,
+  .g-bed-hole,
+  .g-gloss,
+  .t-glow {
+    display: none;
+  }
+  .homestead-chip[aria-pressed="true"] {
+    border-color: Highlight;
+  }
+}

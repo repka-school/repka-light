@@ -17,8 +17,8 @@ import { t } from "@/strings";
  */
 export function CatalogScreen() {
   const index = useLoaded("index", loadIndex);
-  const { results } = useSaved();
-  const { started, others } = splitCourses(index.data?.courses ?? [], results);
+  const saved = useSaved();
+  const { started, others } = splitCourses(index.data?.courses ?? [], saved);
   return (
     <Page focusKey="catalog" busy={index.loading}>
       <section className="courses-page">

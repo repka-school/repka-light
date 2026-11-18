@@ -1,10 +1,20 @@
 import { describe, expect, it } from "vitest";
 import type { CourseSummary } from "./types";
-import { courseProgress, splitCourses } from "./progress";
-import type { Outcome, Saved } from "@/store/storage";
+import { courseProgress, splitCourses, type Practice } from "./progress";
+import type { Outcome } from "@/store/storage";
 
 const course = (slug: string, questions: string[]): CourseSummary => ({ slug, title: slug, description: "", cover: null, grades: [], lessons: 1, questions });
-const results = (...entries: [id: string, outcome: Outcome, at: string][]): Saved["results"] => Object.fromEntries(entries.map(([id, outcome, at]) => [id, { outcome, choices: [1], at }]));
+/** Saved results, each settled at the given time: a course's last practice is the latest of its own. */
+function results(...entries: [id: string, outcome: Outcome, at: string][]): Practice {
+  const saved: Practice = { results: {}, last: {} };
+  for (const [id, outcome, at] of entries) {
+    saved.results[id] = { outcome, choices: [1] };
+    const course = id.split("/")[0];
+    if (at > (saved.last[course] ?? "")) saved.last[course] = at;
+  }
+  return saved;
+}
+const none: Practice = { results: {}, last: {} };
 
 const a = course("a", ["a/1", "a/2"]);
 const b = course("b", ["b/1"]);
@@ -13,7 +23,7 @@ const slugs = (list: { course: CourseSummary }[]) => list.map((p) => p.course.sl
 
 describe("splitCourses", () => {
   it("lists every course as not started when nothing is saved", () => {
-    const { started, others } = splitCourses([a, b, c], {});
+    const { started, others } = splitCourses([a, b, c], none);
     expect(started).toEqual([]);
     expect(slugs(others)).toEqual(["a", "b", "c"]);
   });
@@ -38,6 +48,6 @@ describe("courseProgress", () => {
   it("counts first-try answers and is finished only when all are", () => {
     expect(courseProgress(a, results(["a/1", "first", "t1"], ["a/2", "second", "t2"]))).toMatchObject({ done: 1, answered: 2, total: 2, finished: false, last: "t2" });
     expect(courseProgress(a, results(["a/1", "first", "t1"], ["a/2", "first", "t2"]))).toMatchObject({ done: 2, finished: true });
-    expect(courseProgress(course("empty", []), {})).toMatchObject({ done: 0, total: 0, finished: false, last: "" });
+    expect(courseProgress(course("empty", []), none)).toMatchObject({ done: 0, total: 0, finished: false, last: "" });
   });
 });

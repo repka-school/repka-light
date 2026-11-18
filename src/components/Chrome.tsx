@@ -7,8 +7,8 @@ import { useSaved } from "@/store/store";
 import { t } from "@/strings";
 
 // The header, the same on every screen: the brand, which leads to the index
-// page, the tagline, a link to the course list, the learner's level, and
-// their picture and nickname, which lead to the profile.
+// page, the tagline, links to the course list and the homestead, the
+// learner's level, and their picture and nickname, which lead to the profile.
 export function SiteHeader() {
   const { profile } = useSaved();
   const name = profile.name || t.guest;
@@ -28,6 +28,9 @@ export function SiteHeader() {
         <span className="header-note">{t.brandNote}</span>
         <NavLink className="header-link" to="/courses" id="nav-courses">
           {t.navCourses}
+        </NavLink>
+        <NavLink className="header-link" to="/homestead" id="nav-homestead">
+          {t.navHomestead}
         </NavLink>
         <LevelBadge />
         <Link className="header-profile" to="/profile" id="nav-profile" aria-label={t.profileLabel(name)}>
@@ -70,12 +73,12 @@ export function Eyebrow({ children, className }: { children: string; className?:
 }
 
 /** The chrome of every screen but a running lesson; focus moves to the heading when `focusKey` changes. */
-export function Page({ children, busy = false, focusKey }: { children: ReactNode; busy?: boolean; focusKey: string }) {
+export function Page({ children, busy = false, focusKey, className }: { children: ReactNode; busy?: boolean; focusKey: string; className?: string }) {
   useFocusHeading(focusKey);
   return (
     <>
       <SiteHeader />
-      <main id="app" aria-busy={busy}>
+      <main id="app" className={className} aria-busy={busy}>
         {children}
       </main>
       <SiteFooter />

@@ -173,3 +173,30 @@ The interface is in Russian, and all of it is in `src/strings.ts`.
     урок», «2 урока», «5 уроков».
   - Ranges and scores: «3 из 8».
   - Lists in a line are joined with « · ».
+
+## Homestead
+
+The homestead is a drawn scene, so it has a palette of its own: the
+`--homestead-*` tokens for the ground, buildings, trees, fences and beds, and
+`--turnip-<quality>-*` for a turnip of each quality. Its styles are in
+`src/homestead/homestead.css`, which loads with the page.
+
+- **Quality** is never told by colour alone: a rare turnip or seed carries a
+  diamond on a tag, an epic one a star, a legendary one a crown, a common one
+  nothing.
+- **Marks on the ground** reuse the result colours: a tile a thing fits on, or
+  a bed the tool in hand can be used on, is `--success-soft` with a diagonal
+  hatch; a tile it does not fit on is `--danger-soft` with a cross hatch and an
+  outline over the drawings. The selected thing and a bed to act on are ringed
+  along their own outline.
+- **Growth** is a strip in `--homestead-strip`, a warm colour that stands off
+  the grass: a small one over a growing turnip, and two on its card, toward the
+  next stage and toward ripeness.
+- **The panels** (what is held, the tool's line, a thing's card, the seed
+  chooser, the tray, the harvest) are cards on `--card` with a 1px `--border`.
+  Their text is `--type-sm`; a card's title is `--type-card-title`. Every
+  button is at least 44px high.
+- **A tool in the tray** is pressed (`--selected`) while it is in hand, and
+  dashed on `--muted` when there is none of it left; it stays focusable then.
+- **Copy** speaks of «опыт» and «свободный опыт», never of money. Prices read
+  «Купить за 25 опыта»; the growing buttons read «Растить +10».

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { Link } from "react-router";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/components/ui/popover";
 import { Progress } from "@/ui/components/ui/progress";
-import { useSaved } from "@/store/store";
+import { freeXpOf, useSaved } from "@/store/store";
 import { standingOf, totalXp, type Standing } from "@/store/xp";
 import { t } from "@/strings";
 
@@ -16,12 +17,15 @@ const percentOf = (standing: Standing) => (standing.earned / standing.needed) * 
 
 /**
  * The header's level: the number in a ring that fills toward the next level.
- * It opens the experience behind it and how experience is earned. New
+ * It opens the experience behind it, how much of it is free to spend in the
+ * homestead, and how experience is earned. New
  * experience fills the ring and floats its amount under the badge; a new
  * level refills the ring from empty and names the level.
  */
 export function LevelBadge() {
-  const { xp } = useSaved();
+  const saved = useSaved();
+  const { xp } = saved;
+  const [open, setOpen] = useState(false);
   const standing = useMemo(() => standingOf(totalXp(xp)), [xp]);
   const [seen, setSeen] = useState(standing);
   const [burst, setBurst] = useState<Burst | null>(null);
@@ -40,7 +44,7 @@ export function LevelBadge() {
   const motion = burst ? (burst.level ? " is-level-up" : " is-gain") : "";
   return (
     <span className="level-spot">
-      <Popover>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button type="button" className="level-badge" id="nav-level" aria-label={t.levelLabel(standing.level)}>
             {/* Keyed by the burst, so each one plays from its start. */}
@@ -55,6 +59,12 @@ export function LevelBadge() {
           <p className="level-total">{t.xpAmount(standing.total)}</p>
           <Progress value={standing.earned} max={standing.needed} label={t.levelProgressLabel} text={t.levelProgress(standing.earned, standing.needed)} />
           <p>{t.levelRemaining(standing.remaining)}</p>
+          <p className="level-free">
+            {t.xpFree(freeXpOf(saved))}
+            <Link to="/homestead" id="level-homestead" onClick={() => setOpen(false)}>
+              {t.toHomestead}
+            </Link>
+          </p>
           <details>
             <summary>{t.levelHow}</summary>
             {t.levelRules.map((line) => (

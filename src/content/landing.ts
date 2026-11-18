@@ -1,8 +1,7 @@
 // What the index page says about the published courses and where its main
 // button leads. Keys and numbers only; the screen turns them into words.
-import { splitCourses } from "./progress";
+import { splitCourses, type Practice } from "./progress";
 import type { CourseSummary } from "./types";
-import type { Saved } from "@/store/storage";
 
 /** How much there is to practise: the courses with a task, their tasks and lessons, and the grades they span. */
 export type Reach = { courses: number; tasks: number; lessons: number; grades: string[] };
@@ -23,8 +22,8 @@ export function reach(courses: CourseSummary[]): Reach | null {
  */
 export type Start = { kind: "continue"; course: CourseSummary } | { kind: "open"; course: CourseSummary } | { kind: "choose" };
 
-export function start(courses: CourseSummary[], results: Saved["results"]): Start {
-  const { started, others } = splitCourses(courses, results);
+export function start(courses: CourseSummary[], saved: Practice): Start {
+  const { started, others } = splitCourses(courses, saved);
   const current = started.find((progress) => !progress.finished);
   if (current) return { kind: "continue", course: current.course };
   if (courses.length === 1 && others.length === 1) return { kind: "open", course: others[0].course };

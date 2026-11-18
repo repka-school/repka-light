@@ -2,23 +2,20 @@
 // loaded into another. The file has its own version, apart from the storage
 // key's: a file written by an older site is upgraded step by step on import,
 // and one written by a newer site is refused rather than half-read.
-import { sanitize, type Saved } from "./storage";
+import { fromStored, toStored, upgradeV1, type Saved, type Stored } from "./storage";
 
 export const BACKUP_FORMAT = "repka-light-backup";
-export const BACKUP_VERSION = 2;
+export const BACKUP_VERSION = 4;
 /** A real backup is a few hundred kilobytes at most; anything far larger is not one. */
 export const BACKUP_MAX_BYTES = 5 * 1024 * 1024;
 
+/** The file: its own mark, version and date, then the saved state in the short form it has in the browser. */
 export type Backup = {
   format: typeof BACKUP_FORMAT;
   version: typeof BACKUP_VERSION;
   /** When it was downloaded, ISO 8601. */
   exportedAt: string;
-  profile: Saved["profile"];
-  results: Saved["results"];
-  runs: Saved["runs"];
-  xp: Saved["xp"];
-};
+} & Omit<Stored, "version">;
 
 /**
  * Upgrades from each older version to the next: `upgrades[n]` turns a version
@@ -28,13 +25,18 @@ export type Backup = {
 const upgrades: Record<number, (old: Record<string, unknown>) => Record<string, unknown>> = {
   // Version 1 had no experience. Its results earn theirs when their course is next opened.
   1: (old) => ({ ...old, xp: {} }),
+  // Version 2 had no homestead. It starts as the starter one, with all the experience free to spend.
+  2: ({ homestead: _none, ...old }) => old,
+  // Version 3 had every id in full, a time on every result and the card ids in every pass.
+  3: upgradeV1,
 };
 
 export type ImportError = "notJson" | "notBackup" | "tooNew" | "tooLarge";
 export type ImportResult = { ok: true; saved: Saved; exportedAt: string } | { ok: false; error: ImportError };
 
 export function toBackup(saved: Saved, now = new Date()): Backup {
-  return { format: BACKUP_FORMAT, version: BACKUP_VERSION, exportedAt: now.toISOString(), profile: saved.profile, results: saved.results, runs: saved.runs, xp: saved.xp };
+  const { version: _stored, ...stored } = toStored(saved);
+  return { format: BACKUP_FORMAT, version: BACKUP_VERSION, exportedAt: now.toISOString(), ...stored };
 }
 
 /** The file's name: the site and the day, so several downloads sort by date. */
@@ -54,5 +56,5 @@ export function fromBackup(text: string): ImportResult {
   if (file.format !== BACKUP_FORMAT || !Number.isInteger(version) || (version as number) < 1) return { ok: false, error: "notBackup" };
   if ((version as number) > BACKUP_VERSION) return { ok: false, error: "tooNew" };
   for (let v = version as number; v < BACKUP_VERSION; v++) file = upgrades[v](file);
-  return { ok: true, saved: sanitize(file), exportedAt: typeof file.exportedAt === "string" ? file.exportedAt : "" };
+  return { ok: true, saved: fromStored(file), exportedAt: typeof file.exportedAt === "string" ? file.exportedAt : "" };
 }

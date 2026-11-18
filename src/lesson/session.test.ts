@@ -23,7 +23,7 @@ const lesson: Lesson = {
 
 const run = (state: State, ...actions: Action[]) => actions.reduce((s, a) => reduce(lesson, s, a), state);
 const fresh = () => start(lesson, {}, "fresh");
-const saved = (outcome: "first" | "second" | "wrong") => ({ outcome, choices: [2], at: "" });
+const saved = (outcome: "first" | "second" | "wrong") => ({ outcome, choices: [2] });
 
 describe("start", () => {
   it("opens a new lesson at its theory card", () => {
@@ -164,10 +164,12 @@ describe("a pass saved and brought back", () => {
     expect(reload(done)).toEqual(done);
   });
 
-  it("works out again whether an answer was right, whatever was stored", () => {
+  it("works out again from the lesson whether an answer was right", () => {
     const saved = snapshot(lesson, run(fresh(), { type: "next" }, { type: "select", id: 1 }, { type: "check" }, { type: "select", id: 3 }, { type: "check" }));
-    saved.entries[1].final!.correct = true;
+    expect(saved.entries[1].final).toEqual([3]);
     expect(cardState(restore(lesson, saved)!.entries[1])).toBe("wrong");
+    const fixed = { ...lesson, cards: [lesson.cards[0], question("q1", [3]), lesson.cards[2]] };
+    expect(cardState(restore(fixed, saved)!.entries[1])).toBe("second");
   });
 
   it("is dropped when the lesson's cards or options are no longer the same", () => {
@@ -181,7 +183,7 @@ describe("a pass saved and brought back", () => {
 describe("open", () => {
   const unfinished = snapshot(lesson, run(fresh(), { type: "next" }, { type: "select", id: 1 }, { type: "check" }));
   const finishedPass = snapshot(lesson, run(fresh(), { type: "next" }, { type: "select", id: 1 }, { type: "check" }, { type: "select", id: 3 }, { type: "check" }, { type: "next" }, { type: "select", id: 1 }, { type: "select", id: 3 }, { type: "check" }, { type: "next" }));
-  const results = { q1: saved("wrong"), q2: { outcome: "first" as const, choices: [1, 3], at: "" } };
+  const results = { q1: saved("wrong"), q2: { outcome: "first" as const, choices: [1, 3] } };
 
   it("resumes an unfinished pass however the lesson is opened", () => {
     expect(cardState(open(lesson, { results: {} }, unfinished).entries[1])).toBe("waiting");
@@ -195,7 +197,7 @@ describe("open", () => {
 
   it("starts from the saved results when no pass is saved or it no longer fits", () => {
     expect(open(lesson, { results: {} }, undefined)).toEqual(fresh());
-    expect(open(lesson, { results: {} }, { ...unfinished, cards: ["other"] })).toEqual(fresh());
+    expect(open(lesson, { results: {} }, { ...unfinished, cards: "other" })).toEqual(fresh());
     // Without a pass, the questions solved on the first try stay solved.
     const state = open(lesson, { results }, undefined);
     expect(cardState(state.entries[2])).toBe("first");

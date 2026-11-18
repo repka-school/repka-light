@@ -1,7 +1,7 @@
 // The state of one run through a lesson, and the rules of answering: two
 // tries per question, never a third. Pure logic: no DOM, no strings, no storage.
 import { isQuestion, type Card, type Lesson, type QuestionCard } from "@/content/types";
-import type { Outcome, Saved, SavedRun } from "@/store/storage";
+import { cardsKey, type Outcome, type Saved, type SavedRun } from "@/store/storage";
 
 /** A settled answer: the set that settled it and whether it was right. */
 export type Final = { choices: number[]; correct: boolean };
@@ -92,7 +92,8 @@ export function start(lesson: Lesson, results: Saved["results"], intent: Intent)
 
 /** A pass as it is saved: every card's answers, the card on screen and whether the summary is showing. */
 export function snapshot(lesson: Lesson, state: State): SavedRun {
-  return { cards: lesson.cards.map((c) => c.id), index: state.index, phase: state.phase, entries: state.entries.map((e) => ({ ...e })) };
+  const entries = state.entries.map(({ first, final, seen, opened }) => ({ first, final: final?.choices ?? null, seen, opened }));
+  return { cards: cardsKey(lesson.cards.map((c) => c.id)), index: state.index, phase: state.phase, entries };
 }
 
 /**
@@ -101,7 +102,7 @@ export function snapshot(lesson: Lesson, state: State): SavedRun {
  * from the lesson, never taken from what was stored.
  */
 export function restore(lesson: Lesson, run: SavedRun): State | null {
-  if (run.cards.length !== lesson.cards.length || run.cards.some((id, i) => id !== lesson.cards[i].id)) return null;
+  if (run.cards !== cardsKey(lesson.cards.map((c) => c.id)) || run.entries.length !== lesson.cards.length) return null;
   const entries: Entry[] = [];
   for (const [i, card] of lesson.cards.entries()) {
     const saved = run.entries[i];
@@ -110,8 +111,8 @@ export function restore(lesson: Lesson, run: SavedRun): State | null {
       continue;
     }
     const known = (ids: number[]) => ids.length > 0 && ids.every((id) => card.choices.some((c) => c.id === id));
-    if ((saved.first && !known(saved.first)) || (saved.final && !known(saved.final.choices))) return null;
-    entries.push({ first: saved.first, final: saved.final ? { choices: saved.final.choices, correct: sameSet(card.correct, saved.final.choices) } : null, seen: false, opened: saved.opened });
+    if ((saved.first && !known(saved.first)) || (saved.final && !known(saved.final))) return null;
+    entries.push({ first: saved.first, final: saved.final ? { choices: saved.final, correct: sameSet(card.correct, saved.final) } : null, seen: false, opened: saved.opened });
   }
   const state: State = { index: run.index, selected: [], entries, phase: "solving" };
   if (run.phase === "summary" && allAnswered(lesson, state)) return { ...state, phase: "summary" };

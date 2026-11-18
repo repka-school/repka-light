@@ -19,9 +19,9 @@ const stepIcons = [BookOpen, Lightbulb, ListChecks, Bookmark];
  */
 export function LandingScreen() {
   const index = useLoaded("index", loadIndex);
-  const { results } = useSaved();
+  const saved = useSaved();
   const courses = index.data?.courses;
-  const next = courses ? start(courses, results) : null;
+  const next = courses ? start(courses, saved) : null;
   const total = courses ? reach(courses) : null;
   const to = next && next.kind !== "choose" ? `/course/${encodeURIComponent(next.course.slug)}` : "/courses";
   return (

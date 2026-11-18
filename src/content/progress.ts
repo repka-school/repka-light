@@ -15,20 +15,23 @@ export type CourseProgress = {
   last: string;
 };
 
-export function courseProgress(course: CourseSummary, results: Saved["results"]): CourseProgress {
+/** What progress reads of the saved state. */
+export type Practice = Pick<Saved, "results" | "last">;
+
+export function courseProgress(course: CourseSummary, { results, last }: Practice): CourseProgress {
   const answered = course.questions.map((id) => results[id]).filter((r) => r !== undefined);
   const done = answered.filter((r) => r.outcome === "first").length;
   const total = course.questions.length;
-  return { course, done, answered: answered.length, total, finished: total > 0 && done === total, last: answered.reduce((latest, r) => (r.at > latest ? r.at : latest), "") };
+  return { course, done, answered: answered.length, total, finished: total > 0 && done === total, last: answered.length ? (last[course.slug] ?? "") : "" };
 }
 
 /**
  * The course list in two parts: the courses with at least one saved answer,
  * the most recently practised first, and the rest in their listed order.
  */
-export function splitCourses(courses: CourseSummary[], results: Saved["results"]): { started: CourseProgress[]; others: CourseProgress[] } {
-  const all = courses.map((course) => courseProgress(course, results));
-  const isStarted = (p: CourseProgress) => p.course.questions.some((id) => results[id] !== undefined);
+export function splitCourses(courses: CourseSummary[], saved: Practice): { started: CourseProgress[]; others: CourseProgress[] } {
+  const all = courses.map((course) => courseProgress(course, saved));
+  const isStarted = (p: CourseProgress) => p.answered > 0;
   // The sort is stable, so courses practised at the same moment keep their listed order.
   const started = all.filter(isStarted).sort((a, b) => (a.last < b.last ? 1 : a.last > b.last ? -1 : 0));
   return { started, others: all.filter((p) => !isStarted(p)) };

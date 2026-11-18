@@ -1,10 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { reach, start } from "./landing";
 import type { CourseSummary } from "./types";
-import type { Outcome, Saved } from "@/store/storage";
+import type { Practice } from "./progress";
+import type { Outcome } from "@/store/storage";
 
 const course = (slug: string, questions: string[], grades: string[] = [], lessons = 1): CourseSummary => ({ slug, title: slug, description: "", cover: null, grades, lessons, questions });
-const results = (...entries: [id: string, outcome: Outcome, at: string][]): Saved["results"] => Object.fromEntries(entries.map(([id, outcome, at]) => [id, { outcome, choices: [1], at }]));
+/** Saved results, each settled at the given time: a course's last practice is the latest of its own. */
+function results(...entries: [id: string, outcome: Outcome, at: string][]): Practice {
+  const saved: Practice = { results: {}, last: {} };
+  for (const [id, outcome, at] of entries) {
+    saved.results[id] = { outcome, choices: [1] };
+    const course = id.split("/")[0];
+    if (at > (saved.last[course] ?? "")) saved.last[course] = at;
+  }
+  return saved;
+}
+const none: Practice = { results: {}, last: {} };
 
 const a = course("a", ["a/1", "a/2"], ["2"], 2);
 const b = course("b", ["b/1"], ["4", "3"], 3);
@@ -31,12 +42,12 @@ describe("reach", () => {
 
 describe("start", () => {
   it("opens the only course when nothing is saved", () => {
-    expect(start([a], {})).toEqual({ kind: "open", course: a });
+    expect(start([a], none)).toEqual({ kind: "open", course: a });
   });
 
   it("leads to the course list when there are several courses or none", () => {
-    expect(start([a, b], {})).toEqual({ kind: "choose" });
-    expect(start([], {})).toEqual({ kind: "choose" });
+    expect(start([a, b], none)).toEqual({ kind: "choose" });
+    expect(start([], none)).toEqual({ kind: "choose" });
   });
 
   it("continues the unfinished course practised last", () => {

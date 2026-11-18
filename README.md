@@ -1,11 +1,11 @@
 # Репка: practice site
 
 A static practice site: an index page that says what the site is, a list of
-courses, a course page with its lessons, and lessons worked through one task
-at a time. It runs entirely in the
-browser. There is no server and no sign-in; a learner's profile, task
-results, experience and level are kept in that browser's `localStorage` and
-nowhere else.
+courses, a course page with its lessons, lessons worked through one task
+at a time, and a homestead where the experience earned grows turnips. It runs
+entirely in the browser. There is no server and no sign-in; a learner's
+profile, task results, experience, level and homestead are kept in that
+browser's `localStorage` and nowhere else.
 
 ## Run it
 
@@ -25,12 +25,13 @@ npm run preview    # serves dist/
 |---|---|
 | `courses/` | Course content, as packs (see below). |
 | `scripts/build-content.mjs` | Turns the packs into `public/content/` (generated, not committed). |
-| `src/screens/` | The five screens: index page, course list, course, lesson (question and summary), profile. |
+| `src/screens/` | The six screens: index page, course list, course, lesson (question and summary), profile, homestead. |
 | `src/lesson/` | The rules of a lesson run: two tries per task, progress, the summary. No DOM. |
 | `src/store/` | What is saved in `localStorage`, the hook the screens read it with, and the rules of experience and levels. |
+| `src/homestead/` | The homestead: its rules and saved form (no DOM), the isometric scene, its panels, drawings, styles and words. It is loaded when the page is first opened. |
 | `src/content/` | Types of the built course files and their loader. |
 | `src/ui/` | Shared pieces: design tokens, answer tiles, task text, avatars and frames. |
-| `src/strings.ts` | Every user-visible string. The interface is in Russian. |
+| `src/strings.ts` | Every user-visible string but the homestead's, which are in `src/homestead/strings.ts`. The interface is in Russian. |
 | `docs/style-guide.md` | Type scale, colours, components and how the copy is written. |
 
 Routes are plain paths (`/course/math-olympiad-2`) under the path the site is
@@ -45,6 +46,7 @@ it does not know, and the app shows the right screen.
 | `/course/<course>` | A course and its lessons. |
 | `/course/<course>/lesson/<lesson>` | A lesson. |
 | `/profile` | The profile. |
+| `/homestead` | The homestead. |
 
 The index page's main button leads back into the unfinished course practised
 last, into the only course when nothing is started, and otherwise to the
@@ -145,7 +147,13 @@ One key, `repka-light.v1`:
       ]
     }
   },
-  "xp": { "math-olympiad-2/reading/sweets": 10 }
+  "xp": { "math-olympiad-2/reading/sweets": 10 },
+  "homestead": {
+    "spent": 215,
+    "seeds": { "rare": 1 },
+    "things": [["house", 1, 1], ["fence", 0, 0], ["fence", 4, 3, 1], ["bed", 2, 5], ["bed", 3, 5, "rare", 40], ["bed", 4, 5, "common", 100, "2026-01-02"]],
+    "harvest": { "common": [2, "2026-01-01"] }
+  }
 }
 ```
 
@@ -166,20 +174,25 @@ the first try and asks the rest again; «Повторить урок» starts fr
 
 `xp` is the experience each task has given; see below.
 
-«Сбросить прогресс» on the profile page clears `results` and `runs` and keeps
-the profile and `xp`.
+`homestead` is the homestead in a short form; see below. It is absent until
+something in the homestead is changed.
 
-«Скачать файл» on the profile page saves the profile, `results`, `runs` and
-`xp` as a backup file, and «Загрузить файл» replaces everything saved with one, after
-asking. The file has its own version, apart from the key's:
+«Сбросить прогресс» on the profile page clears `results` and `runs` and keeps
+the profile, `xp` and `homestead`.
+
+«Скачать файл» on the profile page saves the profile, `results`, `runs`,
+`xp` and `homestead` as a backup file, and «Загрузить файл» replaces everything
+saved with one, after asking. The file has its own version, apart from the
+key's:
 
 ```json
-{ "format": "repka-light-backup", "version": 2, "exportedAt": "…", "profile": {}, "results": {}, "runs": {}, "xp": {} }
+{ "format": "repka-light-backup", "version": 3, "exportedAt": "…", "profile": {}, "results": {}, "runs": {}, "xp": {}, "homestead": {} }
 ```
 
 A change to its shape bumps `BACKUP_VERSION` in `src/store/backup.ts` and adds
 a step to `upgrades` there, so every file ever written still loads. A file
-from a newer version is refused. Version 1 had no `xp`.
+from a newer version is refused. Version 1 had no `xp`, version 2 no
+`homestead`.
 
 ## Experience and levels
 
@@ -207,6 +220,56 @@ the details. A checked answer shows the experience it added, and a lesson's
 summary shows the pass's total and a new level reached in it. Experience that
 arrives while the badge is on screen animates it: the ring fills and the
 amount shows under it, and a new level is named there.
+
+## Homestead
+
+«Мой огород» is where experience is spent. It is a 10×10 ground seen from
+above at an angle, with a fixed set of things to arrange: a house, a barn, ten
+fences, two trees, three bushes and four beds, one of which starts in stock.
+A thing is moved, a fence turned, and anything but a planted bed put back in
+stock; no two things share a tile.
+
+Experience buys seeds and grows turnips. What can be spent is the *free*
+experience: the total earned less what the homestead has spent. Spending never
+lowers the total, so a level never goes down.
+
+| Seed | Price | Experience to ripen |
+|---|---|---|
+| Common | 25 | 100 |
+| Rare | 50 | 200 |
+| Epic | 100 | 300 |
+| Legendary | 200 | 400 |
+
+Everyone starts with one free common seed. A seed is planted in an empty bed
+and grows only by the experience given to it, 10 or 50 at a press, never more
+than is free and never more than it still needs. It passes ten stages, each
+with its own drawing, and is ripe at its total. A ripe turnip is gathered into
+the harvest, which frees the bed. A common turnip costs 125 in all, about one
+lesson; a legendary one 600; the first course pays for some thirty common
+turnips or six legendary ones. A purchase is confirmed with a second tap,
+because experience cannot be earned twice.
+
+The numbers are in `src/homestead/rules.ts`: `SEEDS`, `OWNED`, `GROW_STEPS`.
+
+What is saved is only what cannot be worked out again (`src/homestead/saved.ts`):
+
+- `spent`: the experience spent on seeds and on growing.
+- `seeds`: the seeds held, by quality.
+- `things`: what stands on the ground, each as `[kind, x, y]`, followed by `1`
+  for a turned fence or by a bed's turnip: its quality, the experience given
+  to it and, once ripe, the day it ripened. Whatever is owned and not listed
+  is in stock.
+- `harvest`: by quality, how many turnips were gathered and the latest day one
+  of them ripened.
+
+Stock, stages and prices are not saved. A saved thing that cannot stand where
+it is saved (off the ground, on a taken tile, one more than is owned) is left
+out when the data is read, which puts it back in stock.
+
+The scene is one grid for a keyboard and a screen reader: arrow keys move over
+the tiles, Enter selects or uses the tool in hand, Escape cancels, and every
+tile is named by its place and what stands on it. A drag pans and the wheel
+or a pinch zooms; round buttons do the same.
 
 ## Deploy
 
