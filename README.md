@@ -3,8 +3,9 @@
 A static practice site: an index page that says what the site is, a list of
 courses, a course page with its lessons, and lessons worked through one task
 at a time. It runs entirely in the
-browser. There is no server and no sign-in; a learner's profile and task
-results are kept in that browser's `localStorage` and nowhere else.
+browser. There is no server and no sign-in; a learner's profile, task
+results, experience and level are kept in that browser's `localStorage` and
+nowhere else.
 
 ## Run it
 
@@ -26,7 +27,7 @@ npm run preview    # serves dist/
 | `scripts/build-content.mjs` | Turns the packs into `public/content/` (generated, not committed). |
 | `src/screens/` | The five screens: index page, course list, course, lesson (question and summary), profile. |
 | `src/lesson/` | The rules of a lesson run: two tries per task, progress, the summary. No DOM. |
-| `src/store/` | What is saved in `localStorage`, and the hook the screens read it with. |
+| `src/store/` | What is saved in `localStorage`, the hook the screens read it with, and the rules of experience and levels. |
 | `src/content/` | Types of the built course files and their loader. |
 | `src/ui/` | Shared pieces: design tokens, answer tiles, task text, avatars and frames. |
 | `src/strings.ts` | Every user-visible string. The interface is in Russian. |
@@ -143,7 +144,8 @@ One key, `repka-light.v1`:
         { "first": [1], "final": null, "seen": false, "opened": false }
       ]
     }
-  }
+  },
+  "xp": { "math-olympiad-2/reading/sweets": 10 }
 }
 ```
 
@@ -162,20 +164,49 @@ an unfinished one where it was left, a finished one as its summary. From the
 summary, «Решить ошибки заново» starts a pass that keeps the tasks solved on
 the first try and asks the rest again; «Повторить урок» starts from scratch.
 
-«Сбросить прогресс» on the profile page clears `results` and `runs` and keeps
-the profile.
+`xp` is the experience each task has given; see below.
 
-«Скачать файл» on the profile page saves the profile, `results` and `runs` as
-a backup file, and «Загрузить файл» replaces everything saved with one, after
+«Сбросить прогресс» on the profile page clears `results` and `runs` and keeps
+the profile and `xp`.
+
+«Скачать файл» on the profile page saves the profile, `results`, `runs` and
+`xp` as a backup file, and «Загрузить файл» replaces everything saved with one, after
 asking. The file has its own version, apart from the key's:
 
 ```json
-{ "format": "repka-light-backup", "version": 1, "exportedAt": "…", "profile": {}, "results": {}, "runs": {} }
+{ "format": "repka-light-backup", "version": 2, "exportedAt": "…", "profile": {}, "results": {}, "runs": {}, "xp": {} }
 ```
 
 A change to its shape bumps `BACKUP_VERSION` in `src/store/backup.ts` and adds
 a step to `upgrades` there, so every file ever written still loads. A file
-from a newer version is refused.
+from a newer version is refused. Version 1 had no `xp`.
+
+## Experience and levels
+
+Every task gives experience, once: 10 for each of its points (a task's points
+are its difficulty, 1 to 5; a task without points counts as 1) when it is
+solved on the first try, half of that on the second try, nothing when missed.
+A task's card shows that amount as a tag, «+20 опыта», coloured by the
+difficulty; points themselves are not shown.
+A task solved better later gets the rest, so each task gives its full amount
+at most. `xp` keeps what each task has given; the total is their sum. It never
+goes down: a reset keeps it, and a task solved again after a reset gives
+nothing more. Results saved before experience was counted earn theirs when
+their course is next opened.
+
+The level is read off the total. Level 2 takes 100 experience, about one
+lesson, and each next level takes 2 more than the one before, so early levels
+come a little faster. Level 100 starts at 19 602; from there every level takes
+the same 298, and there is no top level. The numbers are in `src/store/xp.ts`,
+sized by the first course: its first lesson brings level 2, its 35 lessons
+(3 720 experience) level 30, and level 100 takes about five courses of that
+size.
+
+The header shows the level in a ring that fills toward the next one and opens
+the details. A checked answer shows the experience it added, and a lesson's
+summary shows the pass's total and a new level reached in it. Experience that
+arrives while the badge is on screen animates it: the ring fills and the
+amount shows under it, and a new level is named there.
 
 ## Deploy
 

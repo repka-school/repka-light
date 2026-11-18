@@ -1,11 +1,14 @@
 // Every user-visible string. The interface is in Russian.
 import { count } from "@/ui/i18n/plural";
+import { STEADY_LEVEL } from "@/store/xp";
 
 const taskForms = ["задание", "задания", "заданий"] as const;
 const taskOfForms = ["задания", "заданий", "заданий"] as const;
 const theoryForms = ["теория", "теории", "теорий"] as const;
 const lessonForms = ["урок", "урока", "уроков"] as const;
 const courseForms = ["курс", "курса", "курсов"] as const;
+
+const amount = (n: number) => n.toLocaleString("ru-RU");
 
 /** «2 класс», «2–4 класс», or nothing when no grade is named. */
 const gradesLine = (grades: string[]) => (grades.length === 0 ? "" : grades.length === 1 ? `${grades[0]} класс` : `${grades[0]}–${grades[grades.length - 1]} класс`);
@@ -88,7 +91,6 @@ export const t = {
   theoryShowAnswer: "Показать ответ",
   theoryHideAnswer: "Скрыть ответ",
   question: (n: number) => `Задание ${n}`,
-  points: (n: number) => count(n, ["балл", "балла", "баллов"]),
   cardPosition: (n: number, total: number) => `Карточка ${n} из ${total}`,
   cardsDone: (n: number, total: number) => `Пройдено ${n} из ${total}`,
   cardsDoneShort: (n: number) => `Пройдено ${n}`,
@@ -138,6 +140,25 @@ export const t = {
   againLesson: "Повторить урок",
   retryMistakes: "Решить ошибки заново",
 
+  // Experience and levels: the header's badge and what a lesson adds.
+  level: (n: number) => `Уровень ${n}`,
+  levelLabel: (n: number) => `Уровень ${n}, твой опыт`,
+  xpAmount: (n: number) => `${amount(n)} опыта`,
+  xpGain: (n: number) => `+${amount(n)} опыта`,
+  levelProgressLabel: "Опыт до следующего уровня",
+  levelProgress: (earned: number, needed: number) => `${amount(earned)} из ${amount(needed)}`,
+  levelRemaining: (n: number) => `До следующего уровня\u00A0— ${amount(n)} опыта.`,
+  levelHow: "Как растёт уровень?",
+  levelRules: [
+    "На каждом задании написано, сколько опыта оно даёт: чем сложнее задание, тем больше.",
+    "Верный ответ с первой попытки приносит весь опыт, со второй\u00A0— половину.",
+    "Задание с ошибкой можно решить заново и получить остальной опыт. За повтор решённого задания опыт не добавляется.",
+    `Первые уровни идут быстрее: каждый следующий требует чуть больше опыта. После ${STEADY_LEVEL}-го уровня все уровни требуют одинаково.`,
+    "Опыт хранится в этом браузере и остаётся после сброса прогресса.",
+  ],
+  levelNew: (n: number) => `Новый уровень: ${n}`,
+  lessonXp: (n: number) => `За урок: +${amount(n)} опыта`,
+
   profileEyebrow: "ПРОФИЛЬ",
   profileTitle: "Мой профиль",
   profileLabel: (name: string) => `${name}, профиль`,
@@ -150,7 +171,7 @@ export const t = {
   solvedTotal: (n: number) => (n === 0 ? "Пока нет решённых заданий." : `Сохранено результатов: ${n}.`),
   resetProgress: "Сбросить прогресс",
   resetTitle: "Сбросить весь прогресс?",
-  resetText: "Результаты всех заданий будут удалены из этого браузера. Профиль останется.",
+  resetText: "Результаты всех заданий будут удалены из этого браузера. Профиль, опыт и уровень останутся.",
   resetConfirm: "Сбросить",
   resetCancel: "Отмена",
   resetDone: "Прогресс сброшен.",

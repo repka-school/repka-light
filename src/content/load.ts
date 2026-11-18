@@ -7,7 +7,9 @@ const cache = new Map<string, Promise<unknown>>();
 function load<T>(file: string): Promise<T> {
   let pending = cache.get(file);
   if (!pending) {
-    pending = fetch(`${import.meta.env.BASE_URL}content/${file}`).then((response) => {
+    // The host lets a browser keep a file for ten minutes. "no-cache" asks it
+    // each time whether the file changed, so a new deploy's courses show at once.
+    pending = fetch(`${import.meta.env.BASE_URL}content/${file}`, { cache: "no-cache" }).then((response) => {
       if (!response.ok) throw new Error(`${file}: ${response.status}`);
       return response.json();
     });

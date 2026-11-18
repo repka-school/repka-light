@@ -2,12 +2,13 @@ import type { ReactNode } from "react";
 import { Link, NavLink } from "react-router";
 import { useFocusHeading } from "@/ui/hooks/useFocusHeading";
 import { Picture } from "@/ui/pictures/Picture";
+import { LevelBadge } from "@/components/LevelBadge";
 import { useSaved } from "@/store/store";
 import { t } from "@/strings";
 
 // The header, the same on every screen: the brand, which leads to the index
-// page, the tagline, a link to the course list, and the learner's picture
-// and nickname, which lead to the profile.
+// page, the tagline, a link to the course list, the learner's level, and
+// their picture and nickname, which lead to the profile.
 export function SiteHeader() {
   const { profile } = useSaved();
   const name = profile.name || t.guest;
@@ -28,6 +29,7 @@ export function SiteHeader() {
         <NavLink className="header-link" to="/courses" id="nav-courses">
           {t.navCourses}
         </NavLink>
+        <LevelBadge />
         <Link className="header-profile" to="/profile" id="nav-profile" aria-label={t.profileLabel(name)}>
           <span className="header-user" aria-hidden="true">
             {name}

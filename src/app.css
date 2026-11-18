@@ -306,14 +306,6 @@ select,
   gap: 6px;
   justify-content: flex-end;
 }
-.year-tag {
-  font-size: var(--type-xs);
-  background: var(--muted);
-  padding: 6px 10px;
-  border-radius: 6px;
-  white-space: nowrap;
-  color: var(--muted-foreground);
-}
 .feedback {
   padding: 19px 20px;
   border-radius: 12px;
@@ -2184,4 +2176,242 @@ select,
   .landing-steps ul {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* The header's level: the number in a ring that fills toward the next level. */
+@property --level-percent {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+.level-spot {
+  position: relative;
+  flex: none;
+  display: grid;
+}
+.level-badge {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--primary);
+  font-size: var(--type-label);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  cursor: pointer;
+}
+.level-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: conic-gradient(var(--progress-fill) calc(var(--level-percent) * 1%), var(--progress-track) 0);
+}
+.level-ring::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: inherit;
+  background: var(--background);
+}
+.level-badge:hover .level-ring::before {
+  background: var(--accent);
+}
+.level-number {
+  position: relative;
+}
+/* New experience: the ring fills from where it stood and the badge swells once. */
+.level-ring.is-gain {
+  animation:
+    level-fill 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) backwards,
+    level-swell 0.5s ease-out;
+}
+/* A new level: a ripple leaves the badge, the ring refills from empty and the number lands. */
+.level-ring.is-level-up {
+  animation:
+    level-fill 0.9s 0.3s cubic-bezier(0.2, 0.7, 0.3, 1) backwards,
+    level-swell-big 0.7s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+.level-ring.is-level-up::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid var(--accent-warm);
+  animation: level-ripple 0.8s ease-out 2 forwards;
+}
+.level-number.is-level-up {
+  animation: level-number 0.6s 0.15s cubic-bezier(0.3, 1.5, 0.5, 1) backwards;
+}
+@keyframes level-fill {
+  from {
+    --level-percent: var(--level-from, 0);
+  }
+}
+@keyframes level-swell {
+  40% {
+    transform: scale(1.14);
+  }
+}
+@keyframes level-swell-big {
+  40% {
+    transform: scale(1.28);
+  }
+}
+@keyframes level-ripple {
+  from {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.2);
+  }
+}
+@keyframes level-number {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+/* What just arrived, under the badge for a moment: «+20 опыта», or the new level. */
+.level-bubble {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  translate: -50% 0;
+  z-index: 40;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  box-shadow: 0 1px 2px var(--shadow-card), 0 6px 16px var(--shadow-card);
+  color: var(--primary);
+  font-size: var(--type-xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+  white-space: nowrap;
+  pointer-events: none;
+  animation:
+    bubble-in 0.3s cubic-bezier(0.3, 1.4, 0.5, 1) backwards,
+    bubble-out 0.35s 1.3s ease-in forwards;
+}
+.level-bubble.is-level-up {
+  padding: 8px 14px;
+  border-color: transparent;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: var(--type-sm);
+  animation:
+    bubble-in 0.4s 0.2s cubic-bezier(0.3, 1.4, 0.5, 1) backwards,
+    bubble-out 0.4s 2.9s ease-in forwards;
+}
+@keyframes bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.8);
+  }
+}
+@keyframes bubble-out {
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+/* What opens under it: the level, the experience behind it and how it grows. */
+.level-details {
+  width: min(320px, calc(100vw - 24px));
+  max-height: var(--radix-popover-content-available-height);
+  overflow-y: auto;
+  display: grid;
+  gap: 8px;
+  font-size: var(--type-sm);
+}
+.level-details h2 {
+  margin: 0;
+  font-size: var(--type-card-title);
+}
+.level-details p {
+  margin: 0;
+  line-height: 1.5;
+}
+.level-details .level-total {
+  color: var(--muted-foreground);
+}
+.level-details summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+}
+.level-details details p {
+  color: var(--muted-foreground);
+}
+.level-details details p + p {
+  margin-top: 8px;
+}
+/* What a task gives, on its card: the fill says how hard the task is. */
+.xp-tag {
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: var(--type-xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  background: var(--difficulty-1);
+  color: var(--difficulty-1-text);
+}
+.xp-tag[data-difficulty="2"] {
+  background: var(--difficulty-2);
+  color: var(--difficulty-2-text);
+}
+.xp-tag[data-difficulty="3"] {
+  background: var(--difficulty-3);
+  color: var(--difficulty-3-text);
+}
+.xp-tag[data-difficulty="4"] {
+  background: var(--difficulty-4);
+  color: var(--difficulty-4-text);
+}
+.xp-tag[data-difficulty="5"] {
+  background: var(--difficulty-5);
+  color: var(--difficulty-5-text);
+}
+/* Experience an answer or a lesson has added. */
+.xp-gain {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.feedback .xp-gain {
+  width: fit-content;
+  margin-top: 8px;
+  transform-origin: left center;
+  animation: xp-pop 0.45s 0.15s cubic-bezier(0.3, 1.5, 0.5, 1) backwards;
+}
+@keyframes xp-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+.summary-xp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+  margin: 0;
+  font-size: var(--type-sm);
+  color: var(--primary);
+}
+.summary-xp strong {
+  display: inline-block;
+  animation: xp-pop 0.5s 0.4s cubic-bezier(0.3, 1.5, 0.5, 1) backwards;
 }

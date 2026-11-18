@@ -5,7 +5,7 @@
 import { sanitize, type Saved } from "./storage";
 
 export const BACKUP_FORMAT = "repka-light-backup";
-export const BACKUP_VERSION = 1;
+export const BACKUP_VERSION = 2;
 /** A real backup is a few hundred kilobytes at most; anything far larger is not one. */
 export const BACKUP_MAX_BYTES = 5 * 1024 * 1024;
 
@@ -17,6 +17,7 @@ export type Backup = {
   profile: Saved["profile"];
   results: Saved["results"];
   runs: Saved["runs"];
+  xp: Saved["xp"];
 };
 
 /**
@@ -24,13 +25,16 @@ export type Backup = {
  * n file into a version n + 1 one. A change to the file's shape bumps
  * BACKUP_VERSION and adds a step here, so every file ever written still loads.
  */
-const upgrades: Record<number, (old: Record<string, unknown>) => Record<string, unknown>> = {};
+const upgrades: Record<number, (old: Record<string, unknown>) => Record<string, unknown>> = {
+  // Version 1 had no experience. Its results earn theirs when their course is next opened.
+  1: (old) => ({ ...old, xp: {} }),
+};
 
 export type ImportError = "notJson" | "notBackup" | "tooNew" | "tooLarge";
 export type ImportResult = { ok: true; saved: Saved; exportedAt: string } | { ok: false; error: ImportError };
 
 export function toBackup(saved: Saved, now = new Date()): Backup {
-  return { format: BACKUP_FORMAT, version: BACKUP_VERSION, exportedAt: now.toISOString(), profile: saved.profile, results: saved.results, runs: saved.runs };
+  return { format: BACKUP_FORMAT, version: BACKUP_VERSION, exportedAt: now.toISOString(), profile: saved.profile, results: saved.results, runs: saved.runs, xp: saved.xp };
 }
 
 /** The file's name: the site and the day, so several downloads sort by date. */

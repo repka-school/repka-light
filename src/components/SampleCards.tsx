@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "re
 import { Pause, Play } from "lucide-react";
 import { StaticChoices } from "@/ui/components/ChoiceGroup";
 import { Button } from "@/ui/components/ui/button";
+import { XpTag } from "@/components/XpTag";
 import { sampleChoiceName, samples, t } from "@/strings";
 
 /** How long a card shows before the next one slides in. */
@@ -104,7 +105,7 @@ export function SampleCards() {
               {/* Not a heading: the page's outline is the index page's own. */}
               <span className="sample-heading">{t.question(sample.number)}</span>
               <span className="card-tags">
-                <span className="year-tag">{t.points(sample.points)}</span>
+                <XpTag points={sample.points} />
               </span>
             </div>
             <p className="sample-statement">{sample.statement}</p>

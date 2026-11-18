@@ -46,9 +46,10 @@ const tags: Record<"first" | "second" | "wrong", string> = { first: t.right, sec
 
 /**
  * A finished lesson: how many questions were right on the first try, how
- * many more on the second, and every question to open and read again.
+ * many more on the second, the experience this pass added (`xp`, with
+ * `newLevel` when it reached one), and every question to open and read again.
  */
-export function SummaryView({ lesson, state, actions }: { lesson: Lesson; state: State; actions: ReactNode }) {
+export function SummaryView({ lesson, state, xp, newLevel, actions }: { lesson: Lesson; state: State; xp: number; newLevel: number | null; actions: ReactNode }) {
   const first = countOf(lesson, state, "first");
   const second = countOf(lesson, state, "second");
   const wrong = countOf(lesson, state, "wrong");
@@ -81,6 +82,12 @@ export function SummaryView({ lesson, state, actions }: { lesson: Lesson; state:
               <strong>{wrong}</strong>
             </li>
           </ul>
+          {xp > 0 && (
+            <p className="summary-xp" id="lesson-xp">
+              <span className="xp-gain">{t.lessonXp(xp)}</span>
+              {newLevel && <strong>{t.levelNew(newLevel)}</strong>}
+            </p>
+          )}
           <div className="summary-actions">{actions}</div>
         </div>
       </div>

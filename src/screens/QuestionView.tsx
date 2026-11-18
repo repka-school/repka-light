@@ -9,6 +9,7 @@ import { Dialog, DialogTrigger } from "@/ui/components/ui/dialog";
 import { Progress } from "@/ui/components/ui/progress";
 import { SiteFooter } from "@/components/Chrome";
 import { QuestionNavigator } from "@/components/QuestionNavigator";
+import { XpTag } from "@/components/XpTag";
 import { TheoryBlocks } from "@/components/TheoryBlocks";
 import type { Lesson, QuestionCard } from "@/content/types";
 import { cardState, checkable, doneCount, marksOf, primaryAction, questionNumber, sameAsFirst, type Entry, type State } from "@/lesson/session";
@@ -23,6 +24,8 @@ type Props = {
   coursePath: string;
   /** The course's name: the link back to the course. */
   courseTitle: string;
+  /** Experience the answer just checked on this card has added. */
+  gained: number;
   onGoTo: (index: number) => void;
   onSelect: (id: number) => void;
   onOpenOptions: () => void;
@@ -33,7 +36,7 @@ type Props = {
 const SAME_SET_ID = "same-set";
 
 /** One card of a running lesson, with the lesson's progress, its numbers and the one primary action. */
-export function QuestionView({ lesson, state, coursePath, courseTitle, onGoTo, onSelect, onOpenOptions, onCheck, onNext }: Props) {
+export function QuestionView({ lesson, state, coursePath, courseTitle, gained, onGoTo, onSelect, onOpenOptions, onCheck, onNext }: Props) {
   const card = lesson.cards[state.index];
   const entry = state.entries[state.index];
   const layout = useLessonLayout(state.index, `${state.index}:${cardState(entry)}`);
@@ -86,14 +89,12 @@ export function QuestionView({ lesson, state, coursePath, courseTitle, onGoTo, o
               <article className="question-card">
                 <div className="question-heading">
                   <PageHeading>{t.question(questionNumber(lesson, state.index))}</PageHeading>
-                  {card.points !== null && (
-                    <span className="card-tags">
-                      <span className="year-tag">{t.points(card.points)}</span>
-                    </span>
-                  )}
+                  <span className="card-tags">
+                    <XpTag points={card.points} />
+                  </span>
                 </div>
                 <RichBody html={card.body} className="question-body" {...bodyLabels} />
-                <Answer card={card} entry={entry} state={state} onSelect={onSelect} onOpenOptions={onOpenOptions} />
+                <Answer card={card} entry={entry} state={state} gained={gained} onSelect={onSelect} onOpenOptions={onOpenOptions} />
               </article>
             )}
             <div ref={layout.action} className="solving-action" data-stuck={layout.stuck || undefined}>
@@ -113,7 +114,7 @@ export function QuestionView({ lesson, state, coursePath, courseTitle, onGoTo, o
 }
 
 /** A question's options and, once checked, its verdict, hint and worked solution. */
-function Answer({ card, entry, state, onSelect, onOpenOptions }: { card: QuestionCard; entry: Entry; state: State; onSelect: (id: number) => void; onOpenOptions: () => void }) {
+function Answer({ card, entry, state, gained, onSelect, onOpenOptions }: { card: QuestionCard; entry: Entry; state: State; gained: number; onSelect: (id: number) => void; onOpenOptions: () => void }) {
   const multi = card.answerKind === "multi";
   const cs = cardState(entry);
   const judged = cs !== "unanswered";
@@ -162,6 +163,7 @@ function Answer({ card, entry, state, onSelect, onOpenOptions }: { card: Questio
             {entry.final && ` · ${correctPhrase(card)}`}
           </p>
           {cs === "waiting" && <p>{t.tryAgain}</p>}
+          {gained > 0 && <p className="xp-gain">{t.xpGain(gained)}</p>}
         </section>
       )}
       {cs === "waiting" && card.hint && (

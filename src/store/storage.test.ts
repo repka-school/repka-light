@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleanName, empty, parse, sanitize, solvedCount, withoutResults, withProfile, withResult, withRun, type SavedRun, type TaskResult } from "./storage";
+import { cleanName, empty, parse, sanitize, solvedCount, withoutResults, withProfile, withResult, withRun, withXp, type SavedRun, type TaskResult } from "./storage";
 
 const result = (outcome: TaskResult["outcome"], choices = [1]): TaskResult => ({ outcome, choices, at: "2026-01-01T00:00:00.000Z" });
 
@@ -57,7 +57,44 @@ describe("progress", () => {
 
   it("resets results and keeps the profile", () => {
     const saved = withResult(withProfile(empty(), { name: "Петя" }), "t", result("first"));
-    expect(withoutResults(saved)).toEqual({ version: 1, profile: saved.profile, results: {}, runs: {} });
+    expect(withoutResults(saved)).toEqual({ version: 1, profile: saved.profile, results: {}, runs: {}, xp: {} });
+  });
+});
+
+describe("experience", () => {
+  const easy = { id: "a", points: 1 };
+  const hard = { id: "b", points: 3 };
+  const solve = (saved = empty(), id: string, outcome: TaskResult["outcome"]) => withResult(saved, id, result(outcome));
+
+  it("is given for each task by its points and how it ended", () => {
+    const saved = solve(solve(solve(empty(), "a", "first"), "b", "second"), "c", "wrong");
+    expect(withXp(saved, [easy, hard, { id: "c", points: 2 }, { id: "d", points: 2 }]).xp).toEqual({ a: 10, b: 15 });
+  });
+
+  it("is topped up when a task is later solved better, and given once", () => {
+    const second = withXp(solve(empty(), "b", "second"), [hard]);
+    const first = withXp(solve(second, "b", "first"), [hard]);
+    expect(first.xp).toEqual({ b: 30 });
+    expect(withXp(first, [hard])).toBe(first);
+  });
+
+  it("never goes down when a task's points do", () => {
+    const saved = withXp(solve(empty(), "b", "first"), [hard]);
+    expect(withXp(saved, [{ id: "b", points: 1 }])).toBe(saved);
+  });
+
+  it("stays after a reset and is not given again", () => {
+    const reset = withoutResults(withXp(solve(empty(), "a", "first"), [easy]));
+    expect(reset.xp).toEqual({ a: 10 });
+    expect(withXp(solve(reset, "a", "first"), [easy]).xp).toEqual({ a: 10 });
+  });
+
+  it("round-trips, and drops amounts that are not whole and positive", () => {
+    expect(parse(JSON.stringify({ xp: { a: 10, b: 2.5, c: -5, d: "20", e: 0 } })).xp).toEqual({ a: 10 });
+  });
+
+  it("reads data saved before experience was counted", () => {
+    expect(parse(JSON.stringify({ version: 1, profile: {}, results: {}, runs: {} })).xp).toEqual({});
   });
 });
 

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link, useParams } from "react-router";
 import { BookOpen, FileText, GraduationCap } from "lucide-react";
 import { PageHeading } from "@/ui/components/PageHeading";
@@ -15,7 +16,7 @@ function standing(course: string, lesson: Lesson, saved: Saved): LessonState {
   const state = lessonState(lesson, saved.results);
   return state === "new" && hasAnswers(saved.runs[`${course}/${lesson.slug}`]) ? "partial" : state;
 }
-import { useSaved } from "@/store/store";
+import { grantXp, useSaved } from "@/store/store";
 import { t } from "@/strings";
 
 const startWords: Record<LessonState, string> = { new: t.startLesson, partial: t.continueLesson, finished: t.repeatLesson };
@@ -38,6 +39,8 @@ export function CourseScreen() {
 function CourseOutline({ course }: { course: Course }) {
   const saved = useSaved();
   const lessons = lessonsOf(course);
+  // Results saved before experience was counted earn theirs now.
+  useEffect(() => grantXp(lessonsOf(course).flatMap(questionsOf)), [course]);
   // The first lesson not finished carries the filled button.
   const primary = lessons.find((l) => lessonState(l, saved.results) !== "finished");
   const questionIds = lessons.flatMap((l) => questionsOf(l).map((q) => q.id));

@@ -89,6 +89,14 @@ list, the task numbers and the progress bars.
 Progress bars and rings draw answered tasks in a light green and first-try
 solves over them in `--progress-fill`.
 
+### Difficulty
+
+A task's difficulty, 1 to 5, colours its experience tag: `--difficulty-N` is
+the fill and `--difficulty-N-text` the text on it. The scale runs blue, violet,
+magenta as soft fills, then magenta and plum as solid ones. It keeps clear of
+the result colours, so a hard task never looks like a wrong answer. The amount
+on the tag says the same as the colour.
+
 ## Components
 
 - **Cards** have a 1px `--border`, a 14–22px radius (bigger for bigger cards)
@@ -100,6 +108,20 @@ solves over them in `--progress-fill`.
 - **Buttons**: one filled (`primary`) per view, for the next step; the rest are
   outlined (`secondary`). Text is a verb: «Начать урок», «Продолжить»,
   «Решить ошибки заново».
+- **The level badge** in the header is the level's number in a 44px ring that
+  fills in `--progress-fill` toward the next level. It opens a panel with the
+  experience and how it is earned. Experience just earned is written as
+  «+20 опыта», in weight 700 and the colour of the text around it.
+- **Experience in motion**: when experience arrives, the ring fills from where
+  it stood, the badge swells once and the amount shows under it in a small
+  bubble for a moment. A new level sends a ripple in `--accent-warm` from the
+  badge, refills the ring from empty and names the level in a `--primary`
+  bubble for about three seconds. The amount under a checked answer and a new
+  level on the lesson's summary pop in. The bubbles only decorate: the lesson's
+  live region says the same. With reduced motion the bubbles show without
+  moving and nothing else animates.
+- **The experience tag** on a task's card says what the task gives, «+20
+  опыта», and its fill says how hard the task is (see Difficulty).
 - **Covers** are 192px squares. Never draw one larger than 192px; give it room
   with a tinted panel or blob behind it instead.
 

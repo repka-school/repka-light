@@ -58,6 +58,17 @@
   --second-text: #544d00;
   /* The second-try colour where it marks a share: a ring arc, a dot, a card edge. */
   --second-mark: #a39017;
+  /* A task's difficulty, 1 to 5, on its experience tag: cool to warm, then filled. */
+  --difficulty-1: #e2ecf6;
+  --difficulty-1-text: #235a91;
+  --difficulty-2: #ebe6f8;
+  --difficulty-2-text: #5b41a8;
+  --difficulty-3: #f8e4f1;
+  --difficulty-3-text: #96307c;
+  --difficulty-4: #96307c;
+  --difficulty-4-text: #ffffff;
+  --difficulty-5: #5a2a6e;
+  --difficulty-5-text: #ffffff;
   --error-text: #8a3928;
   --error-soft: #faede5;
   --rich-text: #263b31;
