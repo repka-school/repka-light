@@ -49,6 +49,8 @@
   --danger-text: #785033;
   --note-text: #7a5a1e;
   --warm-soft: #fbf1e0;
+  --theory-rule-bg: #dceaf8;
+  --theory-caution-bg: #fff0cf;
   --selected: #21382d;
   --selected-foreground: #ffffff;
   --choice-box: #67715f;
@@ -330,6 +332,50 @@
   }
   .rich-body p:empty {
     display: none;
+  }
+  .rich-body :is(ol, ul) {
+    margin-block: 0.5em;
+    padding-inline-start: 1.5em;
+  }
+  .rich-body ol {
+    list-style: decimal;
+  }
+  .rich-body ul {
+    list-style: disc;
+  }
+  .rich-body blockquote {
+    margin: 0.9em 0;
+    padding: 0.7em 0.9em;
+    border-inline-start: 3px solid var(--primary);
+    border-radius: var(--radius);
+    background: var(--accent);
+  }
+  .rich-body blockquote > :last-child {
+    margin-bottom: 0;
+  }
+  .rich-body blockquote[data-callout="remember"] {
+    --callout-accent: var(--frame-sea);
+    --callout-background: var(--theory-rule-bg);
+  }
+  .rich-body blockquote[data-callout="attention"] {
+    --callout-accent: var(--note-text);
+    --callout-background: var(--theory-caution-bg);
+  }
+  .rich-body blockquote[data-callout] {
+    border-inline-start-color: var(--callout-accent);
+    background: var(--callout-background);
+  }
+  .rich-body blockquote[data-callout] > p:first-child > strong:first-child {
+    display: inline-grid;
+    place-items: center;
+    width: 1.15em;
+    height: 1.15em;
+    margin-inline-end: 0.45em;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    background: var(--card);
+    color: var(--callout-accent);
+    line-height: 1;
   }
   .rich-body table {
     display: table;

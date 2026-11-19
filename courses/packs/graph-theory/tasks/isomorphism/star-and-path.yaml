@@ -1,0 +1,66 @@
+status: active
+question:
+  text: |
+    У двух графов поровну вершин и рёбер. Какое свойство графа слева показывает, что эти графы неизоморфны?
+  html: |
+    <p>У двух графов поровну вершин и рёбер. Какое свойство графа слева показывает, что эти графы неизоморфны?</p>
+    <p><img src="images/star-and-path.png" alt="Слева вершины A, B, C и D, рёбра AB, AC и AD. Справа вершины A, B, C и D, рёбра AB, BC и CD."></p>
+  images:
+    - file: images/star-and-path.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: >-
+        У него четыре вершины.
+    - id: 2
+      text: >-
+        У него три ребра.
+    - id: 3
+      text: >-
+        У него есть вершина степени 1.
+    - id: 4
+      text: >-
+        Из любой его вершины можно дойти до всех остальных.
+    - id: 5
+      text: >-
+        У него есть вершина степени 3.
+      correct: true
+points: 1
+difficulty: easy
+classification:
+  - subject: math
+    concept: graphs
+learning:
+  theory:
+    - graph-theory:isomorphism:same-structure
+  hint:
+    text: >-
+      Посмотри, сколько соседей у каждой вершины слева и справа.
+explanation:
+  text: |
+    При изоморфизме число соседей вершины сохраняется, потому что её соседи переходят в соседей соответствующей вершины.
+
+    Слева в A сходятся рёбра AB, AC и AD. Справа в концах цепочки сходится по одному ребру, а в остальных вершинах — по два.
+
+    Ответ: Д. У него есть вершина степени 3.
+
+    Ошибки в других вариантах.
+
+    А: Четыре вершины есть в каждом графе.
+
+    Б: Три ребра есть в каждом графе.
+
+    В: Вершины степени 1 есть в каждом графе. Например, вершина D.
+
+    Г: Из любой вершины можно дойти до остальных и слева, и справа.
+note: >-
+  Авторское задание и рисунок Repka по понятиям § 2.1. Исходные звезда и цепочка имеют по четыре вершины и по три ребра. Задача проверяет сохранение степени вершины.
+source:
+  name: 'Oscar Levin, Discrete Mathematics: An Open Introduction, 4th ed.'
+  attribution: 'Оскар Левин, § 2.1 · CC BY-NC-SA 4.0 · адаптация Repka'
+  url: https://discrete.openmathbooks.org/dmoi4/sec_gt-intro.html
+  number: 9
+  extra:
+    license_url: https://creativecommons.org/licenses/by-nc-sa/4.0/

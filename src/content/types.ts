@@ -35,6 +35,20 @@ export type Card = TheoryCard | QuestionCard;
 export type Lesson = { slug: string; title: string; cards: Card[] };
 export type Module = { slug: string; title: string; lessons: Lesson[] };
 
+type ReferenceLink = { title: string; url: string };
+
+export type CourseSource = {
+  book: ReferenceLink & {
+    author: string;
+    edition: number;
+    year: number;
+    copyright: string;
+    language: string;
+    license: ReferenceLink;
+  };
+  sections: ReferenceLink[];
+};
+
 export type Course = {
   slug: string;
   title: string;
@@ -42,6 +56,7 @@ export type Course = {
   cover: string | null;
   grades: string[];
   modules: Module[];
+  source?: CourseSource;
 };
 
 export type CourseSummary = {

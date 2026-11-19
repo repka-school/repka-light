@@ -1,0 +1,66 @@
+status: active
+question:
+  text: |
+    Лера считает, что на рисунках изображён один и тот же граф с теми же именами вершин. Как проверить её утверждение?
+  html: |
+    <p>Лера считает, что на рисунках изображён один и тот же граф с теми же именами вершин. Как проверить её утверждение?</p>
+    <p><img src="images/same-drawing.png" alt="Слева вершины A, B, C и D, рёбра AB, BC и CD. Справа вершины A, B, C и D, рёбра AB, BC и CD."></p>
+  images:
+    - file: images/same-drawing.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: >-
+        Сравнить число рёбер.
+    - id: 2
+      text: >-
+        Сравнить списки вершин и рёбер.
+      correct: true
+    - id: 3
+      text: >-
+        Сравнить длины рёбер.
+    - id: 4
+      text: >-
+        Сравнить степени одноимённых вершин.
+    - id: 5
+      text: >-
+        Сравнить только списки вершин.
+points: 1
+difficulty: easy
+classification:
+  - subject: math
+    concept: graphs
+learning:
+  theory:
+    - graph-theory:isomorphism:same-structure
+  hint:
+    text: >-
+      Представь, что ты передвигаешь точки, сохраняя связи между ними. Какие данные о графе сохранятся?
+explanation:
+  text: |
+    Точки можно перемещать и менять длины линий, сохраняя связи между теми же вершинами.
+
+    На обоих рисунках вершины называются A, B, C и D. На каждом рисунке линии соединяют пары AB, BC и CD.
+
+    Ответ: Б. Сравнить списки вершин и рёбер.
+
+    Ошибки в других вариантах.
+
+    А: Три ребра могут образовать цепочку или соединить одну вершину с тремя соседями.
+
+    В: При перемещении точек длины линий могут измениться.
+
+    Г: Если заменить AB и CD на AC и BD, степени сохранятся, а рёбра изменятся.
+
+    Д: Те же вершины можно соединить другими рёбрами.
+note: >-
+  Авторское задание и рисунок Repka по понятиям § 2.1. Оба рисунка задают один граф. Варианты показывают, какие данные нужны для проверки равенства.
+source:
+  name: 'Oscar Levin, Discrete Mathematics: An Open Introduction, 4th ed.'
+  attribution: 'Оскар Левин, § 2.1 · CC BY-NC-SA 4.0 · адаптация Repka'
+  url: https://discrete.openmathbooks.org/dmoi4/sec_gt-intro.html
+  number: 8
+  extra:
+    license_url: https://creativecommons.org/licenses/by-nc-sa/4.0/

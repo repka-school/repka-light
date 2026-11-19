@@ -1,0 +1,48 @@
+status: active
+question:
+  text: |
+    В графе шесть вершин и семь рёбер. Степени пяти вершин равны 3, 3, 2, 2 и 1. Какова степень шестой вершины?
+answer:
+  kind: single
+  hide: true
+  options:
+    - id: 1
+      text: '3'
+      correct: true
+    - id: 2
+      text: '1'
+    - id: 3
+      text: '2'
+    - id: 4
+      text: '4'
+    - id: 5
+      text: '5'
+points: 2
+difficulty: medium
+classification:
+  - subject: math
+    concept: graphs
+learning:
+  theory:
+    - graph-theory:basics:degrees-and-handshakes
+  hint:
+    text: >-
+      Начни с общей суммы степеней. Как её найти по числу рёбер?
+explanation:
+  text: |
+    Сумма всех степеней равна 7 · 2 = 14, так как каждое из семи рёбер добавляет к сумме по единице на каждом конце.
+
+    Сложим степени пяти вершин. Получим 3 + 3 + 2 + 2 + 1 = 11.
+
+    Степень шестой вершины равна разности этих сумм, так как только её степень не вошла в сумму 11.
+
+    Ответ: А. 3, так как 14 − 11 = 3.
+note: >-
+  Авторская задача Repka на обратное применение леммы о рукопожатиях. К открытому вопросу добавлены варианты. Вариант Б берёт наименьшую нечётную степень, В округляет среднюю известную степень, Г пропускает известную степень 1, Д берёт наибольшую степень, возможную при шести вершинах.
+source:
+  name: 'Oscar Levin, Discrete Mathematics: An Open Introduction, 4th ed.'
+  attribution: 'Оскар Левин, § 2.1 · CC BY-NC-SA 4.0 · адаптация Repka'
+  url: https://discrete.openmathbooks.org/dmoi4/sec_gt-intro.html
+  number: 6
+  extra:
+    license_url: https://creativecommons.org/licenses/by-nc-sa/4.0/

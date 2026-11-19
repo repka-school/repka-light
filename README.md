@@ -88,6 +88,10 @@ courses/packs/<pack>/
   images/                   # pictures the course and its tasks name
 ```
 
+The `sources` list in `courses/bundle.yaml` provides the textbook citations
+on course pages. Add future adaptations under the same book's `courses` map
+with the corresponding section links.
+
 A question has `single` or `multi` choice options, one or more marked
 `correct`, and optionally a hint and a worked solution. `answer.hide: true`
 keeps the options hidden until the learner asks for them.
@@ -143,7 +147,9 @@ The build writes only what a lesson shows: task text, options, the right
 answer, hint and solution. Other fields of a task file are not published. It
 fails on a missing task or picture, a question without a right answer, a
 theory block it does not know or one that names an unknown drawing, and markup
-outside a small allowed set of tags.
+outside a small allowed set of tags. An inline `<img>` uses a quoted `src`
+listed in that body's `images` and may have a quoted `alt`. The build keeps
+it in place and puts any other listed images at the end.
 
 Answers are checked in the browser, so the right answers are in the published
 files.
@@ -326,9 +332,8 @@ are configured inside Google Tag Manager.
 - **Code** — everything outside `courses/`: [MIT](LICENSE).
 - **Course content** — tasks, hints, solutions, theory and illustrations in
   `courses/` and their built copy in `public/content/`:
-  [CC BY-NC-SA 4.0](courses/LICENSE.md), © Repka School contributors. Each
-  pack names its licence in `pack.yaml`; a new pack under another licence
-  needs its own notice next to it.
+  [CC BY-NC-SA 4.0](courses/LICENSE.md). The course credits identify the
+  contributors and the source of the graph theory adaptation.
 - **Bundled libraries** keep their own licences. The build writes them, with
   their full texts, to `third-party-licenses.txt` next to the page.
 

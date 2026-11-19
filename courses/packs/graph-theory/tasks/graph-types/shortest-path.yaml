@@ -1,0 +1,51 @@
+status: active
+question:
+  text: |
+    Какова длина кратчайшего пути от A до F?
+  html: |
+    <p>Какова длина кратчайшего пути от A до F?</p>
+    <p><img src="images/shortest-path.png" alt="Вершины A, B, C, D, E, F и G. Рёбра AB, BC, CD, DF, AE, EG и GF."></p>
+  images:
+    - file: images/shortest-path.png
+answer:
+  kind: single
+  hide: true
+  options:
+    - id: 1
+      text: '2'
+    - id: 2
+      text: '3'
+      correct: true
+    - id: 3
+      text: '4'
+    - id: 4
+      text: '5'
+    - id: 5
+      text: '1'
+points: 1
+difficulty: easy
+classification:
+  - subject: math
+    concept: graphs
+learning:
+  theory:
+    - graph-theory:graph-types:paths-and-cycles
+  hint:
+    text: >-
+      Сравни соседей A и F. Могут ли обе вершины быть соседями одной и той же промежуточной вершины?
+explanation:
+  text: |
+    Из A за один шаг можно попасть в B или E, поэтому ребра AF нет.
+
+    У F соседи D и G. У A и F нет общих соседей, поэтому путь из двух рёбер невозможен.
+
+    Ответ: Б. 3 ребра. Столько рёбер у пути A–E–G–F: AE, EG и GF.
+note: >-
+  Авторское задание и рисунок Repka по § 2.1. Вариант 2 численно совпадает с количеством промежуточных вершин кратчайшего пути, 4 — с количеством всех его вершин или рёбер верхнего пути, 5 — с количеством вершин верхнего пути, 1 подразумевает прямое ребро AF.
+source:
+  name: 'Oscar Levin, Discrete Mathematics: An Open Introduction, 4th ed.'
+  attribution: 'Оскар Левин, § 2.1 · CC BY-NC-SA 4.0 · адаптация Repka'
+  url: https://discrete.openmathbooks.org/dmoi4/sec_gt-intro.html
+  number: 14
+  extra:
+    license_url: https://creativecommons.org/licenses/by-nc-sa/4.0/

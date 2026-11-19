@@ -1,7 +1,7 @@
 # Course content licence
 
-The course content in this directory — tasks, hints, solutions, theory and
-illustrations — is © 2026 Repka School contributors and is licensed under the
+The course content in this directory, including tasks, hints, solutions,
+theory and illustrations, is licensed under the
 **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International**
 licence (CC BY-NC-SA 4.0).
 
@@ -16,9 +16,16 @@ the same licence.
 
 ## How to credit
 
-> «Олимпиадная математика, 2 класс» — Repka School contributors,
+> «Олимпиадная математика, 2 класс» — © 2026 Repka School contributors,
 > https://github.com/repka-school/repka-light, CC BY-NC-SA 4.0.
 > If you changed it, add: «изменено».
+
+Oscar Levin, *Discrete Mathematics: An Open Introduction*, 4th ed. (2025).
+© 2013–2025 Oscar Levin. [Online textbook](https://discrete.openmathbooks.org/dmoi4/).
+
+«Графы» is Repka's Russian adaptation of § 2.1, “Problems and Definitions,”
+with new wording and diagrams. The textbook and adaptation are licensed
+under CC BY-NC-SA 4.0. [Book section](https://discrete.openmathbooks.org/dmoi4/sec_gt-intro.html).
 
 The code that builds and shows the content is MIT-licensed; see `LICENSE` at
 the repository root.

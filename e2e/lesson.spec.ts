@@ -192,6 +192,38 @@ test("a theory riddle keeps its answer until asked", async ({ page, site }) => {
   await expect(section.locator(".theory-answer")).toBeEmpty();
 });
 
+test("theory HTML distinguishes warnings, rules and definitions and shows list markers", async ({ page, site }) => {
+  const lesson = site.lessons[0];
+  const cards = lesson.cards.map((card, index) => index === 0 ? {
+    id: card.id,
+    kind: "theory",
+    title: "Теория",
+    body: [
+      "<blockquote><p><strong>!</strong> Длину пути считай по рёбрам.</p></blockquote>",
+      "<blockquote><p><strong>Кратчайший путь</strong> имеет наименьшую длину.</p></blockquote>",
+      "<blockquote><p><strong>Запомни:</strong> Цикл замыкается.</p></blockquote>",
+      "<ol><li>Сосчитай рёбра.</li></ol>",
+      "<ul><li>Проверь ответ.</li></ul>",
+    ].join(""),
+    blocks: [],
+  } : card);
+  const [module, ...rest] = site.course.modules;
+  const course = { ...site.course, modules: [{ ...module, lessons: [{ ...lesson, cards }, ...module.lessons.slice(1)] }, ...rest] };
+  await page.route(`**/content/${site.course.slug}.json`, (route) => route.fulfill({ json: course }));
+  await openLesson(page, site, lesson);
+
+  const warning = page.getByRole("group", { name: "Предупреждение" });
+  const rule = page.getByRole("group", { name: "Правило" });
+  const definition = page.locator(".rich-body blockquote").filter({ hasText: "Кратчайший путь" });
+  await expect(warning.locator("strong[aria-hidden=true]")).toHaveText("!");
+  await expect(rule.locator("strong[aria-hidden=true]")).toHaveText("✓");
+  await expect(warning).toHaveCSS("background-color", "rgb(255, 240, 207)");
+  await expect(rule).toHaveCSS("background-color", "rgb(220, 234, 248)");
+  await expect(definition).toHaveCSS("background-color", "rgb(230, 240, 234)");
+  await expect(page.locator(".rich-body ol")).toHaveCSS("list-style-type", "decimal");
+  await expect(page.locator(".rich-body ul")).toHaveCSS("list-style-type", "disc");
+});
+
 test("an illustration opens in a window of its own and closes back to the card", async ({ page, site }) => {
   const { lesson, index } = findCard(site, (card) => isQuestion(card) && card.body.includes("<img"));
   await openLesson(page, site, lesson);

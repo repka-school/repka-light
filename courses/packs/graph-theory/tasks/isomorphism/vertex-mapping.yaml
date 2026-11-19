@@ -1,0 +1,60 @@
+status: active
+question:
+  text: |
+    Какое сопоставление вершин левого и правого графов задаёт изоморфизм?
+  html: |
+    <p>Какое сопоставление вершин левого и правого графов задаёт изоморфизм?</p>
+    <p><img src="images/vertex-mapping.png" alt="Слева вершины A, B, C, D и E, рёбра AB, AC, BC, BD и DE. Справа вершины 1, 2, 3, 4 и 5, рёбра 2–4, 2–5, 4–5, 3–4 и 1–3."></p>
+  images:
+    - file: images/vertex-mapping.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: >-
+        A→3, B→4, C→5, D→2, E→1
+    - id: 2
+      text: >-
+        A→2, B→4, C→3, D→5, E→1
+    - id: 3
+      text: >-
+        A→2, B→3, C→5, D→4, E→1
+    - id: 4
+      text: >-
+        A→2, B→4, C→5, D→3, E→1
+      correct: true
+    - id: 5
+      text: >-
+        A→1, B→4, C→5, D→3, E→2
+points: 2
+difficulty: medium
+classification:
+  - subject: math
+    concept: graphs
+learning:
+  theory:
+    - graph-theory:isomorphism:same-structure
+  hint:
+    text: >-
+      Начни с вершин, степень которых встречается в каждом графе лишь один раз.
+explanation:
+  text: |
+    Слева у B три соседа, а у E — один. Справа такие степени имеют 4 и 1, поэтому B соответствует 4, а E соответствует 1.
+
+    Вершина D соседствует с E. Единственный сосед 1 справа — вершина 3, поэтому D соответствует 3.
+
+    Вершины A и C вместе с B образуют треугольник. Справа в треугольнике с 4 две другие вершины — 2 и 5. Их можно сопоставить с A и C в любом порядке.
+
+    Ответ: Г. A→2, B→4, C→5, D→3, E→1.
+
+    Проверка: рёбра AB, AC, BC, BD и DE переходят в 2–4, 2–5, 4–5, 4–3 и 3–1. Это все рёбра правого графа.
+note: >-
+  Авторское задание и рисунок Repka по понятиям § 2.1. Перестановка образов A и C даёт второй изоморфизм. Среди вариантов записан только один из двух.
+source:
+  name: 'Oscar Levin, Discrete Mathematics: An Open Introduction, 4th ed.'
+  attribution: 'Оскар Левин, § 2.1 · CC BY-NC-SA 4.0 · адаптация Repka'
+  url: https://discrete.openmathbooks.org/dmoi4/sec_gt-intro.html
+  number: 11
+  extra:
+    license_url: https://creativecommons.org/licenses/by-nc-sa/4.0/

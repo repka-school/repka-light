@@ -1,0 +1,53 @@
+status: active
+question:
+  text: |
+    Оставь вершины A, B, C и D и построй порождённый ими подграф. Какие рёбра в него войдут?
+  html: |
+    <p>Оставь вершины A, B, C и D и построй порождённый ими подграф. Какие рёбра в него войдут?</p>
+    <p><img src="images/induced-subgraph.png" alt="Вершины A, B, C, D, E и F. Рёбра AB, BC, CD, DA, AC, BE, CE, AF и DF."></p>
+  images:
+    - file: images/induced-subgraph.png
+answer:
+  kind: single
+  hide: true
+  options:
+    - id: 1
+      text: AB, BC, CD, DA и AC
+      correct: true
+    - id: 2
+      text: AB, BC, CD и DA
+    - id: 3
+      text: AB, BC, CD и AC
+    - id: 4
+      text: AB, BC, CD, DA, AC и CE
+    - id: 5
+      text: AB, BC, CD, DA, AC и BD
+points: 2
+difficulty: medium
+classification:
+  - subject: math
+    concept: graphs
+learning:
+  theory:
+    - graph-theory:graph-types:subgraphs
+  hint:
+    text: >-
+      У каждого ребра проверь оба конца. Останется ли ребро, если хотя бы одну из его вершин удалить?
+explanation:
+  text: |
+    Уберём E и F, чтобы остались только выбранные вершины.
+
+    Вместе с E уйдут рёбра BE и CE, а вместе с F — рёбра AF и DF, потому что у этих рёбер удалён один конец.
+
+    У каждого оставшегося ребра оба конца принадлежат выбранным вершинам. Поэтому сохраняются и стороны четырёхугольника, и проведённая диагональ.
+
+    Ответ: А. AB, BC, CD, DA и AC.
+note: >-
+  Авторское задание и рисунок Repka по § 2.1. В Б пропущена диагональ AC, в В пропущено ребро DA, в Г оставлено ребро CE с удалённым концом, в Д добавлено отсутствующее BD.
+source:
+  name: 'Oscar Levin, Discrete Mathematics: An Open Introduction, 4th ed.'
+  attribution: 'Оскар Левин, § 2.1 · CC BY-NC-SA 4.0 · адаптация Repka'
+  url: https://discrete.openmathbooks.org/dmoi4/sec_gt-intro.html
+  number: 18
+  extra:
+    license_url: https://creativecommons.org/licenses/by-nc-sa/4.0/

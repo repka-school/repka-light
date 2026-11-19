@@ -1,0 +1,58 @@
+status: active
+question:
+  text: |
+    Какое из перечисленных рёбер можно добавить в левый граф, чтобы он стал изоморфен правому?
+  html: |
+    <p>Какое из перечисленных рёбер можно добавить в левый граф, чтобы он стал изоморфен правому?</p>
+    <p><img src="images/one-more-edge.png" alt="Слева вершины A, B, C, D, E и F, рёбра AB, BC, CD, DE и EF. Справа вершины 1, 2, 3, 4, 5 и 6, рёбра 1–2, 2–3, 1–3, 3–4, 4–5 и 5–6."></p>
+  images:
+    - file: images/one-more-edge.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: >-
+        AD
+    - id: 2
+      text: >-
+        AC
+      correct: true
+    - id: 3
+      text: >-
+        AE
+    - id: 4
+      text: >-
+        AF
+    - id: 5
+      text: >-
+        BD
+points: 3
+difficulty: hard
+classification:
+  - subject: math
+    concept: graphs
+learning:
+  theory:
+    - graph-theory:isomorphism:same-structure
+  hint:
+    text: >-
+      Посмотри, как должны измениться степени, и проверь, как в цепочке может появиться треугольник.
+explanation:
+  text: |
+    Слева у двух концов цепочки степень 1, а у остальных вершин степень 2. Справа степень 1 у одной вершины, а степень 3 у другой. Значит, новое ребро соединяет конец цепочки с одной из её внутренних вершин.
+
+    Справа вершины 1, 2 и 3 попарно соединены. Чтобы получить такой треугольник слева, новое ребро должно соединить вершины, между которыми в цепочке ровно два ребра.
+
+    Ответ: Б. AC. Оно замыкает треугольник ABC и оставляет цепочку C–D–E–F.
+
+    Проверка: если сопоставить A, B, C, D, E и F вершинам 1, 2, 3, 4, 5 и 6 по порядку, то шесть рёбер полученного графа переходят во все шесть рёбер правого.
+note: >-
+  Авторское задание и рисунок Repka по понятиям § 2.1. Без списка вариантов подойдут AC и DF. Условие ограничивает выбор, а среди вариантов есть только AC.
+source:
+  name: 'Oscar Levin, Discrete Mathematics: An Open Introduction, 4th ed.'
+  attribution: 'Оскар Левин, § 2.1 · CC BY-NC-SA 4.0 · адаптация Repka'
+  url: https://discrete.openmathbooks.org/dmoi4/sec_gt-intro.html
+  number: 13
+  extra:
+    license_url: https://creativecommons.org/licenses/by-nc-sa/4.0/

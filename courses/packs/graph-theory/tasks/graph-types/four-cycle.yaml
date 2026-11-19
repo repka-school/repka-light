@@ -1,0 +1,53 @@
+status: active
+question:
+  text: |
+    Какая из перечисленных последовательностей вершин задаёт цикл длины 4?
+  html: |
+    <p>Какая из перечисленных последовательностей вершин задаёт цикл длины 4?</p>
+    <p><img src="images/four-cycle.png" alt="Вершины A, B, C, D и E. Рёбра AB, BC, CD, DA, AC и CE."></p>
+  images:
+    - file: images/four-cycle.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: A–B–C–D–E
+    - id: 2
+      text: A–B–C–A
+    - id: 3
+      text: A–B–C–D–A
+      correct: true
+    - id: 4
+      text: A–C–B–C–A
+    - id: 5
+      text: A–B–C–E–A
+points: 1
+difficulty: easy
+classification:
+  - subject: math
+    concept: graphs
+learning:
+  theory:
+    - graph-theory:graph-types:paths-and-cycles
+  hint:
+    text: >-
+      Проверь, соединены ли соседние вершины выбранной последовательности, и какие вершины в ней повторяются.
+explanation:
+  text: |
+    В цикле из четырёх рёбер четыре разные вершины, так как повторяется только первая вершина в конце.
+
+    У E один сосед, а в цикл надо войти и выйти по разным рёбрам. Значит, в цикле длины 4 участвуют A, B, C и D.
+
+    В цикле через B и D нужны оба ребра каждой из этих вершин, так как у каждой всего два соседа — A и C.
+
+    Ответ: В. A–B–C–D–A. Четыре ребра AB, BC, CD и DA возвращают нас в A без повторения промежуточных вершин.
+note: >-
+  Авторское задание и рисунок Repka по § 2.1. В А концы различны и отсутствует DE, в Б три ребра, в Г повторяется промежуточная вершина C, в Д отсутствует EA.
+source:
+  name: 'Oscar Levin, Discrete Mathematics: An Open Introduction, 4th ed.'
+  attribution: 'Оскар Левин, § 2.1 · CC BY-NC-SA 4.0 · адаптация Repka'
+  url: https://discrete.openmathbooks.org/dmoi4/sec_gt-intro.html
+  number: 15
+  extra:
+    license_url: https://creativecommons.org/licenses/by-nc-sa/4.0/

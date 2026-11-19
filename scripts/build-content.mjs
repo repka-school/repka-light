@@ -10,7 +10,7 @@ import { parse } from "yaml";
 
 const LETTERS = ["А", "Б", "В", "Г", "Д", "Е"];
 const IMAGE_ALT = "Иллюстрация к заданию";
-const ALLOWED_TAGS = new Set(["p", "br", "b", "strong", "i", "em", "sub", "sup", "ul", "ol", "li", "table", "caption", "thead", "tbody", "tr", "th", "td"]);
+const ALLOWED_TAGS = new Set(["p", "br", "blockquote", "b", "strong", "i", "em", "sub", "sup", "ul", "ol", "li", "table", "caption", "thead", "tbody", "tr", "th", "td"]);
 const ALLOWED_ATTRIBUTES = new Set(["colspan", "rowspan"]);
 /** The drawings a theory block may name; the site draws each one (src/ui/pictures/TheoryPicture.tsx). */
 export const THEORY_PICTURES = [
@@ -29,18 +29,25 @@ export const escapeHtml = (text) => text.replace(/&/g, "&amp;").replace(/</g, "&
 export const textToHtml = (text) => `<p>${escapeHtml(text.trim()).replace(/\n/g, "<br>")}</p>`;
 
 /** Authored markup, checked against the allowed tags; a table gets a frame that scrolls when it is too wide. */
-export function checkedHtml(html, where) {
+export function checkedHtml(html, where, renderImage) {
   const tags = /<(\/?)([a-zA-Z][a-zA-Z0-9-]*)([^<>]*)>/g;
-  for (const [, closing, tag, attributes] of html.matchAll(tags)) {
-    if (!ALLOWED_TAGS.has(tag.toLowerCase())) throw new Error(`${where}: tag <${tag}> is not allowed`);
-    if (closing) continue;
-    for (const [, name] of attributes.matchAll(/([a-zA-Z-]+)\s*=/g)) {
-      if (!ALLOWED_ATTRIBUTES.has(name.toLowerCase())) throw new Error(`${where}: attribute ${name} is not allowed on <${tag}>`);
+  const checked = html.replace(tags, (markup, closing, tag, attributes) => {
+    if (tag.toLowerCase() === "img" && !closing && renderImage) {
+      const ref = /^\s+src\s*=\s*(?:"([^"]+)"|'([^']+)')(?:\s+alt\s*=\s*(?:"([^"]*)"|'([^']*)'))?\s*\/?\s*$/.exec(attributes);
+      if (!ref) throw new Error(`${where}: expected an image with src and optional alt`);
+      return renderImage(ref[1] ?? ref[2], ref[3] ?? ref[4]);
     }
-  }
+    if (!ALLOWED_TAGS.has(tag.toLowerCase())) throw new Error(`${where}: tag <${tag}> is not allowed`);
+    if (!closing) {
+      for (const [, name] of attributes.matchAll(/([a-zA-Z-]+)\s*=/g)) {
+        if (!ALLOWED_ATTRIBUTES.has(name.toLowerCase())) throw new Error(`${where}: attribute ${name} is not allowed on <${tag}>`);
+      }
+    }
+    return markup;
+  });
   // Whatever "<" is left opens no whole tag: a bare sign, or a tag that is never closed.
   if (html.replace(tags, "").includes("<")) throw new Error(`${where}: a stray "<" in markup`);
-  return html.replace(/<table[\s\S]*?<\/table>/g, (table) => `<div class="scroll-frame">${table}</div>`);
+  return checked.replace(/<table[\s\S]*?<\/table>/g, (table) => `<div class="scroll-frame">${table}</div>`);
 }
 
 /**
@@ -139,8 +146,20 @@ function buildPack(root, put, packId, base) {
   };
   const body = (part, where) => {
     if (!part || (!part.text?.trim() && !part.html?.trim() && !part.images?.length)) throw new Error(`${where}: nothing to show`);
-    let html = part.html?.trim() ? checkedHtml(part.html, where) : part.text?.trim() ? textToHtml(part.text) : "";
-    for (const ref of part.images ?? []) html += `<img src="${image(ref.file, where)}" alt="${escapeHtml(ref.alt ?? IMAGE_ALT)}" loading="lazy">`;
+    const refs = part.images ?? [];
+    const placed = new Set();
+    const picture = (file, alt) => `<img src="${escapeHtml(image(file, where))}" alt="${alt}" loading="lazy">`;
+    const inlineImage = (file, alt) => {
+      const ref = refs.find((ref) => ref.file === file);
+      if (!ref) throw new Error(`${where}: inline picture ${file} is missing from images`);
+      placed.add(file);
+      const description = alt === undefined ? escapeHtml(ref.alt ?? IMAGE_ALT) : alt.replace(/"/g, "&quot;");
+      return picture(file, description);
+    };
+    let html = part.html?.trim() ? checkedHtml(part.html, where, inlineImage) : part.text?.trim() ? textToHtml(part.text) : "";
+    for (const ref of refs) {
+      if (!placed.has(ref.file)) html += picture(ref.file, escapeHtml(ref.alt ?? IMAGE_ALT));
+    }
     return html;
   };
 
@@ -243,7 +262,17 @@ export function buildContent({ root, out, base = "/" }) {
       };
     }),
   };
-  for (const course of courses) put(`${course.slug}.json`, JSON.stringify(course));
+  const sources = new Map();
+  for (const { book, courses: sectionsByCourse } of bundle.sources ?? []) {
+    for (const [slug, sections] of Object.entries(sectionsByCourse)) {
+      if (sources.has(slug)) throw new Error(`${slug}: more than one source book`);
+      sources.set(slug, { book, sections });
+    }
+  }
+  for (const course of courses) {
+    const source = sources.get(course.slug);
+    put(`${course.slug}.json`, JSON.stringify(source ? { ...course, source } : course));
+  }
   put("index.json", JSON.stringify(index));
   sweep();
   return index;

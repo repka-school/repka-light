@@ -1,0 +1,56 @@
+status: active
+question:
+  text: |
+    На рисунке вершины отмечены точками. Сколько вершин у графа?
+  html: |
+    <p>На рисунке вершины отмечены точками. Сколько вершин у графа?</p>
+    <p><img src="images/crossing.png" alt="Два отрезка крест-накрест. Точки A и C на концах одного, B и D — другого. В месте пересечения точки нет."></p>
+  images:
+    - file: images/crossing.png
+answer:
+  kind: single
+  hide: true
+  options:
+    - id: 1
+      text: >-
+        1
+    - id: 2
+      text: >-
+        2
+    - id: 3
+      text: >-
+        3
+    - id: 4
+      text: >-
+        4
+      correct: true
+    - id: 5
+      text: >-
+        5
+points: 1
+difficulty: easy
+classification:
+  - subject: math
+    concept: graphs
+learning:
+  theory:
+    - graph-theory:basics:vertices-and-edges
+  hint:
+    text: >-
+      Посмотри на середину рисунка. Какая отметка нужна, чтобы считать место пересечения вершиной?
+explanation:
+  text: |
+    У отрезка AC отмечены оба конца. Отрезок BD соединяет ещё две отмеченные точки.
+
+    Место пересечения пропускаем, потому что там нет отметки вершины.
+
+    Ответ: Г. 4 вершины.
+note: >-
+  Авторское задание и рисунок Repka по § 2.1. Вариант 1 получается при подсчёте одного пересечения, 2 — при подсчёте отрезков, 3 — при подсчёте концов одного отрезка и пересечения, 5 — при подсчёте всех концов и пересечения.
+source:
+  name: 'Oscar Levin, Discrete Mathematics: An Open Introduction, 4th ed.'
+  attribution: 'Оскар Левин, § 2.1 · CC BY-NC-SA 4.0 · адаптация Repka'
+  url: https://discrete.openmathbooks.org/dmoi4/sec_gt-intro.html
+  number: 2
+  extra:
+    license_url: https://creativecommons.org/licenses/by-nc-sa/4.0/

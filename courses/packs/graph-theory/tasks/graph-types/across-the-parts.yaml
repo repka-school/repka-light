@@ -1,0 +1,51 @@
+status: active
+question:
+  text: |
+    Слева и справа изображены две доли двудольного графа. Какое из перечисленных рёбер можно добавить, сохранив это разбиение?
+  html: |
+    <p>Слева и справа изображены две доли двудольного графа. Какое из перечисленных рёбер можно добавить, сохранив это разбиение?</p>
+    <p><img src="images/across-the-parts.png" alt="Слева вершины A, B и C, справа вершины D и E. Рёбра AD, AE, BD и CE."></p>
+  images:
+    - file: images/across-the-parts.png
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: AB
+    - id: 2
+      text: AD
+    - id: 3
+      text: DE
+    - id: 4
+      text: CE
+    - id: 5
+      text: BE
+      correct: true
+points: 1
+difficulty: easy
+classification:
+  - subject: math
+    concept: graphs
+learning:
+  theory:
+    - graph-theory:graph-types:families-and-subgraphs
+  hint:
+    text: >-
+      Проверь, в каких долях лежат концы каждого предложенного ребра. Затем посмотри, какие из этих рёбер уже есть.
+explanation:
+  text: |
+    Доли на рисунке — {A, B, C} и {D, E}. Чтобы сохранить это разбиение, у нового ребра один конец должен быть слева, а другой справа.
+
+    У A уже есть рёбра к обеим вершинам справа. У B и C по одному соседу справа, поэтому у каждой из этих вершин осталась одна пара, которую ещё можно соединить.
+
+    Ответ: Д. BE. Вершина B слева, вершина E справа, и ребра между ними пока нет.
+note: >-
+  Авторское задание и рисунок Repka по § 2.1. Отсутствуют два ребра между долями, BE и CD. В варианты включили только BE. AB и DE лежали бы внутри доли, AD и CE уже есть.
+source:
+  name: 'Oscar Levin, Discrete Mathematics: An Open Introduction, 4th ed.'
+  attribution: 'Оскар Левин, § 2.1 · CC BY-NC-SA 4.0 · адаптация Repka'
+  url: https://discrete.openmathbooks.org/dmoi4/sec_gt-intro.html
+  number: 17
+  extra:
+    license_url: https://creativecommons.org/licenses/by-nc-sa/4.0/

@@ -1,3 +1,20 @@
 format: 6
 packs:
   - math-olympiad-2
+  - graph-theory
+sources:
+  - book:
+      author: Oscar Levin
+      title: "Discrete Mathematics: An Open Introduction"
+      edition: 4
+      year: 2025
+      copyright: © 2013–2025 Oscar Levin
+      language: en
+      url: https://discrete.openmathbooks.org/dmoi4/
+      license:
+        title: CC BY-NC-SA 4.0
+        url: https://creativecommons.org/licenses/by-nc-sa/4.0/
+    courses:
+      graph-theory:
+        - title: § 2.1 Problems and Definitions
+          url: https://discrete.openmathbooks.org/dmoi4/sec_gt-intro.html

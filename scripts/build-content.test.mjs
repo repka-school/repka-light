@@ -78,6 +78,31 @@ describe("a pack", () => {
     expect(builtCard({ task: question([[1, "a", true], [2, "b"]], { hide: true, more }) })).toMatchObject({ hideOptions: true, points: 3, hint: "<p>Подумай</p>", explanation: "<p>Потому что <b>так</b></p>" });
   });
 
+  it("keeps inline pictures in place and appends the remaining pictures", () => {
+    const task = question([[1, "a", true], [2, "b"]], {
+      more: `explanation:
+  html: |-
+    <p>Before</p><p><img src="images/graph.png" alt='Vertices "A" &amp; B'></p><p>After</p>
+  images:
+    - file: images/graph.png
+    - file: images/extra.png
+      alt: Extra graph
+`,
+    });
+    const root = fixture({ task });
+    const images = path.join(root, "packs", "demo", "images");
+    fs.mkdirSync(images);
+    for (const file of ["graph.png", "extra.png"]) fs.writeFileSync(path.join(images, file), file);
+    const out = temp();
+    buildContent({ root, out, base: "/site/" });
+    const [card] = JSON.parse(fs.readFileSync(path.join(out, "demo.json"), "utf8")).modules[0].lessons[0].cards;
+    expect(card.explanation).toBe(
+      '<p>Before</p><p><img src="/site/content/media/demo/images/graph.png" alt="Vertices &quot;A&quot; &amp; B" loading="lazy"></p><p>After</p>' +
+      '<img src="/site/content/media/demo/images/extra.png" alt="Extra graph" loading="lazy">',
+    );
+    expect(fs.readdirSync(path.join(out, "media", "demo", "images")).sort()).toEqual(["extra.png", "graph.png"]);
+  });
+
   it("builds a multi answer with every right option", () => {
     expect(builtCard({ task: question([[1, "a", true], [2, "b"], [3, "c", true]], { kind: "multi" }) })).toMatchObject({ answerKind: "multi", correct: [1, 3] });
   });
@@ -108,6 +133,8 @@ describe("a pack", () => {
     ["a question with no right option", { task: "status: active\nquestion:\n  text: Q\nanswer:\n  kind: single\n  options:\n    - id: 1\n      text: a\n    - id: 2\n      text: b\n" }, /0 right options/],
     ["a single answer with two right options", { task: "status: active\nquestion:\n  text: Q\nanswer:\n  kind: single\n  options:\n    - id: 1\n      text: a\n      correct: true\n    - id: 2\n      text: b\n      correct: true\n" }, /2 right options/],
     ["a picture that is not in the pack", { task: "status: active\nquestion:\n  text: Q\n  images:\n    - file: images/none.png\nanswer:\n  kind: single\n  options:\n    - id: 1\n      text: a\n      correct: true\n    - id: 2\n      text: b\n" }, /missing picture/],
+    ["an inline picture without an image reference", { task: question([[1, "a", true], [2, "b"]], { more: 'explanation:\n  html: <img src="images/missing.png">\n' }) }, /missing from images/],
+    ["an inline picture with extra attributes", { task: question([[1, "a", true], [2, "b"]], { more: 'explanation:\n  html: <img src="images/graph.png" width="20">\n' }) }, /expected an image with src and optional alt/],
     ["a task that is not active", { task: "status: draft\nquestion:\n  text: Q\n" }, /not active/],
     ["a lesson of theory only", { task: "kind: theory\nstatus: active\nquestion:\n  text: T\n" }, /without questions/],
   ])("refuses %s", (_, options, message) => {
@@ -240,6 +267,12 @@ describe("markup", () => {
   it("keeps the attributes a table cell may have", () => {
     const table = '<table><tr><td colspan="2" rowspan="2">1</td></tr></table>';
     expect(checkedHtml(table, "t")).toBe(`<div class="scroll-frame">${table}</div>`);
+  });
+
+  it("keeps a definition blockquote and still checks its attributes", () => {
+    const definition = "<blockquote><p><strong>Определение.</strong> Степень вершины.</p></blockquote>";
+    expect(checkedHtml(definition, "t")).toBe(definition);
+    expect(() => checkedHtml('<blockquote cite="https://example.com"><p>Definition</p></blockquote>', "t")).toThrow(/attribute cite/);
   });
 
   it("refuses a \"<\" that opens no whole tag", () => {

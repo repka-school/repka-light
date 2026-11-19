@@ -75,6 +75,9 @@ export const t = {
   progressLine: (answered: number, total: number, first: number) => `${answered} из ${count(total, taskOfForms)}${first < answered ? ` · ${first} с первого раза` : ""}`,
 
   courseEyebrow: "КУРС",
+  courseSource: "Источник курса",
+  courseEdition: (edition: number, year: number) => `${edition}-е издание, ${year}`,
+  courseAdaptation: "Русская адаптация Repka по лицензии",
   courseNextNew: "С чего начать",
   courseNextStarted: "Твой прогресс",
   courseNextDone: "Курс пройден!",
@@ -87,6 +90,8 @@ export const t = {
 
   backToCourse: "К курсу",
   theory: "Теория",
+  theoryRule: "Правило",
+  theoryWarning: "Предупреждение",
   theoryNext: "Дальше",
   theoryTry: "Попробуй",
   theoryShowAnswer: "Показать ответ",

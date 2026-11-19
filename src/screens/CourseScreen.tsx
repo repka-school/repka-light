@@ -7,7 +7,7 @@ import { Button } from "@/ui/components/ui/button";
 import { Eyebrow, Page } from "@/components/Chrome";
 import { LoadError, Loading, NotFound } from "@/components/LoadState";
 import { loadCourse, useLoaded } from "@/content/load";
-import { lessonsOf, questionsOf, type Course, type Lesson } from "@/content/types";
+import { lessonsOf, questionsOf, type Course, type CourseSource, type Lesson } from "@/content/types";
 import { hasAnswers, lessonState, type LessonState } from "@/lesson/session";
 import { solvedCount, type Saved } from "@/store/storage";
 
@@ -106,6 +106,26 @@ function CourseOutline({ course }: { course: Course }) {
           </ol>
         </section>
       ))}
+      {course.source && <SourceCitation source={course.source} />}
+    </section>
+  );
+}
+
+function SourceCitation({ source: { book, sections } }: { source: CourseSource }) {
+  return (
+    <section className="course-source" aria-labelledby="course-source-title">
+      <h2 className="module-heading" id="course-source-title">{t.courseSource}</h2>
+      <p>
+        {book.author}. <a href={book.url} lang={book.language}><cite>{book.title}</cite></a>. {t.courseEdition(book.edition, book.year)}.
+      </p>
+      <ul>
+        {sections.map((section) => (
+          <li key={section.url}><a href={section.url} lang={book.language}>{section.title}</a></li>
+        ))}
+      </ul>
+      <p>
+        {book.copyright}. {t.courseAdaptation} <a href={book.license.url} rel="license">{book.license.title}</a>.
+      </p>
     </section>
   );
 }

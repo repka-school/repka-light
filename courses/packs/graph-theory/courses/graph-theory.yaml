@@ -1,0 +1,52 @@
+title: Графы
+description: Моделируй связи и считай рёбра по степеням вершин.
+cover:
+  file: images/cover-graph-theory.png
+  origin: Сгенерировано OpenAI ImageGen для Repka
+tags:
+  topic:
+  - math
+  grade:
+  - '7'
+  - '8'
+  - '9'
+  - '10'
+  - '11'
+modules:
+- slug: fundamentals
+  title: Первые понятия
+  lessons:
+  - slug: vertices-edges-degrees
+    title: Вершины, рёбра и степени
+    tasks:
+    - basics/vertices-and-edges
+    - basics/degrees-and-handshakes
+    - basics/model-a-map
+    - basics/crossing
+    - basics/adjacency-list
+    - basics/vertex-degree
+    - basics/count-edges
+    - basics/missing-degree
+    - basics/handshakes
+  - slug: equality-and-isomorphism
+    title: Равенство и изоморфизм графов
+    tasks:
+    - isomorphism/same-structure
+    - isomorphism/one-graph-two-drawings
+    - isomorphism/star-and-path
+    - isomorphism/where-goes-leaf
+    - isomorphism/vertex-mapping
+    - isomorphism/same-degrees
+    - isomorphism/one-more-edge
+  - slug: paths-and-graph-families
+    title: Пути, циклы и виды графов
+    tasks:
+    - graph-types/paths-and-cycles
+    - graph-types/families-and-subgraphs
+    - graph-types/subgraphs
+    - graph-types/shortest-path
+    - graph-types/four-cycle
+    - graph-types/complete-graph
+    - graph-types/across-the-parts
+    - graph-types/induced-subgraph
+    - graph-types/remove-for-bipartite

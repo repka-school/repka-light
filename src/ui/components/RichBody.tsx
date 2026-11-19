@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ComponentProps } from "react";
+import { t } from "@/strings";
 import { remeasure } from "../hooks/remeasure";
 import { drawnIn } from "../lib/illustrationScale";
 import { cn } from "../lib/utils";
@@ -42,6 +43,27 @@ function wrapDisplay(root: HTMLElement) {
   });
 }
 
+const theoryCallouts = [
+  { kind: "remember", symbol: "✓", legacyHeading: "Запомни:", label: t.theoryRule },
+  { kind: "attention", symbol: "!", legacyHeading: "Обрати внимание:", label: t.theoryWarning },
+];
+
+function markCallouts(root: HTMLElement) {
+  for (const block of root.querySelectorAll<HTMLElement>(":scope > blockquote")) {
+    const marker = block.querySelector(":scope > p:first-child > strong:first-child");
+    if (!marker || marker.previousSibling?.textContent?.trim()) continue;
+    const text = marker.textContent?.trim();
+    const callout = theoryCallouts.find(({ symbol, legacyHeading }) => text === symbol || text === legacyHeading);
+    if (!callout) continue;
+
+    block.dataset.callout = callout.kind;
+    block.setAttribute("role", "group");
+    block.setAttribute("aria-label", callout.label);
+    marker.setAttribute("aria-hidden", "true");
+    marker.textContent = callout.symbol;
+  }
+}
+
 export function RichBody({ html, zoomLabel, brokenLabel, formulaLabel, tableLabel, className, as: Tag = "div", ...props }: RichBodyProps) {
   const ref = useRef<HTMLDivElement>(null);
   const dialog = useIllustrationDialog();
@@ -75,6 +97,7 @@ export function RichBody({ html, zoomLabel, brokenLabel, formulaLabel, tableLabe
   useEffect(() => {
     const root = ref.current;
     if (!root) return;
+    markCallouts(root);
     wrapDisplay(root);
     const boxes = [
       ...Array.from(root.querySelectorAll<HTMLElement>(".formula")).map((box) => ({ box, role: "group" as const, label: formulaLabel })),

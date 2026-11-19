@@ -1,0 +1,57 @@
+status: active
+question:
+  text: |
+    Какое наименьшее число рёбер нужно удалить, чтобы граф стал двудольным?
+  html: |
+    <p>Какое наименьшее число рёбер нужно удалить, чтобы граф стал двудольным?</p>
+    <p><img src="images/remove-for-bipartite.png" alt="Вершины A, B, C, D, E и F. Рёбра AB, BC, AC, CD, DE, CE и EF."></p>
+  images:
+    - file: images/remove-for-bipartite.png
+answer:
+  kind: single
+  hide: true
+  options:
+    - id: 1
+      text: '1'
+    - id: 2
+      text: '2'
+      correct: true
+    - id: 3
+      text: '3'
+    - id: 4
+      text: '4'
+    - id: 5
+      text: '5'
+points: 3
+difficulty: hard
+classification:
+  - subject: math
+    concept: graphs
+  - subject: math
+    concept: proof-methods
+learning:
+  theory:
+    - graph-theory:graph-types:families-and-subgraphs
+  hint:
+    text: >-
+      Найди треугольники. Проверь, может ли удаление одного ребра разрушить сразу каждый из них.
+explanation:
+  text: |
+    В двудольном графе не может быть треугольника. При любом разбиении трёх его вершин на две доли две соседние вершины окажутся в одной доле.
+
+    На рисунке есть треугольники ABC и CDE, поэтому в каждом нужно удалить хотя бы одно ребро.
+
+    У треугольников общая вершина C, а общих рёбер нет. Если удалить только одно ребро, хотя бы один треугольник останется целиком.
+
+    Удалим AB и DE. Можно взять доли {C, F} и {A, B, D, E}, потому что каждое из оставшихся рёбер AC, BC, CD, CE и EF соединяет вершины из разных долей.
+
+    Ответ: Б. Нужно удалить 2 ребра.
+note: >-
+  Авторское задание и рисунок Repka по § 2.1. Вариант 1 не учитывает, что треугольники не имеют общих рёбер. Варианты 3, 4 и 5 возможны при лишних удалениях, но не дают минимума.
+source:
+  name: 'Oscar Levin, Discrete Mathematics: An Open Introduction, 4th ed.'
+  attribution: 'Оскар Левин, § 2.1 · CC BY-NC-SA 4.0 · адаптация Repka'
+  url: https://discrete.openmathbooks.org/dmoi4/sec_gt-intro.html
+  number: 19
+  extra:
+    license_url: https://creativecommons.org/licenses/by-nc-sa/4.0/

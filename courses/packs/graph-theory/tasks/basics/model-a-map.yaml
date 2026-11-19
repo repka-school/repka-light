@@ -1,0 +1,51 @@
+status: active
+question:
+  text: |
+    В парке есть площадки A, B, C, D и E. Тропинки напрямую соединяют только A и B, B и C, B и D, D и E. Какое из перечисленных рёбер есть в графе этих тропинок?
+answer:
+  kind: single
+  hide: false
+  options:
+    - id: 1
+      text: >-
+        AC
+    - id: 2
+      text: >-
+        AD
+    - id: 3
+      text: >-
+        BD
+      correct: true
+    - id: 4
+      text: >-
+        BE
+    - id: 5
+      text: >-
+        CE
+points: 1
+difficulty: easy
+classification:
+  - subject: math
+    concept: graphs
+learning:
+  theory:
+    - graph-theory:basics:vertices-and-edges
+  hint:
+    text: >-
+      Проверь, можно ли пройти между площадками из варианта по одной тропинке.
+explanation:
+  text: |
+    Каждой площадке соответствует вершина с той же буквой. Буквы в записи ребра обозначают его концы.
+
+    Ребро обозначает одну тропинку, поэтому нужная пара площадок должна быть в списке прямых связей.
+
+    Ответ: В. BD. Площадки B и D соединены одной тропинкой.
+note: >-
+  Авторское задание Repka по § 2.1. Из четырёх рёбер графа только BD дано среди вариантов. В остальных вариантах пары соединены маршрутами через промежуточные площадки.
+source:
+  name: 'Oscar Levin, Discrete Mathematics: An Open Introduction, 4th ed.'
+  attribution: 'Оскар Левин, § 2.1 · CC BY-NC-SA 4.0 · адаптация Repka'
+  url: https://discrete.openmathbooks.org/dmoi4/sec_gt-intro.html
+  number: 1
+  extra:
+    license_url: https://creativecommons.org/licenses/by-nc-sa/4.0/

@@ -1,0 +1,46 @@
+status: active
+question:
+  text: |
+    У шести вершин графа степени 2, 3, 3, 2, 2 и 0. Сколько рёбер у этого графа?
+answer:
+  kind: single
+  hide: true
+  options:
+    - id: 1
+      text: '5'
+    - id: 2
+      text: '6'
+      correct: true
+    - id: 3
+      text: '7'
+    - id: 4
+      text: '10'
+    - id: 5
+      text: '12'
+points: 2
+difficulty: medium
+classification:
+  - subject: math
+    concept: graphs
+learning:
+  theory:
+    - graph-theory:basics:degrees-and-handshakes
+  hint:
+    text: >-
+      Посчитай, в степени скольких вершин входит одно ребро.
+explanation:
+  text: |
+    Каждое ребро соединяет две вершины и добавляет по единице к степени каждой. Поэтому сумма степеней вдвое больше числа рёбер.
+
+    Сложим степени вершин. Получим 2 + 3 + 3 + 2 + 2 + 0 = 12.
+
+    Ответ: Б. 6 рёбер, так как 12 : 2 = 6.
+note: >-
+  Авторская задача Repka по лемме о рукопожатиях. К открытому вопросу добавлены варианты. Вариант А считает вершины ненулевой степени, В заменяет степень 0 на 2, Г соединяет все неизолированные вершины попарно, Д считает каждое ребро дважды.
+source:
+  name: 'Oscar Levin, Discrete Mathematics: An Open Introduction, 4th ed.'
+  attribution: 'Оскар Левин, § 2.1 · CC BY-NC-SA 4.0 · адаптация Repka'
+  url: https://discrete.openmathbooks.org/dmoi4/sec_gt-intro.html
+  number: 5
+  extra:
+    license_url: https://creativecommons.org/licenses/by-nc-sa/4.0/

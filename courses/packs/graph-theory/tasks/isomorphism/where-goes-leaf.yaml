@@ -1,0 +1,56 @@
+status: active
+question:
+  text: |
+    Графы на рисунке изоморфны. Какая вершина правого графа соответствует вершине E левого при любом изоморфизме?
+  html: |
+    <p>Графы на рисунке изоморфны. Какая вершина правого графа соответствует вершине E левого при любом изоморфизме?</p>
+    <p><img src="images/where-goes-leaf.png" alt="Слева вершины A, B, C, D и E, рёбра AB, AC, BC, CD и DE. Справа вершины K, L, M, N и P, рёбра KL, KM, LM, MP и NP."></p>
+  images:
+    - file: images/where-goes-leaf.png
+answer:
+  kind: single
+  hide: true
+  options:
+    - id: 1
+      text: >-
+        N
+      correct: true
+    - id: 2
+      text: >-
+        P
+    - id: 3
+      text: >-
+        M
+    - id: 4
+      text: >-
+        K
+    - id: 5
+      text: >-
+        L
+points: 2
+difficulty: medium
+classification:
+  - subject: math
+    concept: graphs
+learning:
+  theory:
+    - graph-theory:isomorphism:same-structure
+  hint:
+    text: >-
+      Найди, сколько соседей у E. Как изоморфизм влияет на число соседей?
+explanation:
+  text: |
+    Изоморфизм сохраняет число соседей. У E один сосед, вершина D, поэтому справа нужна вершина степени 1.
+
+    У K, L и M по меньшей мере два соседа, потому что они попарно соединены. У P два соседа, M и N.
+
+    Ответ: А. N. Её единственный сосед — P.
+note: >-
+  Авторское задание и рисунок Repka по понятиям § 2.1. Варианты перечисляют все вершины правого графа. Единственность вершины степени 1 делает её образ одинаковым при любом изоморфизме.
+source:
+  name: 'Oscar Levin, Discrete Mathematics: An Open Introduction, 4th ed.'
+  attribution: 'Оскар Левин, § 2.1 · CC BY-NC-SA 4.0 · адаптация Repka'
+  url: https://discrete.openmathbooks.org/dmoi4/sec_gt-intro.html
+  number: 10
+  extra:
+    license_url: https://creativecommons.org/licenses/by-nc-sa/4.0/

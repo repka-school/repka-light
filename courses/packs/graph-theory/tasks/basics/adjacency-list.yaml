@@ -1,0 +1,61 @@
+status: active
+question:
+  text: |
+    У каждой вершины перечислены её соседи.
+
+    A — B, E
+    B — A, C
+    C — B, D
+    D — C
+    E — A
+
+    Какая вершина соседствует с A и с C?
+answer:
+  kind: single
+  hide: true
+  options:
+    - id: 1
+      text: >-
+        B
+      correct: true
+    - id: 2
+      text: >-
+        A
+    - id: 3
+      text: >-
+        C
+    - id: 4
+      text: >-
+        D
+    - id: 5
+      text: >-
+        E
+points: 1
+difficulty: easy
+classification:
+  - subject: math
+    concept: graphs
+learning:
+  theory:
+    - graph-theory:basics:vertices-and-edges
+  hint:
+    text: >-
+      Сравни списки соседей у двух вершин из вопроса.
+explanation:
+  text: |
+    В строке A записаны B и E. Поэтому общий сосед должен быть среди этих вершин.
+
+    В строке C записаны B и D. Общий сосед должен встретиться и в этом списке.
+
+    Ответ: А. B, потому что эта вершина есть в обоих списках.
+
+    Проверка: в строке B указаны и A, и C.
+note: >-
+  Авторское задание Repka по § 2.1. D соседствует только с C, E — только с A. Варианты A и C повторяют вершины из вопроса.
+source:
+  name: 'Oscar Levin, Discrete Mathematics: An Open Introduction, 4th ed.'
+  attribution: 'Оскар Левин, § 2.1 · CC BY-NC-SA 4.0 · адаптация Repka'
+  url: https://discrete.openmathbooks.org/dmoi4/sec_gt-intro.html
+  number: 3
+  extra:
+    license_url: https://creativecommons.org/licenses/by-nc-sa/4.0/

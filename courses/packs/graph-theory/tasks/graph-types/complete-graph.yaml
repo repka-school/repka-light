@@ -1,0 +1,55 @@
+status: active
+question:
+  text: |
+    Сколько рёбер нужно добавить, чтобы граф стал полным?
+  html: |
+    <p>Сколько рёбер нужно добавить, чтобы граф стал полным?</p>
+    <p><img src="images/complete-graph.png" alt="Вершины A, B, C, D и E. Рёбра AB, BC, CD, DE, EA, AC и BD."></p>
+  images:
+    - file: images/complete-graph.png
+answer:
+  kind: single
+  hide: true
+  options:
+    - id: 1
+      text: '2'
+    - id: 2
+      text: '10'
+    - id: 3
+      text: '4'
+    - id: 4
+      text: '3'
+      correct: true
+    - id: 5
+      text: '7'
+points: 2
+difficulty: medium
+classification:
+  - subject: math
+    concept: graphs
+learning:
+  theory:
+    - graph-theory:graph-types:families-and-subgraphs
+  hint:
+    text: >-
+      Посчитай, сколько всего пар вершин можно соединить. Сравни это число с количеством рёбер на рисунке.
+explanation:
+  text: |
+    В полном графе каждой вершине нужны рёбра ко всем остальным. Здесь у каждой из пяти вершин должно быть по четыре соседа.
+
+    Каждое ребро учитывается у обоих концов, поэтому в полном графе будет 5 · 4 : 2 = 10 рёбер.
+
+    На рисунке пять сторон пятиугольника и две диагонали. Значит, сейчас рёбер 5 + 2 = 7.
+
+    Ответ: Г. Нужно добавить 10 − 7 = 3 ребра.
+
+    Проверка: на рисунке не соединены пары A и D, B и E, C и E. После добавления AD, BE и CE соединены все пары.
+note: >-
+  Авторское задание и рисунок Repka по § 2.1. Вариант 2 считает проведённые диагонали, 10 — все рёбра полного графа, 4 — степень его вершины, 7 — уже проведённые рёбра.
+source:
+  name: 'Oscar Levin, Discrete Mathematics: An Open Introduction, 4th ed.'
+  attribution: 'Оскар Левин, § 2.1 · CC BY-NC-SA 4.0 · адаптация Repka'
+  url: https://discrete.openmathbooks.org/dmoi4/sec_gt-intro.html
+  number: 16
+  extra:
+    license_url: https://creativecommons.org/licenses/by-nc-sa/4.0/

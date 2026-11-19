@@ -1590,6 +1590,20 @@ select,
   font-size: var(--type-section-title);
   margin: 8px 0 0;
 }
+.course-source {
+  display: grid;
+  gap: 8px;
+  color: var(--muted-foreground);
+}
+.course-source a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.course-source ul {
+  list-style: disc;
+  padding-inline-start: 1.4em;
+}
 /* The lessons as a path: a numbered step outside each card, joined by a line. */
 .lesson-list {
   list-style: none;

@@ -1,0 +1,53 @@
+status: active
+question:
+  text: |
+    В графе пять вершин A, B, C, D и E. Его рёбра — AB, AC, BC, BD и BE. Какова степень вершины B?
+answer:
+  kind: single
+  hide: true
+  options:
+    - id: 1
+      text: >-
+        2
+    - id: 2
+      text: >-
+        3
+    - id: 3
+      text: >-
+        5
+    - id: 4
+      text: >-
+        8
+    - id: 5
+      text: >-
+        4
+      correct: true
+points: 1
+difficulty: easy
+classification:
+  - subject: math
+    concept: graphs
+learning:
+  theory:
+    - graph-theory:basics:degrees-and-handshakes
+  hint:
+    text: >-
+      Проверь обе буквы в записи каждого ребра.
+explanation:
+  text: |
+    Степень вершины равна числу рёбер с концом в этой вершине. Поэтому ищем рёбра, в записи которых есть буква B.
+
+    Буква B стоит в записях AB, BC, BD и BE. Каждое из этих рёбер прибавляет к степени B единицу.
+
+    Ответ: Д. 4.
+
+    Проверка: у B четыре соседа — A, C, D и E. В простом графе каждому соседу соответствует одно ребро, поэтому степень B равна числу её соседей.
+note: >-
+  Авторское задание Repka по § 2.1. Вариант 2 равен степени A, 3 считает рёбра с B на первом месте, 5 считает все рёбра графа, 8 считает оба конца каждого выбранного ребра.
+source:
+  name: 'Oscar Levin, Discrete Mathematics: An Open Introduction, 4th ed.'
+  attribution: 'Оскар Левин, § 2.1 · CC BY-NC-SA 4.0 · адаптация Repka'
+  url: https://discrete.openmathbooks.org/dmoi4/sec_gt-intro.html
+  number: 4
+  extra:
+    license_url: https://creativecommons.org/licenses/by-nc-sa/4.0/
