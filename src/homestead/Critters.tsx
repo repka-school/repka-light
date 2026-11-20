@@ -1,108 +1,7 @@
-// The homestead's animals: a cat and a dog that wander the free tiles, and
-// bees over the bushes and trees. They only decorate: they take no tap, have
-// no name and are not saved. They keep still for someone who asked for less
-// motion.
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { type CSSProperties } from "react";
+import { PetArt } from "./PetArt";
 import { tileCentre } from "./iso";
-import { nearestFree, startPets, stepPet, type Pet } from "./pets";
-import { cells, tileKey, type Homestead, type Tile } from "./rules";
-
-/** How long a step from tile to tile takes, in ms; homestead.css moves a pet over the same time. */
-const STEP_MS = 950;
-const BEES = 3;
-
-const same = (a: Tile, b: Tile) => a[0] === b[0] && a[1] === b[1];
-/** As near the viewer as a thing on the same tile, so a house in front hides a pet behind it. */
-const depth = ([x, y]: Tile) => (x + y + 2) * 10;
-
-function CatHead() {
-  return (
-    <>
-      <path d="M-4.5 -4l1 -6.5 4 4.5zM1 -5.5l4.5 -4.5 0.5 6.5z" className="p-cat" />
-      <circle r="6" className="p-cat" />
-      <ellipse cx="3.5" cy="2" rx="3" ry="2.2" className="p-cat-light" />
-      <path d="M-2 -5.6v2.4M0.4 -6v2.4" className="p-cat-mark" />
-      <circle cx="2" cy="-1" r="1" className="p-ink" />
-      <circle cx="6" cy="1.4" r="0.8" className="p-nose" />
-    </>
-  );
-}
-
-function Cat({ sitting }: { sitting: boolean }) {
-  if (sitting) {
-    return (
-      <>
-        <ellipse cx="0" cy="0.5" rx="10" ry="3.2" className="p-shadow" />
-        <path d="M-5 -2q-9 1 -8 -6" className="p-tail p-cat-line" />
-        <path d="M-6 0C-8 -8 -4 -15 1 -15C6 -15 7 -8 6 0Z" className="p-cat" />
-        <path d="M2 -12C5 -10 5.5 -4 5 0L1.5 0C2.5 -4 2.5 -9 2 -12Z" className="p-cat-light" />
-        <g transform="translate(3 -19)">
-          <CatHead />
-        </g>
-      </>
-    );
-  }
-  return (
-    <>
-      <ellipse cx="0" cy="0.5" rx="12" ry="3.4" className="p-shadow" />
-      <path d="M-10 -10q-7 -1 -7 -11" className="p-tail p-cat-line" />
-      <line x1="-7" y1="-7" x2="-7" y2="0" className="p-leg p-leg-a p-cat-line-far" />
-      <line x1="6" y1="-7" x2="6" y2="0" className="p-leg p-leg-b p-cat-line-far" />
-      <ellipse cx="0" cy="-10" rx="11" ry="5.5" className="p-cat" />
-      <path d="M-5 -15.2v3M-1 -15.5v3M3 -15.2v3" className="p-cat-mark" />
-      <line x1="-4" y1="-7" x2="-4" y2="0" className="p-leg p-leg-b p-cat-line" />
-      <line x1="9" y1="-7" x2="9" y2="0" className="p-leg p-leg-a p-cat-line" />
-      <g transform="translate(11 -15)">
-        <CatHead />
-      </g>
-    </>
-  );
-}
-
-function DogHead() {
-  return (
-    <>
-      <circle r="7" className="p-dog" />
-      <ellipse cx="6.5" cy="2" rx="5" ry="3.6" className="p-dog-light" />
-      <ellipse cx="-3.5" cy="1" rx="3.2" ry="6" transform="rotate(18 -3.5 1)" className="p-dog-dark" />
-      <circle cx="2" cy="-2" r="1.1" className="p-ink" />
-      <circle cx="10.5" cy="1" r="1.4" className="p-ink" />
-    </>
-  );
-}
-
-function Dog({ sitting }: { sitting: boolean }) {
-  if (sitting) {
-    return (
-      <>
-        <ellipse cx="0" cy="0.5" rx="12" ry="3.6" className="p-shadow" />
-        <path d="M-7 -3q-8 -1 -8 -9" className="p-tail p-wag p-dog-line" />
-        <path d="M-8 0C-10 -10 -5 -19 2 -19C8 -19 9 -9 8 0Z" className="p-dog" />
-        <path d="M3 -15C7 -12 7.5 -5 7 0L2.5 0C3.5 -5 3.5 -11 3 -15Z" className="p-dog-light" />
-        <path d="M-2 -18q4 3 9 1" className="p-collar" />
-        <g transform="translate(5 -24)">
-          <DogHead />
-        </g>
-      </>
-    );
-  }
-  return (
-    <>
-      <ellipse cx="0" cy="0.5" rx="15" ry="3.8" className="p-shadow" />
-      <path d="M-13 -15q-5 -4 -3 -10" className="p-tail p-wag p-dog-line" />
-      <line x1="-9" y1="-8" x2="-9" y2="0" className="p-leg p-leg-a p-dog-line-far" />
-      <line x1="9" y1="-8" x2="9" y2="0" className="p-leg p-leg-b p-dog-line-far" />
-      <rect x="-14" y="-19" width="27" height="12" rx="6" className="p-dog" />
-      <ellipse cx="2" cy="-8.4" rx="8" ry="1.8" className="p-dog-light" />
-      <line x1="-6" y1="-8" x2="-6" y2="0" className="p-leg p-leg-b p-dog-line" />
-      <line x1="12" y1="-8" x2="12" y2="0" className="p-leg p-leg-a p-dog-line" />
-      <path d="M8 -18q4 4 8 3" className="p-collar" />
-      <g transform="translate(15 -22)">
-        <DogHead />
-      </g>
-    </>
-  );
-}
+import type { Homestead } from "./rules";
 
 function Bee() {
   return (
@@ -116,62 +15,84 @@ function Bee() {
   );
 }
 
-/** Where the bees hover: over a bush, a tree, then the next bush, as far up as its leaves. */
-function beeSpots(home: Homestead) {
-  const bushes = home.things.filter((thing) => thing.kind === "bush");
-  const trees = home.things.filter((thing) => thing.kind === "tree");
-  const spots = [bushes[0], trees[0], bushes[1], trees[1], bushes[2]].filter((thing) => thing !== undefined).slice(0, BEES);
-  return spots.map((thing) => {
-    const centre = tileCentre(thing.x, thing.y);
-    return { key: `${thing.x}-${thing.y}`, x: centre.x, y: centre.y - (thing.kind === "tree" ? 62 : 26), z: depth([thing.x, thing.y]) + 1 };
-  });
+export const doorway = {
+  cat: "M-13 0C-15-15-8-27 2-27 13-28 20-16 18-2Q8 5-13 0Z",
+  dog: "M-7 7v-15c0-7 4-13 10-14s10 2 10 9V2Z",
+};
+
+function Shelter({ kind }: { kind: "cat" | "dog" }) {
+  if (kind === "cat") return (
+    <g transform="translate(-18 16)" strokeLinejoin="round" strokeLinecap="round">
+      <ellipse cx="1" cy="4" rx="23" ry="7" className="g-ground" />
+      {/* A willow carrier. The hood wraps around the cushion and meets the raised rim. */}
+      <path d="M-21-2C-23-14-18-27-8-30 3-34 17-27 20-14L20 0Q18 8 2 9-15 9-21-2Z" fill="#bc8c55" stroke="#825f42" strokeWidth="1.4" />
+      <path d="M-21-4C-21-19-15-27-7-29Q-18-14-14 2Z" fill="#a2764c" />
+      <g fill="none" stroke="#dfb880" strokeWidth="1.5">
+        <path d="M-20-9q2-13 11-19m-7 23q-1-15 9-24m-11 7q4 0 8 3m-10 3q4 0 8 3m-9 2q4 1 8 3" />
+      </g>
+      <path d={doorway.cat} fill="#70513d" stroke="#ebc898" strokeWidth="2.8" />
+      <path d="M-11-1Q-8-9 2-8 12-10 17-3L17 0Q3 5-11-1Z" fill="#87a68b" />
+      <path d="M-7-4q4-2 8-2" fill="none" stroke="#b9cfaf" strokeWidth="1.3" />
+      <path d="M-21-4Q-5 4 8 2q8-1 12-5l-1 6Q6 14-16 6q-4-2-5-6Z" fill="#cca16b" stroke="#936f49" strokeWidth="1.1" />
+      <path d="M-19 0q20 10 37 0m-33 4q15 7 28 2" fill="none" stroke="#f3d5a6" strokeWidth="1.4" />
+    </g>
+  );
+  return (
+    <g transform="translate(-17 18)" strokeLinejoin="round" strokeLinecap="round">
+      <ellipse cx="-2" cy="4" rx="27" ry="8" className="g-ground" />
+      {/* The front gable and roof share a ridge. The long eave runs parallel to the side wall. */}
+      <path d="M-27-20-10-13-10 9-27 2Z" fill="#bc895c" stroke="#8e6246" strokeWidth="1.3" />
+      <path d="m-25-13 13 5m-13 1 13 5m-13 1 13 5" fill="none" stroke="#996d4c" strokeWidth="1.2" />
+      <path d="M-10 9v-22L4-34 20-20V1Z" fill="#e6bc82" stroke="#9c744e" strokeWidth="1.3" />
+      <path d="m-8-12 25-7m-9-5 5-1m1 13 4-1m-4 6 4-1" fill="none" stroke="#c89460" strokeWidth="1.1" />
+      <path d={doorway.dog} fill="#604336" stroke="#fff0ce" strokeWidth="2.3" />
+      <path d="M-6 5q10-6 18-4v1L-6 7Z" fill="#a3ac86" />
+      <path d="m-11 8 31-9v3l-31 9Z" fill="#b18862" />
+      <path d="M-31-19-14-44 4-36-13-11Z" fill="#bd654c" stroke="#884c3d" strokeWidth="1.4" />
+      <path d="m-28-22 17 7m-12-14 17 7m-12-14 17 7" fill="none" stroke="#dc9771" strokeWidth="1.15" />
+      <path d="m-24-28 3-4m6 8 3-4m-3-6 3-4" fill="none" stroke="#a65342" strokeWidth="1" />
+      <path d="m-31-19 18 8v3l-18-8Z" fill="#92503e" />
+      <path d="M-14-10 4-37 24-21l-2 2L4-32-12-8Z" fill="#f9e4bb" stroke="#94694c" strokeWidth="1.1" />
+      <path d="m-14-44 18 7" fill="none" stroke="#e49d76" strokeWidth="2.4" />
+    </g>
+  );
+}
+
+/** Tray and placement previews show the animal beside its home. */
+export function PetSprite({ kind, shelterOnly }: { kind: "cat" | "dog"; shelterOnly: boolean }) {
+  return <>
+    <Shelter kind={kind} />
+    {!shelterOnly && <g transform="translate(15 30)"><PetArt kind={kind} walking={false} /></g>}
+  </>;
+}
+
+function Butterfly() {
+  return (
+    <svg viewBox="-10 -11 20 22" focusable="false">
+      <g className="butterfly-wings" stroke="#764831" strokeWidth="0.9">
+        <path d="M0 2C-5 1-11-4-8-8Q-3-11 0-2Q4-10 8-8C11-4 6 1 0 2Z" fill="var(--wing)" />
+        <path d="M0 0Q-9-2-6 5Q-3 9 0 3Q4 10 7 5Q8 1 0 0Z" fill="var(--wing)" />
+        <path d="m-6-6 2 1m8 0 2-1" stroke="#fff3d3" strokeWidth="2" strokeLinecap="round" />
+      </g>
+      <path d="M0-3v7m0-6-2-4m2 4 2-4" fill="none" stroke="#583f39" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  );
 }
 
 export function Critters({ home }: { home: Homestead }) {
-  const taken = new Set(home.things.flatMap((thing) => cells(thing.kind, thing.x, thing.y).map(([x, y]) => tileKey(x, y))));
-  const free = (tile: Tile) => !taken.has(tileKey(tile[0], tile[1]));
-  // The step timer reads what is free now, not what was free when it started.
-  const freeNow = useRef(free);
-  freeNow.current = free;
-  const [pets, setPets] = useState<Pet[]>(() => startPets(free));
-  const latest = useRef(pets);
-  latest.current = pets;
-  useEffect(() => {
-    if (typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const timer = setInterval(() => {
-      if (document.hidden) return;
-      const next: Pet[] = [];
-      for (const [i, pet] of latest.current.entries()) {
-        const others = [...next, ...latest.current.slice(i + 1)];
-        next.push(stepPet(pet, (tile) => freeNow.current(tile) && !others.some((other) => same(other.at, tile)), Math.random));
-      }
-      setPets(next);
-    }, STEP_MS);
-    return () => clearInterval(timer);
-  }, []);
-  return (
-    <>
-      {pets.map((pet) => {
-        // A pet a thing was just put on stands beside it until its next step.
-        const at = free(pet.at) ? pet.at : (nearestFree(pet.at, free) ?? pet.at);
-        const centre = tileCentre(at[0], at[1]);
-        const walking = !same(pet.at, pet.from);
-        const style: CSSProperties = { translate: `${centre.x}px ${centre.y}px`, zIndex: Math.max(depth(at), depth(pet.from)) };
-        return (
-          <span key={pet.kind} className={`homestead-pet${walking ? " is-walking" : ""}${pet.left ? " is-left" : ""}`} style={style} aria-hidden="true" data-pet={pet.kind}>
-            <svg viewBox="-28 -38 56 44" focusable="false">
-              {pet.kind === "cat" ? <Cat sitting={!walking} /> : <Dog sitting={!walking} />}
-            </svg>
-          </span>
-        );
-      })}
-      {beeSpots(home).map((spot, i) => (
-        <span key={spot.key} className="homestead-bee" style={{ left: spot.x, top: spot.y, zIndex: spot.z, "--i": i } as CSSProperties} aria-hidden="true">
-          <span>
-            <Bee />
-          </span>
-        </span>
-      ))}
-    </>
-  );
+  const bushes = home.things.filter((thing) => thing.kind === "bush");
+  const trees = home.things.filter((thing) => thing.kind === "tree");
+  const bed = home.things.find((thing) => thing.kind === "bed");
+  return [bushes[0], trees[0], bushes[1], bed, bushes[2] ?? trees[1]].map((thing, i) => {
+    if (!thing) return null;
+    const butterfly = i >= 3;
+    const centre = tileCentre(thing.x, thing.y);
+    const height = thing.kind === "tree" ? 62 : 26;
+    const style = { left: centre.x, top: centre.y - height, zIndex: (thing.x + thing.y + 2) * 10 + 1, "--i": i, "--wing": i === 3 ? "#ffac65" : "#b3a1f2" } as CSSProperties;
+    return (
+      <span key={i} className={`homestead-insect ${butterfly ? "homestead-butterfly" : "homestead-bee"}`} style={style} aria-hidden="true">
+        <span>{butterfly ? <Butterfly /> : <Bee />}</span>
+      </span>
+    );
+  });
 }

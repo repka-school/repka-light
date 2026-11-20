@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { apply, starter, type Action, type Homestead, type Tile } from "./rules";
+import { apply, GROUND, starter, type Action, type Homestead, type Tile } from "./rules";
 import { afterOutcome, firstTile, fitsHere, intentAt, marksOf, modeLasts, moveCursor, startTile, type Outcome } from "./screen";
 
 function after(home: Homestead, ...actions: Action[]): Homestead {
@@ -37,7 +37,7 @@ describe("intentAt", () => {
   it("moves a thing over its own tiles but not off the ground", () => {
     const move = { mode: "move", from: [6, 1] as Tile, kind: "barn" } as const;
     expect(intentAt(starter(), move, [7, 2])).toEqual({ kind: "act", action: { action: "move", from: [6, 1], x: 7, y: 2 } });
-    expect(intentAt(starter(), move, [9, 9])).toEqual({ kind: "refuse", reason: "outside_ground" });
+    expect(intentAt(starter(), move, [GROUND - 1, GROUND - 1])).toEqual({ kind: "refuse", reason: "outside_ground" });
     expect(fitsHere(starter(), move, [7, 2])).toBe(true);
     expect(fitsHere(starter(), move, [1, 1])).toBe(false);
     expect(fitsHere(starter(), { mode: "grow" }, [2, 2])).toBeNull();
@@ -78,7 +78,7 @@ describe("the cursor", () => {
   it("starts on the first bed and stays on the ground", () => {
     expect(firstTile(starter())).toEqual([2, 5]);
     expect(moveCursor([0, 0], "ArrowLeft")).toEqual([0, 0]);
-    expect(moveCursor([9, 9], "ArrowDown")).toEqual([9, 9]);
+    expect(moveCursor([GROUND - 1, GROUND - 1], "ArrowDown")).toEqual([GROUND - 1, GROUND - 1]);
     expect(moveCursor([4, 4], "ArrowRight")).toEqual([5, 4]);
     expect(moveCursor([4, 4], "Enter")).toBeNull();
   });

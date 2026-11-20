@@ -2,8 +2,7 @@
 // readable on a phone. A growing turnip shows its quality and stage, two
 // strips and the buttons that give it experience; an empty bed says where a
 // seed comes from; a ripe turnip shows the day it ripened and «Собрать в
-// урожай». Any thing can be moved, a fence turned, and anything but a planted
-// bed put back in stock. The close button or Escape returns to the scene.
+// урожай». Any thing can be moved, a fence turned, and every item put back in stock. The close button or Escape returns to the scene.
 import type { KeyboardEvent } from "react";
 import { Button } from "@/ui/components/ui/button";
 import { w } from "./strings";
@@ -96,11 +95,9 @@ function Actions({ thing, free, onAct, onMove }: Pick<Props, "thing" | "free" | 
           {w.card.rotate}
         </Button>
       )}
-      {!thing.turnip && (
-        <Button type="button" id="homestead-stock" variant="outline" onClick={() => onAct({ action: "stock", at })}>
-          {w.card.stock}
-        </Button>
-      )}
+      <Button type="button" id="homestead-stock" variant="outline" onClick={() => onAct({ action: "stock", at })}>
+        {w.card.stock}
+      </Button>
     </div>
   );
 }

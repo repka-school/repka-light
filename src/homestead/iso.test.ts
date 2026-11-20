@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { allInView, clampZoom, groundAt, held, hull, scatter, SCENE, scenePt, shadowOf, showing, spriteBox, tileBox, tileCentre, ZOOM, zoomedAt } from "./iso";
+import { GROUND } from "./rules";
+
+const last = GROUND - 1;
 
 describe("the projection", () => {
   it("puts the ground's top corner in the middle and leaves the same room beside both side corners", () => {
     expect(tileCentre(0, 0).x).toBe(SCENE.width / 2);
-    const right = SCENE.width - (tileBox(9, 0).left + tileBox(9, 0).width);
-    expect(tileBox(0, 9).left).toBe(right);
+    const right = SCENE.width - (tileBox(last, 0).left + tileBox(last, 0).width);
+    expect(tileBox(0, last).left).toBe(right);
     expect(right).toBeGreaterThan(0);
-    expect(tileBox(9, 9).top + tileBox(9, 9).height).toBeLessThan(SCENE.height);
+    expect(tileBox(last, last).top + tileBox(last, last).height).toBeLessThan(SCENE.height);
   });
 
   it("finds the ground point under a scene point", () => {
@@ -44,8 +47,8 @@ describe("the view", () => {
     const centred = { z: 1, x: 200 - SCENE.width / 2, y: 0 };
     expect(held(centred, 400, 300)).toBe(centred);
     // Dragged far to the right: the ground's left corner stops at the viewport's centre.
-    expect(held({ z: 1, x: 5000, y: 0 }, 400, 300).x).toBe(200 - tileBox(0, 9).left);
-    expect(held({ z: 1, x: -5000, y: 0 }, 400, 300).x).toBe(200 - (tileBox(9, 0).left + tileBox(9, 0).width));
+    expect(held({ z: 1, x: 5000, y: 0 }, 400, 300).x).toBe(200 - tileBox(0, last).left);
+    expect(held({ z: 1, x: -5000, y: 0 }, 400, 300).x).toBe(200 - (tileBox(last, 0).left + tileBox(last, 0).width));
     const low = held({ z: 0.5, x: centred.x, y: 5000 }, 400, 300);
     expect(low.y).toBe(150 - tileBox(0, 0).top * 0.5);
     expect(held({ z: 1, x: 5000, y: 5000 }, 0, 0)).toEqual({ z: 1, x: 5000, y: 5000 });

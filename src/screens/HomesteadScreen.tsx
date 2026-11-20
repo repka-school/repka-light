@@ -43,7 +43,7 @@ export default function HomesteadScreen() {
 
 /** The lines above the scene: nothing to plant and nothing growing, with the way to the seeds; and no experience left to spend. */
 function Lines({ home, free, onPick }: { home: Homestead; free: number; onPick: () => void }) {
-  const empty = !seedTotal(home) && !home.things.some((thing) => thing.turnip);
+  const empty = !seedTotal(home) && !home.storedCrops?.length && !home.things.some((thing) => thing.turnip);
   return (
     <>
       {empty && (
@@ -188,7 +188,7 @@ function Loaded({ home, free }: { home: Homestead; free: number }) {
 
   const fits = fitsHere(home, mode, cursor);
   const moved = mode?.mode === "move" ? thingAt(home, mode.from[0], mode.from[1]) : undefined;
-  const placing = mode?.mode === "place" ? { kind: mode.kind, rot: mode.rot } : mode?.mode === "move" ? { kind: mode.kind, rot: moved?.rot ?? 0, from: mode.from } : null;
+  const placing = mode?.mode === "place" ? { kind: mode.kind, rot: mode.rot, turnip: mode.kind === "bed" ? home.storedCrops?.[0] : undefined } : mode?.mode === "move" ? { kind: mode.kind, rot: moved?.rot ?? 0, from: mode.from, turnip: moved?.turnip } : null;
   return (
     <>
       <Paints />

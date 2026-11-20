@@ -14,7 +14,8 @@
 // page and sits under it on a narrow one.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent, type ReactNode } from "react";
 import { flushSync } from "react-dom";
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Maximize, Minus, Plus, type LucideIcon } from "lucide-react";
+import { CloudRain, Sun, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Maximize, Minus, Plus, type LucideIcon } from "lucide-react";
+import { weatherAt } from "./weather";
 import { w } from "./strings";
 import { allInView, clampZoom, groundAt, held, SCENE, showing, TILE_W, tileCentre, ZOOM, zoomedAt, type View } from "./iso";
 import { IsoScene, tileId, type Burst, type Ghost } from "./IsoScene";
@@ -300,6 +301,16 @@ function Round({ id, label, icon: Icon, onClick, spent = false }: { id: string; 
 const plain = (event: KeyboardEvent) => !event.ctrlKey && !event.metaKey && !event.altKey;
 
 export function Scene({ home, cursor, marks, ghost, fits, selected, burst, onCursor, onActivate, onCarry, onRotate, onEscape, children }: Props) {
+  const [weather, setWeather] = useState(() => weatherAt(Date.now()));
+  useEffect(() => {
+    const refresh = () => setWeather(weatherAt(Date.now()));
+    const timer = window.setTimeout(refresh, Math.max(0, weather.next - Date.now()));
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [weather.next]);
   const cam = useView(cursor);
   const { viewport, overlay, view, glide, size, frame, zoomAt, pan, reveal } = cam;
   // Whether the cursor was last moved by a pointer: then the view stays where it was put.
@@ -363,6 +374,7 @@ export function Scene({ home, cursor, marks, ghost, fits, selected, burst, onCur
             ref={viewport}
             id={SCENE_ID}
             className="homestead-viewport"
+            data-rain={weather.rain || undefined}
             role="grid"
             tabIndex={0}
             aria-label={w.scene.label}
@@ -383,8 +395,13 @@ export function Scene({ home, cursor, marks, ghost, fits, selected, burst, onCur
               <span />
             </div>
             <div className={`homestead-world${glide ? " is-gliding" : ""}`} style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.z})` }}>
-              <IsoScene home={home} cursor={cursor} marks={marks} ghost={ghost} fits={fits} burst={burst} onTile={tap} onHover={hover} />
+              <IsoScene rain={weather.rain} home={home} cursor={cursor} marks={marks} ghost={ghost} fits={fits} burst={burst} onTile={tap} onHover={hover} />
             </div>
+            {weather.rain && <div className="homestead-rain" aria-hidden="true" />}
+          </div>
+          <div className="homestead-weather">
+            {weather.rain ? <CloudRain aria-hidden="true" /> : <Sun aria-hidden="true" />}
+            {weather.rain ? w.weather.rain : w.weather.sunny}
           </div>
           <div className="homestead-zoom" role="group" aria-label={w.zoom.label}>
             <Round id="homestead-zoom-in" label={w.zoom.in} icon={Plus} onClick={closer} spent={view.z >= ZOOM.max} />

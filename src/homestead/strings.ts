@@ -8,8 +8,8 @@ const amount = (n: number) => n.toLocaleString("ru-RU");
 const turnipForms = ["репка", "репки", "репок"] as const;
 
 // The homestead's nouns: a thing's kind as a title and as an object, and a quality as it agrees with «репка» and with «семечко».
-const kindNames = { house: "Дом", barn: "Сарай", fence: "Забор", tree: "Дерево", bush: "Куст", bed: "Грядка" } satisfies Record<Kind, string>;
-const kindObjects = { house: "дом", barn: "сарай", fence: "забор", tree: "дерево", bush: "куст", bed: "грядку" } satisfies Record<Kind, string>;
+const kindNames = { house: "Дом", barn: "Сарай", fence: "Забор", tree: "Дерево", bush: "Куст", bed: "Грядка", cat: "Кот", dog: "Пёс", chicken: "Курица", cow: "Корова", pond: "Пруд с утками" } satisfies Record<Kind, string>;
+const kindObjects = { house: "дом", barn: "сарай", fence: "забор", tree: "дерево", bush: "куст", bed: "грядку", cat: "кота", dog: "пса", chicken: "курицу", cow: "корову", pond: "пруд с утками" } satisfies Record<Kind, string>;
 const turnipQualities = { common: "обычная", rare: "редкая", epic: "эпическая", legendary: "легендарная" } satisfies Record<Quality, string>;
 const seedQualities = { common: "обычное", rare: "редкое", epic: "эпическое", legendary: "легендарное" } satisfies Record<Quality, string>;
 const seedTitles = { common: "Обычное", rare: "Редкое", epic: "Эпическое", legendary: "Легендарное" } satisfies Record<Quality, string>;
@@ -84,7 +84,7 @@ export const w = {
     planted: (type: Quality) => `Посажено: ${seedQualities[type]} семечко`,
     gathered: "Репка собрана в урожай",
     stocked: (kind: Kind) => `${kindNames[kind]} на складе`,
-    placed: { house: "Дом поставлен", barn: "Сарай поставлен", fence: "Забор поставлен", tree: "Дерево поставлено", bush: "Куст поставлен", bed: "Грядка поставлена" } satisfies Record<Kind, string>,
+    placed: { house: "Дом поставлен", barn: "Сарай поставлен", fence: "Забор поставлен", tree: "Дерево поставлено", bush: "Куст поставлен", bed: "Грядка поставлена", cat: "Кот в огороде", dog: "Пёс в огороде", chicken: "Курица в огороде", cow: "Корова в огороде", pond: "Пруд с утками на месте" } satisfies Record<Kind, string>,
     rotated: "Забор повёрнут",
   },
   /** Why a change was refused. */
@@ -130,6 +130,7 @@ export const w = {
     bedsFull: "Свободных грядок нет — семечко подождёт.",
     bought: (type: Quality, left: number) => `Куплено ${seedQualities[type]} семечко, осталось ${amount(left)} опыта`,
   },
+  weather: { sunny: "Солнечно", rain: "Дождь" },
   zoom: {
     label: "Вид огорода",
     in: "Приблизить",

@@ -52,6 +52,11 @@ export function Paints() {
   return (
     <svg className="homestead-defs" aria-hidden="true" focusable="false" width="0" height="0">
       <defs>
+        <linearGradient id="homestead-water" x1="0" y1="0" x2=".4" y2="1">
+          <stop offset="0" stopColor="#48828b" />
+          <stop offset=".5" stopColor="#579ca6" />
+          <stop offset="1" stopColor="#84c1b8" />
+        </linearGradient>
         <pattern id="homestead-hatch-ok" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
           <rect width="8" height="8" className="homestead-hatch-ground-ok" />
           <line x1="0" y1="0" x2="0" y2="8" className="homestead-hatch-line-ok" />

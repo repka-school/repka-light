@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { apply, bedCount, bedsFull, dayOf, freeXp, growthOf, harvestTotal, OWNED, placeRefusal, SEEDS, seedTotal, stageOf, starter, stockOf, thingAt, type Action, type Homestead, type Quality } from "./rules";
+import { apply, bedCount, bedsFull, dayOf, freeXp, GROUND, growthOf, harvestTotal, OWNED, placeRefusal, SEEDS, seedTotal, stageOf, starter, stockOf, thingAt, type Action, type Homestead, type Quality } from "./rules";
 
 const TODAY = "2026-03-04";
 
@@ -19,13 +19,15 @@ const reasonOf = (home: Homestead, action: Action, earned = 0) => {
 const planted = (seed: Quality, earned = 1000) => after(starter(), earned, { action: "buy", seed }, { action: "plant", at: [2, 5], seed });
 
 describe("the starter homestead", () => {
-  it("has every thing but one bed on the ground, and one free common seed", () => {
+  it("starts with a free seed and spare beds, bushes and poultry", () => {
     const home = starter();
     expect(home.seeds).toEqual({ common: 1 });
     expect(home.spent).toBe(0);
     expect(stockOf(home, "bed")).toBe(1);
-    for (const kind of ["house", "barn", "fence", "tree", "bush"] as const) expect(stockOf(home, kind)).toBe(0);
-    expect(home.things).toHaveLength(Object.values(OWNED).reduce((sum, n) => sum + n, 0) - 1);
+    for (const kind of ["house", "barn", "fence", "tree", "cat", "dog", "cow", "pond"] as const) expect(stockOf(home, kind)).toBe(0);
+    expect(stockOf(home, "chicken")).toBe(1);
+    expect(stockOf(home, "bush")).toBe(2);
+    expect(home.things).toHaveLength(Object.values(OWNED).reduce((sum, n) => sum + n, 0) - 4);
   });
 
   it("has no two things on one tile", () => {
@@ -177,9 +179,9 @@ describe("arranging the ground", () => {
 
   it("refuses a place off the ground or on a taken tile", () => {
     const home = after(starter(), 0, { action: "stock", at: [3, 3] });
-    expect(reasonOf(home, { action: "place", kind: "bush", x: 10, y: 0 })).toBe("outside_ground");
+    expect(reasonOf(home, { action: "place", kind: "bush", x: GROUND, y: 0 })).toBe("outside_ground");
     expect(reasonOf(home, { action: "place", kind: "bush", x: 2, y: 2 })).toBe("tile_taken");
-    expect(reasonOf(home, { action: "move", from: [1, 1], x: 9, y: 9 })).toBe("outside_ground");
+    expect(reasonOf(home, { action: "move", from: [1, 1], x: GROUND - 1, y: GROUND - 1 })).toBe("outside_ground");
     expect(reasonOf(home, { action: "move", from: [0, 0], x: 4, y: 3 })).toBe("tile_taken");
   });
 
@@ -203,11 +205,10 @@ describe("arranging the ground", () => {
     expect(reasonOf(stocked, { action: "place", kind: "tree", x: 9, y: 3, rot: 1 })).toBe("not_rotatable");
   });
 
-  it("puts a thing back in stock, but not a planted bed", () => {
+  it("puts a thing back in stock and frees its footprint", () => {
     const home = after(starter(), 0, { action: "stock", at: [1, 1] });
     expect(stockOf(home, "house")).toBe(1);
     expect(thingAt(home, 2, 2)).toBeUndefined();
-    expect(reasonOf(planted("common"), { action: "stock", at: [2, 5] })).toBe("bed_planted");
     expect(reasonOf(starter(), { action: "stock", at: [5, 8] })).toBe("unknown_thing");
   });
 

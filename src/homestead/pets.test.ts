@@ -1,65 +1,56 @@
 import { describe, expect, it } from "vitest";
-import { nearestFree, startPets, stepPet, type Pet } from "./pets";
-import type { Tile } from "./rules";
+import { advance, blockedTiles, planWalk, poseOf, startWalker } from "./pets";
+import { starter, tileKey, type Tile } from "./rules";
 
-const open = () => true;
-const rolls = (...values: number[]) => {
-  let i = 0;
-  return () => values[Math.min(i++, values.length - 1)];
-};
-const pet = (at: Tile, from: Tile = at, rest = 0): Pet => ({ kind: "cat", at, from, left: false, rest });
-
-describe("stepPet", () => {
-  it("rests out its rest, then may sit down again", () => {
-    expect(stepPet(pet([3, 3], [3, 2], 2), open, rolls(0.9))).toEqual(pet([3, 3], [3, 3], 1));
-    expect(stepPet(pet([3, 3]), open, rolls(0.1, 0.5))).toEqual(pet([3, 3], [3, 3], 4));
-  });
-
-  it("keeps straight on more often than not", () => {
-    expect(stepPet(pet([3, 3], [2, 3]), open, rolls(0.9, 0.1)).at).toEqual([4, 3]);
-  });
-
-  it("turns back only from a dead end, and stays when shut in", () => {
-    const lane = ([x, y]: Tile) => y === 0 && x <= 1;
-    expect(stepPet(pet([1, 0], [0, 0]), lane, rolls(0.9, 0.9, 0)).at).toEqual([0, 0]);
-    expect(stepPet(pet([5, 5]), ([x, y]) => x === 5 && y === 5, rolls(0.9))).toEqual(pet([5, 5]));
-  });
-
-  it("never leaves the ground or steps on a taken tile", () => {
-    let cat = pet([0, 0]);
-    const free = ([x, y]: Tile) => !(x === 1 && y === 0);
-    let seed = 7;
-    const roll = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    for (let i = 0; i < 300; i++) {
-      cat = stepPet(cat, free, roll);
-      expect(cat.at[0]).toBeGreaterThanOrEqual(0);
-      expect(cat.at[1]).toBeGreaterThanOrEqual(0);
-      expect(cat.at[0]).toBeLessThan(10);
-      expect(cat.at[1]).toBeLessThan(10);
-      expect(free(cat.at)).toBe(true);
+describe("pet walks", () => {
+  it("takes a connected multi-tile outing, then returns to its own door during rain", () => {
+    const blocked = blockedTiles(starter().things);
+    for (const kind of ["cat", "dog"] as const) {
+      const shelter = starter().things.find((t) => t.kind === kind)!;
+      const home: Tile = [shelter.x, shelter.y];
+      const pet = startWalker(kind, home, false);
+      for (let i = 0; i < 2400; i++) {
+        advance(pet, 1/30, false, blocked, () => .42);
+        if (Math.abs(pet.at.tile[0]-home[0])+Math.abs(pet.at.tile[1]-home[1]) >= 3) break;
+      }
+      expect(Math.abs(pet.at.tile[0]-home[0])+Math.abs(pet.at.tile[1]-home[1])).toBeGreaterThanOrEqual(3);
+      let previous = poseOf(pet);
+      for (let i = 0; i < 2400 && !pet.at.inside; i++) {
+        advance(pet, 1/30, true, blocked);
+        const pose = poseOf(pet);
+        expect(Math.hypot(pose.x-previous.x, pose.y-previous.y)).toBeLessThan(1);
+        if (pet.step && tileKey(...pet.step.to.tile) !== tileKey(...home)) expect(blocked.has(tileKey(...pet.step.to.tile))).toBe(false);
+        previous = pose;
+      }
+      expect(pet.at).toEqual({ tile: home, inside: true });
     }
   });
 
-  it("walks off a tile that was taken, and looks the way it walks", () => {
-    const moved = stepPet(pet([4, 4]), ([x, y]) => !(x === 4 && y === 4), rolls(0.9));
-    expect(moved.from).toEqual([4, 4]);
-    expect(Math.abs(moved.at[0] - 4) + Math.abs(moved.at[1] - 4)).toBe(1);
-    expect(stepPet(pet([3, 3], [3, 2]), open, rolls(0.9, 0.1)).left).toBe(true);
-    expect(stepPet(pet([3, 3], [2, 3]), open, rolls(0.9, 0.1)).left).toBe(false);
-  });
-});
+  it("keeps the walking pose and direction through a tile boundary", () => {
+    const cat = startWalker("cat", [2, 2], false);
+    cat.at.tile = [3, 2];
+    cat.route = [[4, 2], [5, 2]];
+    cat.wait = 0;
+    const blocked = new Set<string>();
+    advance(cat, .1, false, blocked);
+    const approach = poseOf(cat);
+    expect(approach.walking).toBe(true);
 
-describe("where pets stand", () => {
-  it("finds the nearest free tile, or none", () => {
-    expect(nearestFree([4, 4], open)).toEqual([4, 4]);
-    expect(nearestFree([4, 4], ([x]) => x >= 6)).toEqual([6, 4]);
-    expect(nearestFree([4, 4], () => false)).toBeNull();
+    advance(cat, 3, false, blocked);
+    const boundary = poseOf(cat);
+    expect(boundary.walking).toBe(true);
+    expect(boundary.left).toBe(approach.left);
+    advance(cat, 0, false, blocked);
+    expect(poseOf(cat)).toEqual(boundary);
   });
 
-  it("starts the cat and the dog on different free tiles", () => {
-    const pets = startPets(([x, y]) => x === 0 && y <= 1);
-    expect(pets.map((p) => p.kind)).toEqual(["cat", "dog"]);
-    expect(pets[0].at).not.toEqual(pets[1].at);
-    expect(startPets(() => false)).toEqual([]);
+  it("finds the gap in a fence and waits outside if that gap is closed", () => {
+    const blocked = new Set(Array.from({length:12}, (_, y) => tileKey(3,y)));
+    blocked.delete(tileKey(3,4));
+    const home: Tile = [2,2], start: Tile = [5,2];
+    expect(planWalk(start, home, blocked, true)).toContainEqual([3,4]);
+    blocked.add(tileKey(3,4));
+    expect(planWalk(start, home, blocked, true)).toEqual([[4,2]]);
+    expect(planWalk([4,2], home, blocked, true)).toEqual([]);
   });
 });

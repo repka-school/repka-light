@@ -43,6 +43,11 @@ export function tileCentre(x: number, y: number) {
 type Box = { minX: number; minY: number; width: number; height: number };
 /** Each drawing's box around its footprint's top corner. */
 const spriteBounds: Record<Kind, Box> = {
+  cat: { minX: -50, minY: -24, width: 100, height: 68 },
+  dog: { minX: -52, minY: -28, width: 104, height: 74 },
+  cow: { minX: -42, minY: -24, width: 84, height: 70 },
+  chicken: { minX: -18, minY: 0, width: 36, height: 39 },
+  pond: { minX: -145, minY: -2, width: 290, height: 146 },
   house: { minX: -108, minY: -112, width: 216, height: 220 },
   barn: { minX: -108, minY: -106, width: 216, height: 214 },
   fence: { minX: -52, minY: -36, width: 104, height: 92 },
@@ -67,7 +72,7 @@ export const viewBoxOf = (kind: Kind) => {
 /** The scene's view: its zoom and where its top-left corner sits in the viewport. */
 export type View = { z: number; x: number; y: number };
 /** The zoom's limits and a button's step (a factor). */
-export const ZOOM = { min: 0.25, max: 1.6, step: 1.25 };
+export const ZOOM = { min: 0.2, max: 1.6, step: 1.25 };
 export const clampZoom = (z: number) => Math.min(ZOOM.max, Math.max(ZOOM.min, z));
 
 /** The view moved just enough to show a point with a margin, clear of whatever covers the viewport's bottom. */

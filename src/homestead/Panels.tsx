@@ -114,7 +114,7 @@ export function Tray({ home, free, mode, onMode, chooser, onChooser }: TrayProps
       {KINDS.map((kind) => {
         const on = mode?.mode === "place" && mode.kind === kind;
         const count = stockOf(home, kind);
-        return <Chip key={kind} id={`homestead-tray-${kind}`} pressed={on} art={<Art thing={{ kind, rot: 0 }} />} label={w.kinds[kind]} count={w.tray.count(count)} disabled={count <= 0} onClick={() => toggle({ mode: "place", kind, rot: 0 }, on)} />;
+        return <Chip key={kind} id={`homestead-tray-${kind}`} pressed={on} art={<Art thing={{ kind, rot: 0, turnip: kind === "bed" ? home.storedCrops?.[0] : undefined }} />} label={w.kinds[kind]} count={w.tray.count(count)} disabled={count <= 0} onClick={() => toggle({ mode: "place", kind, rot: 0 }, on)} />;
       })}
     </div>
   );

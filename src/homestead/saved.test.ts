@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { apply, starter, stockOf, thingAt, type Action, type Homestead } from "./rules";
+import { apply, GROUND, starter, stockOf, thingAt, type Action, type Homestead } from "./rules";
 import { pack, unpack } from "./saved";
 
 function after(home: Homestead, ...actions: Action[]): Homestead {
@@ -40,6 +40,18 @@ describe("pack", () => {
     expect(spent).toBe(50 + 100 + 100 + 40 + 25 + 100);
   });
 
+  it("stores each planted bed with its growth and ripening date until placed again", () => {
+    const home = played();
+    const stored = after(home, { action: "stock", at: [3, 5] }, { action: "stock", at: [2, 5] });
+    const restored = unpack(JSON.parse(JSON.stringify(pack(stored))))!;
+    expect(restored).toEqual(stored);
+    const placed = after(restored, { action: "place", kind: "bed", x: 2, y: 11 }, { action: "place", kind: "bed", x: 3, y: 11 });
+    expect(thingAt(placed, 2, 11)?.turnip).toEqual(thingAt(home, 3, 5)?.turnip);
+    expect(thingAt(placed, 3, 11)?.turnip).toEqual(thingAt(home, 2, 5)?.turnip);
+    expect(placed.storedCrops).toBeUndefined();
+    expect(placed.spent).toBe(home.spent);
+  });
+
   it("round-trips through JSON", () => {
     const home = played();
     expect(unpack(JSON.parse(JSON.stringify(pack(home))))).toEqual(home);
@@ -64,7 +76,7 @@ describe("unpack", () => {
         ["house", 1, 1],
         ["house", 5, 5],
         ["barn", 2, 2],
-        ["tree", 10, 0],
+        ["tree", GROUND, 0],
         ["bush", 0.5, 0],
         ["well", 0, 0],
         "fence",

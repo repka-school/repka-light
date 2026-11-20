@@ -9,7 +9,7 @@ export const QUALITIES = ["common", "rare", "epic", "legendary"] as const;
 export type Quality = (typeof QUALITIES)[number];
 
 /** Every kind of thing, in the order the tray lists them. */
-export const KINDS = ["bed", "fence", "bush", "tree", "barn", "house"] as const;
+export const KINDS = ["bed", "fence", "bush", "tree", "barn", "house", "cat", "dog", "chicken", "cow", "pond"] as const;
 export type Kind = (typeof KINDS)[number];
 
 /** What a seed costs and what its turnip takes to ripen, in experience. */
@@ -21,11 +21,11 @@ export const SEEDS: Record<Quality, { price: number; total: number }> = {
 };
 
 /** The ground's side, in tiles. */
-export const GROUND = 10;
+export const GROUND = 12;
 /** Growth stages: 1 with nothing given, STAGES when ripe. */
 export const STAGES = 10;
 /** How many things of each kind there are, on the ground and in stock together. */
-export const OWNED: Record<Kind, number> = { bed: 4, fence: 10, bush: 3, tree: 2, barn: 1, house: 1 };
+export const OWNED: Record<Kind, number> = { bed: 4, fence: 10, bush: 6, tree: 2, barn: 1, house: 1, cat: 1, dog: 1, chicken: 3, cow: 1, pond: 1 };
 /** The experience one press gives a turnip: a small step and a big one. */
 export const GROW_STEPS = [10, 50] as const;
 
@@ -48,20 +48,29 @@ export type Homestead = {
   /** The things on the ground. Whatever is owned and not here is in stock. */
   things: Thing[];
   harvest: Partial<Record<Quality, Gathered>>;
+  /** Crops in stored beds, in the order the beds will be placed again. */
+  storedCrops?: Turnip[];
 };
 
 const at = (kind: Kind, x: number, y: number): Thing => ({ kind, x, y, rot: 0 });
 
-/** Where everything stands before the first change: a house and a barn, a fence along the top, trees, bushes and three beds. */
+/** The first garden, with a spare bed, bushes and a hen available in the tray. */
 const starterThings = (): Thing[] => [
   at("house", 1, 1),
   at("barn", 6, 1),
-  ...Array.from({ length: GROUND }, (_, x) => at("fence", x, 0)),
+  ...Array.from({ length: OWNED.fence }, (_, x) => at("fence", x, 0)),
   at("tree", 9, 3),
   at("tree", 1, 8),
   at("bush", 3, 3),
   at("bush", 4, 3),
   at("bush", 8, 8),
+  at("bush", 6, 10),
+  at("cat", 4, 7),
+  at("dog", 7, 5),
+  at("cow", 10, 3),
+  at("chicken", 6, 4),
+  at("chicken", 8, 5),
+  at("pond", 8, 9),
   at("bed", 2, 5),
   at("bed", 3, 5),
   at("bed", 4, 5),
@@ -73,8 +82,8 @@ export const starter = (): Homestead => ({ spent: 0, seeds: { common: 1 }, thing
 /** The experience free to spend: what was earned less what was spent here. */
 export const freeXp = (home: Homestead, earned: number) => Math.max(0, earned - home.spent);
 
-/** The side of the square a kind covers: 2 for a house or a barn, 1 for anything else. */
-export const footprint = (kind: Kind) => (kind === "house" || kind === "barn" ? 2 : 1);
+/** The side of the square a thing covers, in tiles. */
+export const footprint = (kind: Kind) => (kind === "pond" ? 3 : kind === "house" || kind === "barn" ? 2 : 1);
 
 /** The tiles a thing of a kind covers at (x, y). */
 export function cells(kind: Kind, x: number, y: number): Tile[] {
@@ -159,10 +168,9 @@ export const seedTotal = (home: Homestead) => QUALITIES.reduce((sum, type) => su
 /** All the gathered turnips. */
 export const harvestTotal = (home: Homestead) => QUALITIES.reduce((sum, type) => sum + (home.harvest[type]?.count ?? 0), 0);
 
-/** Whether every bed holds a turnip and none waits in stock: a seed bought now has to wait. */
+/** Whether every owned bed already holds a crop, including the beds in stock. */
 export function bedsFull(home: Homestead) {
-  const beds = home.things.filter((thing) => thing.kind === "bed");
-  return beds.length > 0 && beds.every((bed) => bed.turnip) && stockOf(home, "bed") === 0;
+  return home.things.filter((thing) => thing.turnip).length + (home.storedCrops?.length ?? 0) === OWNED.bed;
 }
 
 /** One change to the homestead. A thing is named by a tile it covers. */
@@ -231,7 +239,13 @@ function place(home: Homestead, kind: Kind, x: number, y: number, rot: 0 | 1): A
   if (rot && kind !== "fence") return refuse("not_rotatable");
   if (stockOf(home, kind) <= 0) return refuse("not_in_stock");
   const refusal = placeRefusal(home.things, kind, x, y);
-  return refusal ? refuse(refusal) : done({ ...home, things: [...home.things, { kind, x, y, rot }] });
+  if (refusal) return refuse(refusal);
+  const thing: Thing = { kind, x, y, rot };
+  if (kind === "bed" && home.storedCrops?.length) {
+    const { storedCrops: [turnip, ...remaining], ...rest } = home;
+    return done({ ...rest, ...(remaining.length && { storedCrops: remaining }), things: [...home.things, { ...thing, turnip }] });
+  }
+  return done({ ...home, things: [...home.things, thing] });
 }
 
 function move(home: Homestead, thing: Thing, x: number, y: number): Applied {
@@ -255,7 +269,11 @@ export function apply(home: Homestead, action: Action, earned: number, today: st
     case "rotate":
       return thing.kind === "fence" ? done({ ...home, things: swap(home, thing, { ...thing, rot: thing.rot ? 0 : 1 }) }) : refuse("not_rotatable");
     case "stock":
-      return thing.turnip ? refuse("bed_planted") : done({ ...home, things: swap(home, thing) });
+      return done({
+        ...home,
+        things: swap(home, thing),
+        ...(thing.turnip && { storedCrops: [...(home.storedCrops ?? []), thing.turnip] }),
+      });
   }
   if (thing.kind !== "bed") return refuse("unknown_thing");
   switch (action.action) {

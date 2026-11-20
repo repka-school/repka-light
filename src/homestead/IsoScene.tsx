@@ -11,8 +11,9 @@
 // to Scene.tsx.
 import type { CSSProperties, PointerEvent, ReactNode } from "react";
 import { scatter, SCENE, scenePt, spriteBox, tileBox } from "./iso";
+import { RoamingPets } from "./RoamingPets";
 import { Critters } from "./Critters";
-import { cells, GROUND, growthOf, thingAt, tileKey, type Homestead, type Kind, type Thing, type Tile } from "./rules";
+import { cells, GROUND, growthOf, thingAt, tileKey, type Homestead, type Kind, type Thing, type Turnip, type Tile } from "./rules";
 import type { Mark } from "./screen";
 import { Shadow, Sprite } from "./Sprites";
 import { Bed } from "./Turnip";
@@ -22,12 +23,13 @@ import { cellName } from "./words";
 export const tileId = ([x, y]: Tile) => `homestead-tile-${x}-${y}`;
 
 /** A thing being placed or moved, drawn where it would stand; `from` is where a moved thing still stands. */
-export type Ghost = { kind: Kind; x: number; y: number; rot: number; ok: boolean; from?: Tile };
+export type Ghost = { kind: Kind; x: number; y: number; rot: number; ok: boolean; from?: Tile; turnip?: Turnip };
 /** Experience just given to the turnip on a tile; `n` tells one press from the next. */
 export type Burst = { at: Tile; amount: number; n: number };
 
 type Props = {
   home: Homestead;
+  rain: boolean;
   cursor: Tile;
   marks: Map<string, Mark>;
   ghost: Ghost | null;
@@ -48,8 +50,8 @@ type Box = { left: number; top: number; width: number; height: number; zIndex?: 
 const boxStyle = ({ left, top, width, height, zIndex }: Box): CSSProperties => ({ left, top, width, height, zIndex });
 
 /** A thing's drawing: a bed with its turnip, or the sprite of its kind. */
-export function Art({ thing }: { thing: Pick<Thing, "kind" | "rot" | "turnip"> }) {
-  if (thing.kind !== "bed") return <Sprite kind={thing.kind} rot={thing.rot} />;
+export function Art({ thing, placed = false }: { thing: Pick<Thing, "kind" | "rot" | "turnip">; placed?: boolean }) {
+  if (thing.kind !== "bed") return <Sprite kind={thing.kind} rot={thing.rot} placed={placed} />;
   return <Bed turnip={thing.turnip && { type: thing.turnip.type, stage: growthOf(thing.turnip).stage }} />;
 }
 
@@ -264,7 +266,7 @@ function Float({ thing }: { thing: Thing }) {
   );
 }
 
-export function IsoScene({ home, cursor, marks, ghost, fits, burst, onTile, onHover }: Props) {
+export function IsoScene({ home, rain, cursor, marks, ghost, fits, burst, onTile, onHover }: Props) {
   const taken = new Set(home.things.flatMap((thing) => cells(thing.kind, thing.x, thing.y).map(([x, y]) => tileKey(x, y))));
   const rows: ReactNode[] = [];
   for (let y = 0; y < GROUND; y++) {
@@ -320,10 +322,11 @@ export function IsoScene({ home, cursor, marks, ghost, fits, burst, onTile, onHo
           aria-hidden="true"
           data-thing={thing.kind}
         >
-          <Art thing={thing} />
+          <Art thing={thing} placed />
         </span>
       ))}
-      <Critters home={home} />
+      <RoamingPets things={home.things} rain={rain} placing={!!ghost} onSelect={onTile} />
+      {!rain && <Critters home={home} />}
       {home.things.map((thing) => (
         <Float key={`float-${thingKey(thing)}`} thing={thing} />
       ))}
@@ -335,7 +338,7 @@ export function IsoScene({ home, cursor, marks, ghost, fits, burst, onTile, onHo
       <MarkLayer marks={marks} cursor={cursor} cursorOnThing={!!atCursor} onTile={onTile} onHover={onHover} />
       {ghost && (
         <span className={`homestead-thing homestead-ghost ${ghost.ok ? "is-ok" : "is-bad"}`} style={{ ...boxStyle(spriteBox(ghost.kind, ghost.x, ghost.y)), zIndex: 9999 }} aria-hidden="true">
-          <Art thing={{ kind: ghost.kind, rot: ghost.rot ? 1 : 0 }} />
+          <Art thing={{ kind: ghost.kind, rot: ghost.rot ? 1 : 0, turnip: ghost.turnip }} />
         </span>
       )}
     </div>

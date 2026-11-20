@@ -2,11 +2,12 @@
 // is a short list, [kind, x, y], followed by 1 for a turned fence or by a
 // bed's turnip: its quality, the experience given to it and, once ripe, the
 // day it ripened. Stock, stages and prices are not saved: the rules give them.
-import { isRipe, KINDS, OWNED, placeRefusal, QUALITIES, SEEDS, starter, type Gathered, type Homestead, type Kind, type Quality, type Thing, type Turnip } from "./rules";
+import { isRipe, KINDS, OWNED, placeRefusal, QUALITIES, SEEDS, starter, stockOf, type Gathered, type Homestead, type Kind, type Quality, type Thing, type Turnip } from "./rules";
 
 export type PackedThing = [kind: Kind, x: number, y: number, ...rest: (string | number)[]];
 
 export type PackedHomestead = {
+  storedCrops?: Turnip[];
   spent: number;
   seeds: Partial<Record<Quality, number>>;
   things: PackedThing[];
@@ -25,7 +26,7 @@ export function pack(home: Homestead): PackedHomestead {
     const gathered = home.harvest[type];
     if (gathered) harvest[type] = [gathered.count, gathered.latest];
   }
-  return { spent: home.spent, seeds: home.seeds, things: home.things.map(packThing), harvest };
+  return { spent: home.spent, seeds: home.seeds, things: home.things.map(packThing), harvest, ...(home.storedCrops?.length && { storedCrops: home.storedCrops }) };
 }
 
 const isQuality = (value: unknown): value is Quality => QUALITIES.includes(value as Quality);
@@ -63,13 +64,17 @@ function unpackThings(raw: unknown[]): Thing[] {
 /** Whatever was saved as a homestead, made safe to use; undefined when nothing usable was. */
 export function unpack(raw: unknown): Homestead | undefined {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
-  const { spent, seeds, things, harvest } = raw as Record<string, unknown>;
+  const { spent, seeds, things, harvest, storedCrops } = raw as Record<string, unknown>;
   const home: Homestead = { spent: count(spent), seeds: {}, things: Array.isArray(things) ? unpackThings(things) : starter().things, harvest: {} };
   for (const type of QUALITIES) {
     const held = count((seeds as Record<string, unknown> | null | undefined)?.[type]);
     if (held) home.seeds[type] = held;
     const gathered = (harvest as Record<string, unknown> | null | undefined)?.[type];
     if (Array.isArray(gathered) && count(gathered[0])) home.harvest[type] = { count: count(gathered[0]), latest: day(gathered[1]) } satisfies Gathered;
+  }
+  if (Array.isArray(storedCrops)) {
+    const crops = storedCrops.flatMap((crop) => unpackTurnip(crop?.type, crop?.given, crop?.ripened) ?? []).slice(0, stockOf(home, "bed"));
+    if (crops.length) home.storedCrops = crops;
   }
   return home;
 }
