@@ -3,10 +3,12 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
-import { basePath, buildContent, checkedHtml, textToHtml, THEORY_PICTURES } from "./build-content.mjs";
+import { basePath, buildContent, textToHtml, THEORY_PICTURES } from "./build-content.mjs";
+import { parseMarkup, renderMarkup } from "./content-markup.mjs";
 import { theoryPictureIds } from "../src/ui/pictures/TheoryPicture.tsx";
 
 const courses = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "courses");
+const checkedHtml = (source, where) => renderMarkup(parseMarkup(source, where), { where }).html;
 const temps = [];
 const temp = () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "content-"));
@@ -111,6 +113,79 @@ describe("a pack", () => {
     expect(builtCard({ task: question([[1, '"a < b"', true], [2, "b"]]) }).choices[0]).toEqual({ id: 1, label: "А", text: "a < b", html: "a &lt; b" });
   });
 
+  it("lifts Repka's formatted options by label, preserving reordered ids and inline formulas", () => {
+    const formula = '<math display="block"><semantics><mfrac><mn>1</mn><mn>2</mn></mfrac><annotation encoding="application/x-tex">source</annotation></semantics></math>';
+    const card = builtCard({ task: JSON.stringify({
+      status: "active",
+      question: { html: `<p>Сравни.</p><p><strong>A)</strong>&nbsp;${formula}</p><p><b>Б)</b> x<sup>2</sup></p>` },
+      answer: { kind: "single", hide: true, options: [{ id: 9, label: "Б", text: "x2" }, { id: 3, label: "А", text: "1 / 2", correct: true }] },
+      learning: { hint: { html: formula } },
+      explanation: { html: "<div><span><u>Числитель</u></span><hr><s>Делитель</s></div>" },
+    }) });
+    expect(card).toMatchObject({
+      body: "<p>Сравни.</p>",
+      correct: [3],
+      hideOptions: true,
+      choices: [
+        { id: 9, label: "Б", text: "x2", html: "x<sup>2</sup>" },
+        { id: 3, label: "А", text: "1/2", html: `<span class="formula">${formula.replace(' display="block"', "")}</span>` },
+      ],
+      hint: formula,
+      explanation: "<div><span><u>Числитель</u></span><hr><s>Делитель</s></div>",
+    });
+  });
+
+  it("keeps unliftable option lines in the question and gives the tiles letters", () => {
+    const html = "<p>Выбери.</p><p>А) 1 Б) 2</p>";
+    const task = {
+      status: "active",
+      question: { html },
+      answer: { kind: "single", options: [{ id: 1, text: "1", correct: true }, { id: 2, text: "2" }] },
+    };
+    expect(builtCard({ task: JSON.stringify(task) })).toMatchObject({
+      body: html, choices: [{ label: "А", text: "", html: "" }, { label: "Б", text: "", html: "" }],
+    });
+    task.answer.hide = true;
+    expect(() => builtCard({ task: JSON.stringify(task) })).toThrow(/options cannot be hidden/);
+  });
+
+  it("places a Repka answer picture by its original URL and writes its local copy once", () => {
+    const task = {
+      status: "active",
+      source: { url: "https://example.test/contest/problem" },
+      question: { html: '<p>Выбери рисунок.</p><img width="32" src="/photos/choices.gif"><p>Продолжение.</p>' },
+      answer: {
+        kind: "multi", picture: { file: "options.png", original_url: "https://example.test/photos/choices.gif" },
+        options: [{ id: 5, label: "Б", correct: true }, { id: 1, label: "А" }],
+      },
+      explanation: {},
+    };
+    const out = temp();
+    const root = fixture({ task: JSON.stringify(task), files: { "options.png": "local image" } });
+    buildContent({ root, out, base: "/site/" });
+    const [card] = JSON.parse(fs.readFileSync(path.join(out, "demo.json"), "utf8")).modules[0].lessons[0].cards;
+    expect(card).toMatchObject({
+      body: '<p>Выбери рисунок.</p><img src="/site/content/media/demo/options.png" alt="Изображение вариантов ответа А–Б" loading="lazy"><p>Продолжение.</p>',
+      answerKind: "multi", correct: [5], hideOptions: false, explanation: null,
+      choices: [{ id: 5, label: "Б", text: "", html: "" }, { id: 1, label: "А", text: "", html: "" }],
+    });
+    expect(fs.readFileSync(path.join(out, "media", "demo", "options.png"), "utf8")).toBe("local image");
+    task.answer.hide = true;
+    expect(() => builtCard({ task: JSON.stringify(task) })).toThrow(/options cannot be hidden/);
+    task.answer.hide = false;
+    task.answer.options[0].text = "extra";
+    expect(() => builtCard({ task: JSON.stringify(task) })).toThrow(/text beside an answer picture/);
+  });
+
+  it("imports course files with top-level lessons and skips voided questions", () => {
+    const course = "title: Demo\nlessons:\n  - slug: exam\n    title: Exam\n    tasks: [a/voided, a/one]\n";
+    const out = temp();
+    const root = fixture({ course, files: { "tasks/a/voided.yaml": "status: voided" } });
+    expect(buildContent({ root, out }).courses[0]).toMatchObject({ lessons: 1, questions: ["demo/a/one"] });
+    const [{ lessons }] = JSON.parse(fs.readFileSync(path.join(out, "demo.json"), "utf8")).modules;
+    expect(lessons[0]).toMatchObject({ slug: "exam", title: "Exam" });
+  });
+
   it("builds the course index with each course's lessons and questions", () => {
     const index = buildContent({ root: fixture(), out: temp() });
     expect(index).toEqual({ courses: [{ slug: "demo", title: "Demo", description: "", cover: null, grades: [], lessons: 1, questions: ["demo/a/one"] }] });
@@ -134,8 +209,7 @@ describe("a pack", () => {
     ["a single answer with two right options", { task: "status: active\nquestion:\n  text: Q\nanswer:\n  kind: single\n  options:\n    - id: 1\n      text: a\n      correct: true\n    - id: 2\n      text: b\n      correct: true\n" }, /2 right options/],
     ["a picture that is not in the pack", { task: "status: active\nquestion:\n  text: Q\n  images:\n    - file: images/none.png\nanswer:\n  kind: single\n  options:\n    - id: 1\n      text: a\n      correct: true\n    - id: 2\n      text: b\n" }, /missing picture/],
     ["an inline picture without an image reference", { task: question([[1, "a", true], [2, "b"]], { more: 'explanation:\n  html: <img src="images/missing.png">\n' }) }, /missing from images/],
-    ["an inline picture with extra attributes", { task: question([[1, "a", true], [2, "b"]], { more: 'explanation:\n  html: <img src="images/graph.png" width="20">\n' }) }, /expected an image with src and optional alt/],
-    ["a task that is not active", { task: "status: draft\nquestion:\n  text: Q\n" }, /not active/],
+    ["a lesson whose only question is a draft", { task: "status: draft\nquestion:\n  text: Q\n" }, /without questions/],
     ["a lesson of theory only", { task: "kind: theory\nstatus: active\nquestion:\n  text: T\n" }, /without questions/],
   ])("refuses %s", (_, options, message) => {
     expect(() => buildContent({ root: fixture(options), out: temp() })).toThrow(message);
@@ -160,6 +234,19 @@ describe("two packs", () => {
 
   it("are refused when their courses share a slug", () => {
     expect(() => buildContent({ root: twoPacks("demo.yaml"), out: temp() })).toThrow(/two courses share a slug/);
+  });
+
+  it("resolves a flat course's cross-pack question using the question's media", () => {
+    const root = twoPacks("other.yaml");
+    fs.writeFileSync(path.join(root, "packs", "demo", "courses", "demo.yaml"), "title: Demo\ntasks: [more:a:one]\n");
+    fs.writeFileSync(path.join(root, "packs", "more", "tasks", "a", "one.yaml"), question([[1, "a", true], [2, "b"]], {
+      more: "explanation:\n  images: [{file: graph.png}]\n",
+    }));
+    fs.writeFileSync(path.join(root, "packs", "more", "graph.png"), "picture");
+    const out = temp();
+    expect(buildContent({ root, out }).courses[0]).toMatchObject({ lessons: 1, questions: ["more/a/one"] });
+    const [lesson] = JSON.parse(fs.readFileSync(path.join(out, "demo.json"), "utf8")).modules[0].lessons;
+    expect(lesson.cards[0].explanation).toContain('src="/content/media/more/graph.png"');
   });
 });
 
@@ -257,35 +344,52 @@ describe("markup", () => {
     expect(textToHtml("a < b\nc & d\n")).toBe("<p>a &lt; b<br>c &amp; d</p>");
   });
 
-  it("frames a table and refuses tags and attributes outside the allowed set", () => {
-    expect(checkedHtml("<p>x</p><table><tr><td>1</td></tr></table>", "t")).toBe('<p>x</p><div class="scroll-frame"><table><tr><td>1</td></tr></table></div>');
-    expect(() => checkedHtml("<script>alert(1)</script>", "t")).toThrow(/<script> is not allowed/);
-    expect(() => checkedHtml('<p onclick="x()">a</p>', "t")).toThrow(/attribute onclick/);
-    expect(() => checkedHtml('<a href="https://example.com">a</a>', "t")).toThrow(/<a> is not allowed/);
+  it("frames a table and rebuilds HTML using Repka's allowed tags and attributes", () => {
+    expect(checkedHtml('<script>alert(1)</script><p style="color:red"><a href="/a">x</a></p><table border="1"><tr><td>1</td></tr></table>', "t")).toBe(
+      '<p>x</p><div class="scroll-frame"><table><tbody><tr><td>1</td></tr></tbody></table></div>',
+    );
   });
 
   it("keeps the attributes a table cell may have", () => {
-    const table = '<table><tr><td colspan="2" rowspan="2">1</td></tr></table>';
+    const table = '<table><tbody><tr><td colspan="2" rowspan="2">1</td></tr></tbody></table>';
     expect(checkedHtml(table, "t")).toBe(`<div class="scroll-frame">${table}</div>`);
   });
 
-  it("keeps a definition blockquote and still checks its attributes", () => {
+  it("keeps additional HTML tags and applies a MathML table's alignment and lines to its cells", () => {
+    const html = '<div><span><u>Underline</u> <s>Strike</s></span><hr><table><tfoot><tr><td>Total</td></tr></tfoot></table></div>';
+    expect(checkedHtml(html, "t")).toBe(html.replace("<table>", '<div class="scroll-frame"><table>').replace("</table>", "</table></div>"));
+    const table = '<math display="block"><mtable columnalign="right left" columnlines="solid"><mtr><mtd><mi>x</mi></mtd><mtd><mn>1</mn></mtd></mtr></mtable></math>';
+    expect(checkedHtml(table, "t")).toContain('<mtd columnalign="right"><mi>x</mi></mtd><mtd columnalign="left" class="ml-l-solid"><mn>1</mn></mtd>');
+  });
+
+  it.each([
+    ["a MathML token outside a formula", "<mi>x</mi>"],
+    ["a nested formula", "<math><math><mi>x</mi></math></math>"],
+    ["an HTML integration point", "<math><mtext><strong>x</strong></mtext></math>"],
+    ["HTML that closes the formula early", "<math><div>x</div></math>"],
+    ["an unsupported MathML element", "<math><annotation-xml>source</annotation-xml></math>"],
+    ["an unsupported attribute", '<math><mi href="https://example.test/">x</mi></math>'],
+    ["an unsupported attribute value", '<math><mi mathvariant="double-struck">R</mi></math>'],
+    ["an annotation of the wrong encoding", '<math><annotation encoding="text/html">source</annotation></math>'],
+  ])("refuses %s with the source location", (_, source) => {
+    expect(() => checkedHtml(source, "pack/task explanation")).toThrow(/pack\/task explanation:/);
+  });
+
+  it("keeps a definition blockquote and strips its attributes", () => {
     const definition = "<blockquote><p><strong>Определение.</strong> Степень вершины.</p></blockquote>";
     expect(checkedHtml(definition, "t")).toBe(definition);
-    expect(() => checkedHtml('<blockquote cite="https://example.com"><p>Definition</p></blockquote>', "t")).toThrow(/attribute cite/);
+    expect(checkedHtml('<blockquote cite="/a"><p>Definition</p></blockquote>', "t")).toBe("<blockquote><p>Definition</p></blockquote>");
   });
 
-  it("refuses a \"<\" that opens no whole tag", () => {
-    expect(() => checkedHtml("<p>a < b</p>", "t")).toThrow(/stray "<"/);
-    expect(() => checkedHtml("<p>a</p><!-- note -->", "t")).toThrow(/stray "<"/);
+  it("escapes a literal comparison, strips comments, and reports incomplete tags", () => {
+    expect(checkedHtml("<p>a < b</p><!-- note -->", "t")).toBe("<p>a &lt; b</p>");
     // A tag never closed would swallow whatever the page puts after it.
     expect(() => checkedHtml("<p>a</p><img src=x onerror=alert(1) ", "t")).toThrow(/stray "<"/);
-    expect(() => checkedHtml("<p <script>alert(1)</script>", "t")).toThrow(/<script> is not allowed/);
   });
 
-  it("refuses markup in a task that uses it", () => {
+  it("strips active attributes from authored task HTML", () => {
     const task = "status: active\nquestion:\n  html: <p onclick=\"x()\">Q</p>\nanswer:\n  kind: single\n  options:\n    - id: 1\n      text: a\n      correct: true\n    - id: 2\n      text: b\n";
-    expect(() => buildContent({ root: fixture({ task }), out: temp() })).toThrow(/demo\/a\/one: attribute onclick/);
+    expect(builtCard({ task }).body).toBe("<p>Q</p>");
   });
 });
 

@@ -240,6 +240,72 @@ test("an illustration opens in a window of its own and closes back to the card",
   await expect(picture).toBeFocused();
 });
 
+test("Repka formulas and picture options work through answering and review", async ({ page, site }) => {
+  const lesson = site.lessons[0];
+  const image = site.course.cover;
+  if (!image) throw new Error("the course fixture needs a local picture");
+  const fraction = "<mfrac><mn>1</mn><mn>2</mn></mfrac>";
+  const wideFormula = `<math display="block"><mrow>${"<mi>x</mi><mo>+</mo>".repeat(70)}<mi>y</mi></mrow></math>`;
+  const cards: QuestionCard[] = [
+    {
+      id: "compatibility/formula", kind: "question", answerKind: "single", hideOptions: true, points: null,
+      body: `<p>Выбери дробь.</p>${wideFormula}`,
+      choices: [
+        { id: 9, label: "Б", text: "1/2", html: `<span class="formula"><math><semantics>${fraction}<annotation encoding="application/x-tex">fraction-source</annotation></semantics></math></span>` },
+        { id: 3, label: "А", text: "x2", html: "<u>x<sup>2</sup></u>" },
+      ],
+      correct: [9], hint: null, explanation: `<p>Решение.</p><math display="block">${fraction}</math>`,
+    },
+    {
+      id: "compatibility/picture", kind: "question", answerKind: "multi", hideOptions: false, points: null,
+      body: `<p>Выбери рисунки.</p><img src="${image}" alt="Изображение вариантов ответа А–В">`,
+      choices: [
+        { id: 4, label: "В", text: "", html: "" },
+        { id: 2, label: "А", text: "", html: "" },
+        { id: 7, label: "Б", text: "", html: "" },
+      ],
+      correct: [4, 2], hint: null, explanation: null,
+    },
+  ];
+  const [module] = site.course.modules;
+  await page.route(`**/content/${site.course.slug}.json`, (route) => route.fulfill({
+    json: { ...site.course, modules: [{ ...module, lessons: [{ ...lesson, cards }] }] },
+  }));
+  await openLesson(page, site, lesson);
+
+  const formula = page.locator(".question-body .formula-display");
+  await expect(formula).toHaveAttribute("tabindex", "0");
+  await expect(formula.getByRole("math")).toBeVisible();
+  await expect(option(page, "Б")).toHaveCount(0);
+  await page.getByRole("button", { name: "Показать варианты" }).click();
+  await expect(option(page, "Б")).toHaveAccessibleName("Б: 1/2");
+  await expect(tile(page, "Б").locator("mfrac")).toBeVisible();
+  await expect(tile(page, "Б").locator("annotation")).toBeHidden();
+  await expect(tile(page, "А").locator("u > sup")).toHaveText("2");
+  await answer(page, ["Б"]);
+  await expect(page.locator(".explanation mfrac")).toBeVisible();
+  await primary(page).click();
+
+  const picture = page.getByRole("button", { name: "Открыть: Изображение вариантов ответа А–В" });
+  await expect(picture).toBeVisible();
+  await picture.click();
+  await expect(page.locator("dialog.illustration-dialog img")).toBeVisible();
+  await page.getByRole("button", { name: "Закрыть" }).click();
+  await expect(picture).toBeFocused();
+  await expect(page.locator(".choices")).toHaveAttribute("data-fit", "letters");
+  await expect(option(page, "В")).toHaveAccessibleName("В");
+  await answer(page, ["В", "А"]);
+  await primary(page).click();
+
+  await expect(summary(page)).toBeVisible();
+  const review = summary(page).locator(".review-item");
+  await review.nth(0).locator("summary").click();
+  await expect(review.nth(0).locator(".review-options .is-correct mfrac")).toBeVisible();
+  await review.nth(1).locator("summary").click();
+  await expect(review.nth(1).getByRole("button", { name: "Открыть: Изображение вариантов ответа А–В" })).toBeVisible();
+  await expect(review.nth(1)).toContainText("Правильный ответ");
+});
+
 test("a question is answered from the keyboard @desktop", async ({ page, site }) => {
   const lesson = site.lessons[0];
   const index = lesson.cards.findIndex(isQuestion);

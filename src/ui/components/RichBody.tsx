@@ -35,7 +35,11 @@ function markBox(box: HTMLElement, role: "group" | "region", label: string) {
 
 function wrapDisplay(root: HTMLElement) {
   root.querySelectorAll<Element>('math[display="block"]').forEach((math) => {
-    if (math.parentElement?.classList.contains("formula")) return;
+    const parent = math.parentElement;
+    if (parent?.classList.contains("formula")) {
+      parent.classList.add("formula-display");
+      return;
+    }
     const box = document.createElement("span");
     box.className = "formula formula-display";
     math.replaceWith(box);

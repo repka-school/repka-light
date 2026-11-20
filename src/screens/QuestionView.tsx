@@ -137,7 +137,12 @@ function Answer({ card, entry, state, gained, onSelect, onOpenOptions }: { card:
           name="answer"
           kind={card.answerKind}
           legend={multi ? t.chooseAll : t.choose}
-          choices={card.choices.map((c) => ({ value: c.label, label: c.label, text: <OptionText html={c.html} {...bodyLabels} />, name: `${c.label}: ${c.text}` }))}
+          choices={card.choices.map((c) => ({
+            value: c.label,
+            label: c.label,
+            text: c.html ? <OptionText html={c.html} {...bodyLabels} /> : undefined,
+            name: c.text ? `${c.label}: ${c.text}` : c.label,
+          }))}
           selected={labels(state.selected)}
           onSelect={(label) => {
             const choice = card.choices.find((c) => c.label === label);

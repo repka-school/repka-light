@@ -94,7 +94,22 @@ with the corresponding section links.
 
 A question has `single` or `multi` choice options, one or more marked
 `correct`, and optionally a hint and a worked solution. `answer.hide: true`
-keeps the options hidden until the learner asks for them.
+keeps options hidden until the learner asks for them when the tiles carry
+the full answers. Repka's `answer.options[].label` keeps a written label with
+its option ID when the options are reordered.
+
+To format an answer, keep its plain text in `answer.options[].text` and
+write the formatted answer lines in `question.html`, starting each with a
+bold label such as `<strong>А)</strong>`. The build moves a complete run of
+labelled options into the answer tiles and preserves its HTML and MathML.
+For a single image showing all options, use `answer.picture.file` and
+omit each option's `text`. The image appears in the question and the
+learner selects by label.
+
+The build accepts Repka courses with modules, top-level lessons, or a flat
+`tasks` list. A flat list becomes one lesson. A member such as
+`other-pack:group:task` resolves to a question in another pack listed in
+the bundle. Draft, voided, and retired tasks are skipped.
 
 A theory card (`kind: theory`) opens a lesson. Its title is `learning.title`.
 It shows plain text or markup from `question`, a list of `blocks`, or both.
@@ -146,10 +161,15 @@ drawings in `src/ui/pictures/TheoryPicture.tsx` (`book`, `magnifier`, `check`,
 The build writes only what a lesson shows: task text, options, the right
 answer, hint and solution. Other fields of a task file are not published. It
 fails on a missing task or picture, a question without a right answer, a
-theory block it does not know or one that names an unknown drawing, and markup
-outside a small allowed set of tags. An inline `<img>` uses a quoted `src`
-listed in that body's `images` and may have a quoted `alt`. The build keeps
-it in place and puts any other listed images at the end.
+theory block it does not know or one that names an unknown drawing, and
+MathML outside Repka's presentation subset. Questions, theory, hints,
+solutions and formatted answer lines can use native MathML. The build
+keeps Repka's HTML tags, including `div`, `span`, `u`, `s`, `hr` and
+`tfoot`, and filters out unsupported markup and attributes.
+
+An inline `<img>` can reference a pack file or the `original_url` of a
+listed image. The build keeps it in place, appends any other listed images
+and serves them from the local pack.
 
 Answers are checked in the browser, so the right answers are in the published
 files.

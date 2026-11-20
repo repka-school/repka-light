@@ -10,7 +10,9 @@ import { bodyLabels, t } from "@/strings";
 
 /** A task's text as one plain line, for the review list. */
 function snippet(html: string): string {
-  return (new DOMParser().parseFromString(html.replace(/<br\s*\/?>|<\/p>/gi, " $&"), "text/html").body.textContent ?? "").replace(/\s+/g, " ").trim();
+  const { body } = new DOMParser().parseFromString(html.replace(/<br\s*\/?>|<\/(?:p|div|li)>/gi, " $&"), "text/html");
+  body.querySelectorAll("annotation, mphantom").forEach((node) => node.remove());
+  return (body.textContent ?? "").replace(/\s+/g, " ").trim();
 }
 
 type Tally = { first: number; second: number; wrong: number; total: number };

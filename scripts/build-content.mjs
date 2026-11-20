@@ -1,17 +1,17 @@
 // Turns the course packs under courses/ into the JSON and pictures the site
 // loads: public/content/index.json, one file per course, and media/.
 // Fails on anything a lesson could not show: a missing task or picture, a
-// question without a right answer, markup outside the small allowed set.
+// question without a right answer, or MathML outside Repka's subset.
 
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
+import { escapeHtml, parseMarkup, renderMarkup } from "./content-markup.mjs";
+import { presentOptions } from "./content-options.mjs";
 
 const LETTERS = ["А", "Б", "В", "Г", "Д", "Е"];
 const IMAGE_ALT = "Иллюстрация к заданию";
-const ALLOWED_TAGS = new Set(["p", "br", "blockquote", "b", "strong", "i", "em", "sub", "sup", "ul", "ol", "li", "table", "caption", "thead", "tbody", "tr", "th", "td"]);
-const ALLOWED_ATTRIBUTES = new Set(["colspan", "rowspan"]);
 /** The drawings a theory block may name; the site draws each one (src/ui/pictures/TheoryPicture.tsx). */
 export const THEORY_PICTURES = [
   "book", "reread", "question", "magnifier", "check", "pencil", "list", "counters", "cup", "corner", "plus", "minus", "plusminus", "brackets", "letter",
@@ -22,33 +22,10 @@ export const THEORY_PICTURES = [
 ];
 
 const readYaml = (file) => parse(fs.readFileSync(file, "utf8"));
-
-export const escapeHtml = (text) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const hasBody = (part) => part?.text?.trim() || part?.html?.trim() || part?.images?.length;
 
 /** Plain text as one paragraph, its line breaks kept. */
 export const textToHtml = (text) => `<p>${escapeHtml(text.trim()).replace(/\n/g, "<br>")}</p>`;
-
-/** Authored markup, checked against the allowed tags; a table gets a frame that scrolls when it is too wide. */
-export function checkedHtml(html, where, renderImage) {
-  const tags = /<(\/?)([a-zA-Z][a-zA-Z0-9-]*)([^<>]*)>/g;
-  const checked = html.replace(tags, (markup, closing, tag, attributes) => {
-    if (tag.toLowerCase() === "img" && !closing && renderImage) {
-      const ref = /^\s+src\s*=\s*(?:"([^"]+)"|'([^']+)')(?:\s+alt\s*=\s*(?:"([^"]*)"|'([^']*)'))?\s*\/?\s*$/.exec(attributes);
-      if (!ref) throw new Error(`${where}: expected an image with src and optional alt`);
-      return renderImage(ref[1] ?? ref[2], ref[3] ?? ref[4]);
-    }
-    if (!ALLOWED_TAGS.has(tag.toLowerCase())) throw new Error(`${where}: tag <${tag}> is not allowed`);
-    if (!closing) {
-      for (const [, name] of attributes.matchAll(/([a-zA-Z-]+)\s*=/g)) {
-        if (!ALLOWED_ATTRIBUTES.has(name.toLowerCase())) throw new Error(`${where}: attribute ${name} is not allowed on <${tag}>`);
-      }
-    }
-    return markup;
-  });
-  // Whatever "<" is left opens no whole tag: a bare sign, or a tag that is never closed.
-  if (html.replace(tags, "").includes("<")) throw new Error(`${where}: a stray "<" in markup`);
-  return checked.replace(/<table[\s\S]*?<\/table>/g, (table) => `<div class="scroll-frame">${table}</div>`);
-}
 
 /**
  * A theory card's blocks, checked: what the guide says, numbered steps, facts,
@@ -133,33 +110,54 @@ function writer(out) {
   return { put, sweep };
 }
 
-function buildPack(root, put, packId, base) {
+function readPack(root, packId, base) {
   const packDir = path.join(root, "packs", packId);
   const pack = readYaml(path.join(packDir, "pack.yaml"));
   if (pack.id !== packId) throw new Error(`${packId}: pack.yaml names the pack ${pack.id}`);
+  const imported = pack.origin === "scraped";
   const media = new Set();
 
   const image = (file, where) => {
-    if (!fs.existsSync(path.join(packDir, file))) throw new Error(`${where}: missing picture ${file}`);
-    media.add(file);
-    return `${base}content/media/${packId}/${file}`;
-  };
-  const body = (part, where) => {
-    if (!part || (!part.text?.trim() && !part.html?.trim() && !part.images?.length)) throw new Error(`${where}: nothing to show`);
-    const refs = part.images ?? [];
-    const placed = new Set();
-    const picture = (file, alt) => `<img src="${escapeHtml(image(file, where))}" alt="${alt}" loading="lazy">`;
-    const inlineImage = (file, alt) => {
-      const ref = refs.find((ref) => ref.file === file);
-      if (!ref) throw new Error(`${where}: inline picture ${file} is missing from images`);
-      placed.add(file);
-      const description = alt === undefined ? escapeHtml(ref.alt ?? IMAGE_ALT) : alt.replace(/"/g, "&quot;");
-      return picture(file, description);
-    };
-    let html = part.html?.trim() ? checkedHtml(part.html, where, inlineImage) : part.text?.trim() ? textToHtml(part.text) : "";
-    for (const ref of refs) {
-      if (!placed.has(ref.file)) html += picture(ref.file, escapeHtml(ref.alt ?? IMAGE_ALT));
+    if (typeof file !== "string" || file.split("/").some((part) => !part || part === "." || part === ".." || part.includes("\\"))) {
+      throw new Error(`${where}: invalid picture file ${file}`);
     }
+    const local = path.join(packDir, file);
+    if (!fs.statSync(local, { throwIfNoEntry: false })?.isFile()) throw new Error(`${where}: missing picture ${file}`);
+    if (!fs.realpathSync(local).startsWith(fs.realpathSync(packDir) + path.sep)) throw new Error(`${where}: picture is outside the pack ${file}`);
+    media.add(file);
+    return `${base}content/media/${packId}/${file.split("/").map(encodeURIComponent).join("/")}`;
+  };
+  const readMarkup = (part, where) => part?.html?.trim() ? parseMarkup(part.html, where, imported) : null;
+  const body = (part, where, { nodes = readMarkup(part, where), sourceURL, answerPicture, answerAlt, role = IMAGE_ALT } = {}) => {
+    if (!hasBody(part)) throw new Error(`${where}: nothing to show`);
+    const refs = part.images ?? [];
+    const candidates = answerPicture ? [...refs, answerPicture] : refs;
+    const placed = new Set();
+    const resolved = (src) => {
+      try {
+        return new URL(src, sourceURL || "https://pack.invalid/").href;
+      } catch {
+        return null;
+      }
+    };
+    const picture = (ref, alt) => {
+      const { file } = ref;
+      if (placed.has(file)) return "";
+      placed.add(file);
+      const description = file === answerPicture?.file ? answerAlt : alt?.trim().replace(/\s+/g, " ") || ref.alt || role;
+      return `<img src="${escapeHtml(image(file, where))}" alt="${escapeHtml(description)}" loading="lazy">`;
+    };
+    const inlineImage = (src, alt) => {
+      const url = resolved(src);
+      const ref = candidates.find((ref) => ref.file === src || (url && url === resolved(ref.original_url ?? ref.file)));
+      if (!ref) {
+        if (imported) return "";
+        throw new Error(`${where}: inline picture ${src} is missing from images`);
+      }
+      return picture(ref, imported ? undefined : alt);
+    };
+    let html = nodes ? renderMarkup(nodes, { where, renderImage: inlineImage }).html : part.text?.trim() ? textToHtml(part.text) : "";
+    for (const ref of candidates) html += picture(ref);
     return html;
   };
 
@@ -168,12 +166,14 @@ function buildPack(root, put, packId, base) {
     if (!fs.existsSync(file)) throw new Error(`${packId}: missing task ${taskId}`);
     const task = readYaml(file);
     const where = `${packId}/${taskId}`;
+    if (["draft", "voided", "retired"].includes(task.status)) return null;
     if (task.status !== "active") throw new Error(`${where}: status is ${task.status}, not active`);
     const id = where;
+    const sourceURL = task.source?.url;
     if (task.kind === "theory") {
       // A theory card shows a body, blocks, or both.
       const blocks = theoryBlocks(task.blocks, where, image);
-      return { id, kind: "theory", title: task.learning?.title ?? "", body: blocks.length && !task.question ? "" : body(task.question, where), blocks };
+      return { id, kind: "theory", title: task.learning?.title ?? "", body: blocks.length && !task.question ? "" : body(task.question, where, { sourceURL, role: "Иллюстрация к теории" }), blocks };
     }
 
     const answer = task.answer;
@@ -182,55 +182,76 @@ function buildPack(root, put, packId, base) {
     if (options.length < 2 || options.length > LETTERS.length) throw new Error(`${where}: ${options.length} options`);
     // Saved answers are kept as whole numbers; any other id would not come back after a reload.
     if (options.some((o) => !Number.isInteger(o.id))) throw new Error(`${where}: an option id that is not a whole number`);
+    if (options.some((o) => o.id < 1 || !Number.isSafeInteger(o.id))) throw new Error(`${where}: an option id outside the supported range`);
     if (new Set(options.map((o) => o.id)).size !== options.length) throw new Error(`${where}: repeated option id`);
-    if (options.some((o) => !String(o.text ?? "").trim())) throw new Error(`${where}: an option without text`);
+    const answerPicture = answer.picture;
+    const labels = options.map((o) => o.label ?? "");
+    if (labels.some(Boolean) && (labels.some((label) => typeof label !== "string" || !label.trim()) || new Set(labels).size !== labels.length)) {
+      throw new Error(`${where}: option labels must all be present and unique when written`);
+    }
+    if (answerPicture) {
+      if (options.some((o) => String(o.text ?? "") !== "")) throw new Error(`${where}: an option with text beside an answer picture`);
+    } else if (options.some((o) => !String(o.text ?? "").trim())) {
+      throw new Error(`${where}: an option without text`);
+    }
     const correct = options.filter((o) => o.correct).map((o) => o.id);
     if (correct.length === 0 || (answer.kind === "single" && correct.length !== 1)) throw new Error(`${where}: ${correct.length} right options for a ${answer.kind} answer`);
+    const nodes = readMarkup(task.question, where);
+    const choices = presentOptions(nodes, options.map((o, i) => ({ id: o.id, label: labels[i] || LETTERS[i], text: String(o.text ?? "") })), { where, picture: answerPicture });
+    const hideOptions = answer.hide === true;
+    if (hideOptions && choices.some(({ html }) => !html)) throw new Error(`${where}: options cannot be hidden when shown in the question`);
+    const orderedLabels = choices.map(({ label }) => label).sort();
+    const answerAlt = `Изображение вариантов ответа ${orderedLabels[0]}–${orderedLabels.at(-1)}`;
     const hint = task.learning?.hint;
     return {
       id,
       kind: "question",
       answerKind: answer.kind,
-      body: body(task.question, where),
-      hideOptions: answer.hide === true,
+      body: body(task.question, where, { nodes, sourceURL, answerPicture, answerAlt }),
+      hideOptions,
       points: task.points ?? null,
-      choices: options.map((o, i) => ({ id: o.id, label: LETTERS[i], text: String(o.text), html: escapeHtml(String(o.text)) })),
+      choices,
       correct,
-      hint: hint ? body(hint, `${where} hint`) : null,
-      explanation: task.explanation ? body(task.explanation, `${where} explanation`) : null,
+      hint: hasBody(hint) ? body(hint, `${where} hint`, { sourceURL, role: "Иллюстрация к подсказке" }) : null,
+      explanation: hasBody(task.explanation) ? body(task.explanation, `${where} explanation`, { sourceURL, role: "Иллюстрация к решению" }) : null,
     };
   };
 
-  const courses = [];
+  const writeMedia = (put) => {
+    for (const file of media) put(path.join("media", packId, file), fs.readFileSync(path.join(packDir, file)));
+  };
+  return { packDir, card, image, writeMedia };
+}
+
+function coursesOf(packId, { packDir, image }, cardFor) {
   const coursesDir = path.join(packDir, "courses");
-  for (const name of fs.readdirSync(coursesDir).filter((f) => f.endsWith(".yaml")).sort()) {
+  const courseFiles = fs.existsSync(coursesDir) ? fs.readdirSync(coursesDir) : [];
+  return courseFiles.filter((f) => f.endsWith(".yaml")).sort().map((name) => {
     const slug = name.replace(/\.yaml$/, "");
     const source = readYaml(path.join(coursesDir, name));
     const lessonSlugs = new Set();
-    const modules = (source.modules ?? []).map((module) => ({
+    const lessons = source.lessons ?? (source.tasks ? [{ slug, title: source.title, tasks: source.tasks }] : []);
+    const modules = (source.modules ?? [{ slug, title: "", lessons }]).map((module) => ({
       slug: module.slug,
       title: module.title,
       lessons: (module.lessons ?? []).map((lesson) => {
         if (lessonSlugs.has(lesson.slug)) throw new Error(`${slug}: repeated lesson ${lesson.slug}`);
         lessonSlugs.add(lesson.slug);
-        const cards = (lesson.tasks ?? []).map(card);
+        const cards = (lesson.tasks ?? []).map((taskId) => cardFor(packId, taskId)).filter(Boolean);
         if (!cards.some((c) => c.kind === "question")) throw new Error(`${slug}/${lesson.slug}: a lesson without questions`);
         return { slug: lesson.slug, title: lesson.title, cards };
       }),
     }));
     if (lessonSlugs.size === 0) throw new Error(`${slug}: a course without lessons`);
-    courses.push({
+    return {
       slug,
       title: source.title,
       description: source.description ?? "",
       cover: source.cover?.file ? image(source.cover.file, slug) : null,
       grades: (source.tags?.grade ?? []).map(String),
       modules,
-    });
-  }
-
-  for (const file of media) put(path.join("media", packId, file), fs.readFileSync(path.join(packDir, file)));
-  return courses;
+    };
+  });
 }
 
 /** The path the site is served from, with a slash at each end: "/" or "/name/". */
@@ -244,7 +265,18 @@ export function buildContent({ root, out, base = "/" }) {
   const bundle = readYaml(path.join(root, "bundle.yaml"));
   fs.mkdirSync(out, { recursive: true });
   const { put, sweep } = writer(out);
-  const courses = (bundle.packs ?? []).flatMap((packId) => buildPack(root, put, packId, base));
+  const packs = new Map((bundle.packs ?? []).map((packId) => [packId, readPack(root, packId, base)]));
+  const cardFor = (coursePack, member) => {
+    const [target, ...parts] = member.split(":");
+    const packId = parts.length ? target : coursePack;
+    const taskId = parts.length ? parts.join("/") : member;
+    const pack = packs.get(packId);
+    if (!pack) throw new Error(`${coursePack}: unknown pack ${packId} in course member ${member}`);
+    const card = pack.card(taskId);
+    if (packId !== coursePack && card?.kind === "theory") throw new Error(`${coursePack}: cannot include another pack's theory card ${member}`);
+    return card;
+  };
+  const courses = [...packs].flatMap(([packId, pack]) => coursesOf(packId, pack, cardFor));
   if (courses.length === 0) throw new Error("no courses to build");
   if (new Set(courses.map((c) => c.slug)).size !== courses.length) throw new Error("two courses share a slug");
 
@@ -273,6 +305,7 @@ export function buildContent({ root, out, base = "/" }) {
     const source = sources.get(course.slug);
     put(`${course.slug}.json`, JSON.stringify(source ? { ...course, source } : course));
   }
+  for (const pack of packs.values()) pack.writeMedia(put);
   put("index.json", JSON.stringify(index));
   sweep();
   return index;

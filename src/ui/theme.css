@@ -3,6 +3,15 @@
    full-size picture view. */
 @import "tailwindcss";
 @import "tw-animate-css";
+
+@font-face {
+  font-family: "Noto Sans Math";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./assets/fonts/NotoSansMath-Regular.woff2") format("woff2");
+}
+
 :root {
   --radius: 0.625rem;
   --background: #f6f5ef;
@@ -28,6 +37,7 @@
   --input: #818c7d;
   --scroll-shade: #21382d33;
   --scroll-surface: var(--card);
+  --math-rule: #7d8879;
   --ring: #cc792f;
   --hover-border: #b6c5ac;
   --tile: #fafbf6;
@@ -353,6 +363,10 @@
   .rich-body blockquote > :last-child {
     margin-bottom: 0;
   }
+  .rich-body hr {
+    margin-block: 0.75em;
+    border-color: var(--border);
+  }
   .rich-body blockquote[data-callout="remember"] {
     --callout-accent: var(--frame-sea);
     --callout-background: var(--theory-rule-bg);
@@ -388,6 +402,7 @@
     overflow-x: auto;
     margin: 0.5em 0;
   }
+  .rich-body .formula,
   .rich-body .scroll-frame {
     background:
     linear-gradient(to right, var(--scroll-surface) 0.75rem, transparent) left center / 1.5rem 100% no-repeat local,
@@ -402,6 +417,89 @@
   .rich-body th {
     padding: 5px 9px;
     border: 1px solid var(--border);
+  }
+  .rich-body math {
+    font-family: "Noto Sans Math", math;
+    overflow-wrap: normal;
+  }
+  .rich-body .formula {
+    display: inline-block;
+    max-width: 100%;
+    overflow-x: auto;
+    vertical-align: middle;
+  }
+  .rich-body .formula-display {
+    display: block;
+    margin-block: 0.5em;
+  }
+  .rich-body .formula > math[display="block"] {
+    display: block math;
+  }
+  .choices:not(.is-stack) .tile-text .formula {
+    overflow: visible;
+    background: none;
+  }
+  .rich-body annotation {
+    display: none;
+  }
+  .rich-body :is(msub, msup, msubsup, munder, mover, munderover, mmultiscripts) > :not(:first-child),
+  .rich-body mroot > :last-child,
+  .rich-body mfrac > *,
+  .rich-body :is(mrow, mstyle, mpadded, mphantom)[scriptlevel]:not([scriptlevel="0"], [scriptlevel^="-"], [scriptlevel="+0"]) {
+    font-size: max(var(--type-xs), 0.71em);
+  }
+  .rich-body math[display="block"] > mfrac > *,
+  .rich-body math[display="block"] > :is(mrow, semantics, mstyle, mpadded) > mfrac > *,
+  .rich-body math[display="block"] > :is(mrow, semantics, mstyle, mpadded) > :is(mrow, mstyle, mpadded) > mfrac > * {
+    font-size: inherit;
+  }
+  .rich-body mtd {
+    padding: 0.5ex 0.4em;
+  }
+  .rich-body mfrac {
+    padding-inline: 1px;
+  }
+  .rich-body mtd[columnalign="left"] {
+    text-align: left;
+    text-align: -webkit-left;
+  }
+  .rich-body mtd[columnalign="center"] {
+    text-align: center;
+    text-align: -webkit-center;
+  }
+  .rich-body mtd[columnalign="right"] {
+    text-align: right;
+    text-align: -webkit-right;
+  }
+  .rich-body mtd[rowalign="top"] {
+    vertical-align: top;
+  }
+  .rich-body mtd[rowalign="bottom"] {
+    vertical-align: bottom;
+  }
+  .rich-body mtd:is([rowalign="center"], [rowalign="axis"]) {
+    vertical-align: middle;
+  }
+  .rich-body mtd[rowalign="baseline"] {
+    vertical-align: baseline;
+  }
+  .rich-body mtd.ml-l-solid {
+    border-inline-start: 1.5px solid var(--math-rule);
+  }
+  .rich-body mtd.ml-l-dashed {
+    border-inline-start: 1.5px dashed var(--math-rule);
+  }
+  .rich-body mtd.ml-t-solid {
+    border-block-start: 1.5px solid var(--math-rule);
+  }
+  .rich-body mtd.ml-t-dashed {
+    border-block-start: 1.5px dashed var(--math-rule);
+  }
+  .rich-body mtable[frame="solid"] {
+    border: 1.5px solid var(--math-rule);
+  }
+  .rich-body mtable[frame="dashed"] {
+    border: 1.5px dashed var(--math-rule);
   }
   [data-slot="dialog-content"] {
     --scroll-surface: var(--background);
@@ -808,6 +906,9 @@
     display: inline-flex;
     gap: 3px;
     font-weight: 700;
+  }
+  .option-text {
+    min-width: 0;
   }
   .option-mark {
     font-size: var(--type-label);

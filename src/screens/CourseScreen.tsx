@@ -98,7 +98,7 @@ function CourseOutline({ course }: { course: Course }) {
       </div>
       {course.modules.map((module) => (
         <section className="module" key={module.slug}>
-          <h2 className="module-heading">{module.title}</h2>
+          {module.title && <h2 className="module-heading">{module.title}</h2>}
           <ol className="lesson-list">
             {module.lessons.map((lesson) => (
               <LessonRow key={lesson.slug} number={++number} course={course.slug} lesson={lesson} saved={saved} primary={lesson.slug === primary?.slug} />
