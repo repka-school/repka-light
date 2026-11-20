@@ -553,6 +553,14 @@ select,
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
+.drill-prompt .rich-body {
+  font-size: inherit;
+  color: inherit;
+}
+.drill-page .rich-body .formula {
+  overflow: visible;
+  background: none;
+}
 .drill-options {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -34,7 +34,7 @@ test("the multiplication course opens with theory and ends with squares through 
   await expect(table.getByRole("row").last()).toHaveText(/20²\s*400/);
 });
 
-test("rounds last five seconds and a repeat game grants its own XP", async ({ page, hasTouch }) => {
+test("correct answers cap the wait at two seconds and a repeat game grants its own XP", async ({ page, hasTouch }) => {
   await page.clock.install({ time: new Date("2026-01-01T00:00:00Z") });
   await page.clock.pauseAt(new Date("2026-01-01T00:01:00Z"));
   await page.goto(timesTwo);
@@ -55,7 +55,8 @@ test("rounds last five seconds and a repeat game grants its own XP", async ({ pa
       await page.keyboard.press(key!);
       await page.keyboard.press(key!);
       await expect(page.getByRole("status").filter({ hasText: "Верно!" })).toBeVisible();
-      await page.clock.runFor(4999);
+      await expect(page.getByRole("timer")).toHaveText("2 с");
+      await page.clock.runFor(1999);
       await expect(prompt(page)).toHaveText(before);
       await expect(page.getByRole("timer")).toHaveText("1 с");
       await page.clock.runFor(1);
@@ -66,31 +67,57 @@ test("rounds last five seconds and a repeat game grants its own XP", async ({ pa
       if (hasTouch) await choice.wrong.tap();
       else await choice.wrong.click();
       await expect(page.getByRole("status").filter({ hasText: "Верный ответ" })).toBeVisible();
-    } else if (i !== 2) {
+    } else if (i === 2 || i === 9) {
+      await page.clock.runFor(5000);
+      await expect(page.getByRole("timer")).toHaveText("0 с");
+      await expect(page.getByRole("status").filter({ hasText: "Выбери ответ, чтобы продолжить" })).toBeVisible();
+      await page.clock.runFor(15000);
+      await expect(prompt(page)).toHaveText(before);
+      if (i === 2) {
+        await page.keyboard.press((await choice.right.getAttribute("aria-keyshortcuts"))!);
+        await expect(page.getByRole("status").filter({ hasText: "Верно! Время вышло — 0 XP." })).toBeVisible();
+      } else {
+        await choice.wrong.click();
+        await expect(page.getByRole("status").filter({ hasText: /Верный ответ.*0 XP/ })).toBeVisible();
+      }
+      await expect(page.getByRole("timer")).toHaveText("0 с");
+    } else {
+      if (i === 3) await page.clock.runFor(4200);
       await choice.right.click();
       await expect(page.getByRole("status").filter({ hasText: "Верно!" })).toBeVisible();
     }
-    await page.clock.runFor(5000);
+    const remaining = i === 1 ? 5000 : i === 3 ? 800 : 2000;
+    await page.clock.runFor(remaining - 1);
+    await expect(prompt(page)).toHaveText(before);
+    await page.clock.runFor(1);
   }
   expect(seen.size).toBe(10);
-  await expect(page.getByText("Верных ответов — 8 из 10")).toBeVisible();
-  await expect(page.getByText("+8 XP", { exact: true })).toBeVisible();
+  await expect(page.getByText("Верных ответов — 7 из 10")).toBeVisible();
+  await expect(page.getByText("+7 XP", { exact: true })).toBeVisible();
+  await expect(page.getByText("Время на ответы — 44,2 с.")).toBeVisible();
+  await expect(page.getByText("Первый рекорд времени!")).toBeVisible();
+  await expect.poll(async () => (await stored(page)).courses.multiplication).toMatchObject({
+    drills: { "times-2/game": 7 }, bestAnswerTimeTenths: { "times-2/game": 442 }, xp: { "times-2/game": 7 },
+  });
 
   await page.getByRole("button", { name: "Играть ещё" }).click();
   for (let i = 0; i < 10; i++) {
+    await page.clock.runFor(135);
     await (await options(page)).right.click();
     await expect(page.getByRole("status").filter({ hasText: "Верно!" })).toBeVisible();
-    await page.clock.runFor(5000);
+    await page.clock.runFor(2000);
   }
   await expect(page.getByText("Верных ответов — 10 из 10")).toBeVisible();
   await expect(page.getByText("+10 XP", { exact: true })).toBeVisible();
+  await expect(page.getByText("Время на ответы — 1,4 с.")).toBeVisible();
+  await expect(page.getByText("Новый рекорд! На 42,8 с быстрее прежнего (44,2 с).")).toBeVisible();
   await expect.poll(async () => (await stored(page)).courses.multiplication).toMatchObject({
-    drills: { "times-2/game": 10 }, xp: { "times-2/game": 18 },
+    drills: { "times-2/game": 10 }, bestAnswerTimeTenths: { "times-2/game": 14 }, xp: { "times-2/game": 17 },
   });
 
   await page.reload();
   await page.locator("#to-course").click();
-  await expect(page.getByText("Лучший результат — 10 из 10")).toBeVisible();
+  await expect(page.getByText("Лучший результат — 10 из 10 (1,4 с)", { exact: true })).toBeVisible();
   await expect(page.locator("#course-primary-start")).toContainText("Умножение на 3");
 });
 
@@ -125,11 +152,59 @@ test("the new arithmetic courses open from the catalog and the mixed game awards
     operations.push((await prompt(page).innerText()).split(" ")[1]);
     await (await options(page)).right.click();
     await expect(page.getByRole("status").filter({ hasText: "Верно!" })).toBeVisible();
-    await page.clock.runFor(5000);
+    await page.clock.runFor(2000);
   }
   expect(operations.sort()).toEqual([...Array(5).fill("+"), ...Array(5).fill("−")]);
   await expect(page.getByText("+10 XP", { exact: true })).toBeVisible();
   await expect.poll(async () => (await stored(page)).courses["addition-subtraction"]).toMatchObject({
     drills: { "within-10/game": 10 }, xp: { "within-10/game": 10 },
   });
+});
+
+test("algebra drills show simplified expressions and solutions to equations", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-01-01T00:00:00Z") });
+  await page.clock.pauseAt(new Date("2026-01-01T00:01:00Z"));
+  await page.goto("courses");
+  await page.getByRole("link", { name: "Выражения, корни и уравнения в уме", exact: true }).click();
+  await expect(page.locator(".lesson-item")).toHaveCount(6);
+  await page.locator("#course-primary-start").click();
+  await expect(page.locator(".theory-card p mfrac").first()).toBeVisible();
+  await expect(page.getByRole("table").locator("mfrac").first()).toBeVisible();
+  const shadedFormula = page.getByRole("table").locator("tbody tr:nth-child(2) .formula");
+  await expect(shadedFormula).toHaveCSS("background-image", "none");
+  await expect(shadedFormula).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(shadedFormula).toHaveCSS("overflow-y", "visible");
+  await page.getByRole("button", { name: "К игре" }).click();
+  await page.getByRole("button", { name: "Начать игру" }).click();
+  const fraction = prompt(page).locator("mfrac");
+  await expect(fraction.locator("mrow > mo").first()).toHaveText("·");
+  await expect(prompt(page).locator(".formula")).toHaveCSS("overflow-y", "visible");
+  const factors = await fraction.locator("mrow > mn").allTextContents();
+  const divisor = await fraction.locator(":scope > mn").textContent();
+  const coefficient = factors.reduce((total, factor) => total * Number(factor), 1) / Number(divisor);
+  const simplified = coefficient === 1 ? "x" : `${coefficient}x`;
+  const choices = page.getByRole("group", { name: "Варианты ответа" });
+  await choices.getByRole("button", { name: simplified, exact: true }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Верно!" })).toBeVisible();
+
+  await page.goto("course/mental-algebra/lesson/root-quotients");
+  await expect(page.locator(".theory-card p mfrac > msqrt").first()).toBeVisible();
+  await page.getByRole("button", { name: "К игре" }).click();
+  await page.getByRole("button", { name: "Начать игру" }).click();
+  const operands = await fraction.locator(":scope > *").evaluateAll((nodes) =>
+    nodes.map((node) => node.localName === "msqrt" ? Math.sqrt(Number(node.textContent)) : Number(node.textContent)));
+  const quotient = operands[0] / operands[1];
+  await choices.getByRole("button", { name: String(quotient), exact: true }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Верно!" })).toBeVisible();
+
+  await page.goto("course/mental-algebra/lesson/one-step");
+  await page.getByRole("button", { name: "К игре" }).click();
+  await page.getByRole("button", { name: "Начать игру" }).click();
+  const equation = (await prompt(page).innerText()).replaceAll("−", "-");
+  const [a, b] = equation.match(/-?\d+/g)!.map(Number);
+  const solution = equation.startsWith("x +") ? b - a : equation.endsWith(`x - ${b}`) ? a + b : b / a;
+  const label = `x = ${String(solution).replace("-", "−")}`;
+  const wrong = choices.getByRole("button").filter({ hasNotText: new RegExp(`${label}$`) }).first();
+  await wrong.click();
+  await expect(page.getByRole("status").filter({ hasText: `Верный ответ — ${label}.` })).toBeVisible();
 });

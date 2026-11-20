@@ -59,6 +59,8 @@ export type Saved = {
   runs: Record<string, SavedRun>;
   /** The best score in each timed game, by card id. */
   drills?: Record<string, number>;
+  /** Lowest sum of card response times in tenths of a second, by drill card id. */
+  bestAnswerTimeTenths?: Record<string, number>;
   /** The experience each task or game has given, by card id. A reset keeps it. */
   xp: Record<string, number>;
   /** The homestead, once it has been changed; until then it is the starter one. A reset keeps it. */
@@ -129,9 +131,10 @@ export type PackedEntry = [flags: number, first?: number[] | 0, final?: number[]
 /** A pass: `cardsKey` of its cards, the card on screen, 1 when the summary shows, then one entry per card. */
 export type PackedRun = [cards: string, index: number, summary: 0 | 1, ...entries: PackedEntry[]];
 /** One course's part of the saved state; ids inside are without the `<course>/` in front. */
-export type StoredCourse = { last?: string; results?: Record<string, PackedResult>; xp?: Record<string, number>; runs?: Record<string, PackedRun>; drills?: Record<string, number> };
+export type StoredCourse = { last?: string; results?: Record<string, PackedResult>; xp?: Record<string, number>; runs?: Record<string, PackedRun>; drills?: Record<string, number>; bestAnswerTimeTenths?: Record<string, number> };
 
 const isDrillScore = (value: unknown): value is number => typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= DRILL_ROUNDS;
+const isDrillTime = (value: unknown): value is number => typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
 
 /** The saved state as it is written. */
 export type Stored = { version: typeof STORED_VERSION; profile: Profile; courses: Record<string, StoredCourse>; homestead?: PackedHomestead };
@@ -157,6 +160,10 @@ export function toStored(saved: Saved): Stored {
   for (const [id, score] of Object.entries(saved.drills ?? {})) {
     const [slug, rest] = split(id);
     (course(slug).drills ??= record())[rest] = score;
+  }
+  for (const [id, tenths] of Object.entries(saved.bestAnswerTimeTenths ?? {})) {
+    const [slug, rest] = split(id);
+    (course(slug).bestAnswerTimeTenths ??= record())[rest] = tenths;
   }
   for (const [key, run] of Object.entries(saved.runs)) {
     const [slug, rest] = split(key);
@@ -210,6 +217,9 @@ export function fromStored(raw: unknown): Saved {
     }
     for (const [rest, score] of entriesOf(course.drills)) {
       if (isDrillScore(score)) (saved.drills ??= record())[join(slug, rest)] = score;
+    }
+    for (const [rest, tenths] of entriesOf(course.bestAnswerTimeTenths)) {
+      if (isDrillTime(tenths)) (saved.bestAnswerTimeTenths ??= record())[join(slug, rest)] = tenths;
     }
     for (const [rest, packed] of entriesOf(course.runs)) {
       const run = unpackRun(packed);
@@ -306,18 +316,19 @@ export function withXp(saved: Saved, tasks: Scored[]): Saved {
 }
 
 /** Keeps the best score for progress and gives one XP per correct answer in this game. */
-export function withDrillResult(saved: Saved, id: string, score: number, at: string): Saved {
-  if (!isDrillScore(score)) return saved;
+export function withDrillResult(saved: Saved, id: string, score: number, tenths: number, at: string): Saved {
+  if (!isDrillScore(score) || !isDrillTime(tenths)) return saved;
   const best = Math.max(saved.drills?.[id] ?? 0, score);
   return withPractice({
     ...saved,
     drills: { ...saved.drills, [id]: best },
+    bestAnswerTimeTenths: { ...saved.bestAnswerTimeTenths, [id]: Math.min(saved.bestAnswerTimeTenths?.[id] ?? tenths, tenths) },
     xp: score > 0 ? { ...saved.xp, [id]: (saved.xp[id] ?? 0) + score } : saved.xp,
   }, id, at);
 }
 
 /** The reset: every task result, practice time and lesson pass goes; the profile, the experience and the homestead stay. */
-export function withoutResults({ drills: _drills, ...saved }: Saved): Saved {
+export function withoutResults({ drills: _drills, bestAnswerTimeTenths: _times, ...saved }: Saved): Saved {
   return { ...saved, results: {}, last: {}, runs: {} };
 }
 

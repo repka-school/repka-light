@@ -7,28 +7,40 @@ import { lessonsOf } from "@/content/types";
 import { DRILL_ROUNDS, DRILL_SECONDS, drillQuestions, type DrillQuestion } from "@/lesson/drill";
 import { lessonPath } from "@/screens/CourseScreen";
 import { saveDrillResult } from "@/store/store";
-import { t } from "@/strings";
+import { bodyLabels, t } from "@/strings";
 import { PageHeading } from "@/ui/components/PageHeading";
+import { RichBody } from "@/ui/components/RichBody";
 import { Button } from "@/ui/components/ui/button";
 
 type Run = {
   questions: DrillQuestion[];
+  cardStartedAt: number;
+  totalAnswerMs: number;
   index: number;
   deadline: number;
-  selected: number | null;
+  selected: { value: number; late: boolean } | null;
   score: number;
 };
 
 const turnTime = DRILL_SECONDS * 1000;
+const feedbackMs = 2000;
 
 export function DrillLesson({ course, lesson, theory, drill }: { course: Course; lesson: Lesson; theory: TheoryCard; drill: DrillCard }) {
   const [showGame, setShowGame] = useState(false);
   const [run, setRun] = useState<Run | null>(null);
   const [seconds, setSeconds] = useState(DRILL_SECONDS);
+  const [timing, setTiming] = useState<{ tenths: number; previousBest?: number } | null>(null);
   const savedRun = useRef<Run | null>(null);
   const index = run?.index;
   const deadline = run?.deadline;
+  const selected = run?.selected;
   const question = run?.questions[run.index];
+  const answerText = (value: number) => drill.answerLabels?.[value] ?? String(value);
+  let feedback = seconds === 0 ? t.drill.timeUp : "";
+  if (question && selected) {
+    feedback = selected.value === question.answer ? t.drill.correct : t.drill.wrong(answerText(question.answer));
+    if (selected.late) feedback += ` ${t.drill.lateAnswer}`;
+  }
   const finished = !!run && !question;
   const phase = showGame ? finished ? "result" : run ? "playing" : "ready" : "theory";
   const coursePath = `/course/${encodeURIComponent(course.slug)}`;
@@ -45,39 +57,58 @@ export function DrillLesson({ course, lesson, theory, drill }: { course: Course;
     const tick = () => {
       const timeLeft = deadline - performance.now();
       if (timeLeft <= 0) {
-        const nextDeadline = performance.now() + turnTime;
+        if (!selected) {
+          setSeconds(0);
+          return;
+        }
+        const cardStartedAt = performance.now();
         setRun((current) => current && current.index === index && current.deadline === deadline
-          ? { ...current, index: current.index + 1, deadline: nextDeadline, selected: null }
+          ? { ...current, index: current.index + 1, cardStartedAt, deadline: cardStartedAt + turnTime, selected: null }
           : current);
         setSeconds(DRILL_SECONDS);
         return;
       }
       const remaining = Math.ceil(timeLeft / 1000);
-      setSeconds(remaining);
+      setSeconds(selected?.late ? 0 : remaining);
       timer = window.setTimeout(tick, timeLeft - (remaining - 1) * 1000);
     };
     tick();
     return () => window.clearTimeout(timer);
-  }, [question, index, deadline]);
+  }, [question, index, deadline, selected]);
 
   useEffect(() => {
     if (!finished || savedRun.current === run) return;
     savedRun.current = run;
-    saveDrillResult(drill.id, run.score);
+    const tenths = Math.round(run.totalAnswerMs / 100);
+    const previousBest = saveDrillResult(drill.id, run.score, tenths);
+    setTiming({ tenths, previousBest });
   }, [drill.id, finished, run]);
 
   const start = () => {
     const questions = drillQuestions(drill);
+    const cardStartedAt = performance.now();
+    setTiming(null);
     setSeconds(DRILL_SECONDS);
-    setRun({ questions, index: 0, deadline: performance.now() + turnTime, selected: null, score: 0 });
+    setRun({ questions, cardStartedAt, totalAnswerMs: 0, index: 0, deadline: cardStartedAt + turnTime, selected: null, score: 0 });
   };
 
   const choose = (value: number) => {
     if (!question) return;
     const now = performance.now();
     setRun((current) => {
-      if (!current || current.index !== index || current.deadline !== deadline || current.selected !== null || now >= current.deadline) return current;
-      return { ...current, selected: value, score: current.score + (value === question.answer ? 1 : 0) };
+      if (!current || current.index !== index || current.deadline !== deadline || current.selected !== null) return current;
+      const late = now >= current.deadline;
+      const correct = value === question.answer;
+      let advanceAt = current.deadline;
+      if (late) advanceAt = now + feedbackMs;
+      else if (correct) advanceAt = Math.min(current.deadline, now + feedbackMs);
+      return {
+        ...current,
+        selected: { value, late },
+        totalAnswerMs: current.totalAnswerMs + (now - current.cardStartedAt),
+        score: current.score + (correct && !late ? 1 : 0),
+        deadline: advanceAt,
+      };
     });
   };
 
@@ -125,7 +156,10 @@ export function DrillLesson({ course, lesson, theory, drill }: { course: Course;
                 <div className="drill-clock" aria-hidden="true">
                   <span style={{ width: `${seconds / DRILL_SECONDS * 100}%` }} />
                 </div>
-                <p className="drill-prompt" aria-live="polite" aria-atomic="true">{question.prompt} = ?</p>
+                <p className="drill-prompt" aria-live="polite" aria-atomic="true">
+                  {question.promptHtml ? <RichBody as="span" html={question.promptHtml} {...bodyLabels} /> : question.prompt}
+                  {!drill.equation && " = ?"}
+                </p>
                 <div className="drill-options" role="group" aria-label={t.optionsLabel}>
                   {question.options.map((value, i) => (
                     <Button
@@ -135,21 +169,22 @@ export function DrillLesson({ course, lesson, theory, drill }: { course: Course;
                       className="drill-option"
                       aria-keyshortcuts={String(i + 1)}
                       aria-disabled={run.selected !== null}
-                      data-mark={run.selected === null ? undefined : value === question.answer ? "correct" : value === run.selected ? "wrong" : undefined}
+                      data-mark={run.selected === null ? undefined : value === question.answer ? "correct" : value === run.selected.value ? "wrong" : undefined}
                       onClick={() => choose(value)}
                     >
-                      <kbd aria-hidden="true">{i + 1}</kbd><span>{value}</span>
+                      <kbd aria-hidden="true">{i + 1}</kbd><span>{answerText(value)}</span>
                     </Button>
                   ))}
                 </div>
                 <p className="drill-verdict" role="status">
-                  {run.selected !== null && (run.selected === question.answer ? t.drill.correct : t.drill.wrong(question.answer))}
+                  {feedback}
                 </p>
               </>
             )}
             {finished && (
               <>
                 <p className="drill-score">{t.drill.score(run.score, run.questions.length)}</p>
+                {timing && <p>{t.drill.totalTime(timing.tenths)}<br />{t.drill.timeRecord(timing.tenths, timing.previousBest)}</p>}
                 <p className="xp-gain">{t.drill.xp(run.score)}</p>
                 <div className="drill-actions">
                   <Button type="button" className="primary" onClick={start}>{t.drill.replay}</Button>

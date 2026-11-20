@@ -136,6 +136,13 @@ main.homestead-page {
   overflow: hidden;
   pointer-events: none;
 }
+.homestead-sky::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(155deg, #8ba5b1, #b3c7cb 55%, #d9e2d6);
+  opacity: var(--shower, 0);
+}
 .homestead-sky span {
   position: absolute;
   width: 9rem;
@@ -312,10 +319,11 @@ main.homestead-page {
 }
 .homestead-daylight {
   fill: url(#homestead-sweep);
+  opacity: calc(1 - var(--shower, 0) * .8);
 }
 .homestead-shadows {
   filter: blur(1.8px);
-  opacity: 0.24;
+  opacity: calc(.24 - var(--shower, 0) * .14);
 }
 .homestead-shadows polygon,
 .homestead-shadows ellipse {
@@ -631,21 +639,32 @@ main.homestead-page {
   pointer-events: none;
 }
 .homestead-weather svg { width: 1rem; height: 1rem; }
-.homestead-viewport[data-rain] {
-  background: linear-gradient(180deg, #a0b8c1, #e0e5d6);
-}
-.homestead-viewport[data-rain] .homestead-world {
-  filter: saturate(.78) brightness(.94);
-}
 .homestead-rain {
   position: absolute;
-  inset: -100px 0 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='148' height='100' viewBox='0 0 148 100'%3E%3Cpath d='m21 12-3 9m64 20-3 10m51 22-2 7m-80 3-2 6' fill='none' stroke='%23eff9ff' stroke-opacity='.65' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
-  animation: homestead-shower 1.25s linear infinite;
+  background: linear-gradient(155deg, rgb(53 78 104 / 18%), rgb(93 123 143 / 6%));
+  opacity: var(--shower, 0);
 }
-@keyframes homestead-shower {
-  to { transform: translateY(100px); }
+.pond-raindrops {
+  opacity: calc(var(--shower, 0) * .75);
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-rain] .pond-raindrops ellipse {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: pond-rain-ring 2.3s ease-out infinite;
+  }
+  [data-rain] .pond-raindrops ellipse:nth-child(2) { animation: pond-rain-ring 1.8s ease-out -.7s infinite; }
+  [data-rain] .pond-raindrops ellipse:nth-child(3) { animation: pond-rain-ring 2.7s ease-out -1.6s infinite; }
+  [data-rain] .pond-raindrops ellipse:nth-child(4) { animation: pond-rain-ring 2.1s ease-out -1s infinite; }
+}
+@keyframes pond-rain-ring {
+  0% { transform: scale(.2); opacity: 0; }
+  10% { opacity: .9; }
+  62%, 100% { transform: scale(1.25); opacity: 0; }
 }
 
 /* The buttons over the scene: zoom and fit in one strip at the top right, the arrows in one pad at the bottom right. */
@@ -1620,6 +1639,7 @@ main.homestead-page {
   .homestead-shadows,
   .homestead-decor,
   .homestead-sky,
+  .pond-raindrops,
   .homestead-insect,
   .homestead-rain {
     display: none;
@@ -1727,10 +1747,13 @@ main.homestead-page {
   }
 }
 .homestead-insect {
+  --shelter: clamp(0, calc(var(--shower, 0) * 2.8 - .12 - var(--i) * .22), 1);
   position: absolute;
   width: 0;
   height: 0;
   pointer-events: none;
+  opacity: calc(1 - var(--shelter));
+  transform: translateY(calc(var(--shelter) * 18px));
 }
 
 
@@ -1885,6 +1908,9 @@ main.homestead-page {
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .homestead-insect {
+    transform: none;
+  }
   .homestead-world.is-gliding {
     transition: none;
   }
@@ -1892,7 +1918,6 @@ main.homestead-page {
   .homestead-insect,
   .homestead-insect > span,
   .homestead-insect *,
-  .homestead-rain,
   .roaming-pet[data-walking] .p-leg,
   .p-tail,
   .homestead-thing > svg,

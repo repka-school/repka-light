@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { BACKUP_FORMAT, BACKUP_VERSION, backupFileName, fromBackup, toBackup } from "./backup";
 import { apply, starter } from "@/homestead/rules";
 import { pack } from "@/homestead/saved";
-import { cardsKey, empty, withDrillResult, withPractice, withProfile, withResult, withRun, withXp, type Saved } from "./storage";
+import { cardsKey, empty, withDrillResult, withoutResults, withPractice, withProfile, withResult, withRun, withXp, type Saved } from "./storage";
 
 const now = new Date("2026-03-04T05:06:07.000Z");
 const filled = () =>
@@ -47,10 +47,23 @@ describe("fromBackup", () => {
 
   it("keeps the best game score and the XP earned across replays in a backup", () => {
     const id = "multiplication/times-2/game";
-    const first = withDrillResult(empty(), id, 10, "2026-03-01T00:00:00.000Z");
-    const replay = withDrillResult(first, id, 6, "2026-03-02T00:00:00.000Z");
+    const first = withDrillResult(empty(), id, 10, 317, "2026-03-01T00:00:00.000Z");
+    const replay = withDrillResult(first, id, 6, 404, "2026-03-02T00:00:00.000Z");
     const read = fromBackup(JSON.stringify(toBackup(replay, now)));
-    expect(read).toMatchObject({ ok: true, saved: { drills: { [id]: 10 }, xp: { [id]: 16 } } });
+    expect(read).toMatchObject({ ok: true, saved: { drills: { [id]: 10 }, bestAnswerTimeTenths: { [id]: 317 }, xp: { [id]: 16 } } });
+    expect(withoutResults(replay).bestAnswerTimeTenths).toBeUndefined();
+  });
+
+  it("imports an older drill score without inventing a time record", () => {
+    const read = fromBackup(JSON.stringify({ format: BACKUP_FORMAT, version: 5, courses: { c: { drills: { game: 8 } } } }));
+    expect(read.ok && read.saved.drills).toEqual({ "c/game": 8 });
+    expect(read.ok && read.saved.bestAnswerTimeTenths).toBeUndefined();
+  });
+
+  it("imports a wall-clock record's score and XP without treating it as answer time", () => {
+    const course = { drills: { game: 8 }, xp: { game: 16 }, drillBestTenths: { game: 350 } };
+    const read = fromBackup(JSON.stringify({ format: BACKUP_FORMAT, version: 6, courses: { c: course } }));
+    expect(read).toEqual({ ok: true, exportedAt: "", saved: { ...empty(), drills: { "c/game": 8 }, xp: { "c/game": 16 } } });
   });
 
   it("keeps the state in the short form, grouped by course", () => {

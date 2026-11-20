@@ -62,6 +62,62 @@ describe("the bundled courses", () => {
     }
   });
 
+  it("publishes replayable algebra lessons with symbolic answers and exact roots", () => {
+    const out = temp();
+    const index = buildContent({ root: courses, out });
+    const course = JSON.parse(fs.readFileSync(path.join(out, "mental-algebra.json"), "utf8"));
+    const lessons = course.modules.flatMap((module) => module.lessons);
+    const summary = index.courses.find(({ slug }) => slug === course.slug);
+    expect(summary.grades).toEqual(["7", "8"]);
+    expect(summary.drills).toEqual(lessons.map(({ cards }) => cards[1].id));
+
+    for (const { cards: [theory, drill] } of lessons) {
+      const pool = [...drill.facts, ...drill.alternateFacts];
+      expect(new Set(pool.map(({ prompt }) => prompt)).size).toBe(pool.length);
+      const game = drillQuestions(drill);
+      expect(game).toHaveLength(DRILL_ROUNDS);
+      for (const family of [drill.facts, drill.alternateFacts]) {
+        const prompts = new Set(family.map(({ prompt }) => prompt));
+        expect(prompts.size).toBeGreaterThan(DRILL_ROUNDS / 2);
+        expect(game.filter(({ prompt }) => prompts.has(prompt))).toHaveLength(DRILL_ROUNDS / 2);
+      }
+      for (const { options, answer } of game) {
+        const labels = options.map((value) => drill.answerLabels ? drill.answerLabels[value] : value);
+        expect(labels).not.toContain(undefined);
+        expect(new Set(labels).size).toBe(3);
+        expect(options).toContain(answer);
+      }
+      for (const { prompt, answer } of drill.facts) {
+        if (drill.equation) {
+          const [, factor, sign, offset, right] = prompt.match(/^(\d+)x(?: ([+−]) (\d+))? = (−?\d+)$/);
+          expect(Number(factor) * answer + (sign === "−" ? -1 : 1) * Number(offset ?? 0)).toBe(Number(right.replace("−", "-")));
+        } else if (prompt.startsWith("√")) {
+          const [radicand, divisor = "1"] = prompt.slice(1).split("/");
+          expect(answer * Number(divisor)).toBe(Math.sqrt(Number(radicand.replace(/[()]/g, ""))));
+        }
+      }
+      expect(theory.body).toContain("<p>");
+    }
+
+    for (const [slug, prompt, value, label] of [
+      ["cancel-factors", "(x·4)/2", 2, "2x"],
+      ["cancel-factors", "(x·3·6)/3", 6, "6x"],
+      ["like-terms", "3x − 5x", -2, "−2x"],
+      ["like-terms", "3x − (x + 5x)", -3, "−3x"],
+      ["square-roots", "√(4·9)", 6, "6"],
+      ["root-quotients", "√(4)/2", 1, "1"],
+      ["root-quotients", "8/√(4)", 4, "4"],
+      ["one-step", "2x = 8", 4, "x = 4"],
+      ["one-step", "2 = x − 2", 4, "x = 4"],
+      ["two-step", "3x + 2 = 14", 4, "x = 4"],
+      ["two-step", "3(x + 2) = 18", 4, "x = 4"],
+    ]) {
+      const drill = lessons.find((lesson) => lesson.slug === slug).cards[1];
+      expect([...drill.facts, ...drill.alternateFacts]).toContainEqual(expect.objectContaining({ prompt, answer: value }));
+      expect(drill.answerLabels?.[value] ?? String(value)).toBe(label);
+    }
+  });
+
   it("builds arithmetic tables and games whose examples fit each lesson", () => {
     const out = temp();
     const index = buildContent({ root: courses, out });

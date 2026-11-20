@@ -16,6 +16,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type Keyboar
 import { flushSync } from "react-dom";
 import { CloudRain, Sun, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Maximize, Minus, Plus, type LucideIcon } from "lucide-react";
 import { weatherAt } from "./weather";
+import { Shower } from "./Shower";
 import { w } from "./strings";
 import { allInView, clampZoom, groundAt, held, SCENE, showing, TILE_W, tileCentre, ZOOM, zoomedAt, type View } from "./iso";
 import { IsoScene, tileId, type Burst, type Ghost } from "./IsoScene";
@@ -397,7 +398,7 @@ export function Scene({ home, cursor, marks, ghost, fits, selected, burst, onCur
             <div className={`homestead-world${glide ? " is-gliding" : ""}`} style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.z})` }}>
               <IsoScene rain={weather.rain} home={home} cursor={cursor} marks={marks} ghost={ghost} fits={fits} burst={burst} onTile={tap} onHover={hover} />
             </div>
-            {weather.rain && <div className="homestead-rain" aria-hidden="true" />}
+            {weather.rain && <Shower start={weather.start} end={weather.end} />}
           </div>
           <div className="homestead-weather">
             {weather.rain ? <CloudRain aria-hidden="true" /> : <Sun aria-hidden="true" />}

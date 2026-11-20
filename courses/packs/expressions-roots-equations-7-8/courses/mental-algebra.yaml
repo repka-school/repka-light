@@ -1,0 +1,46 @@
+title: Выражения, корни и уравнения в уме
+description: Упрощай выражения с x, извлекай квадратные корни и решай уравнения за несколько секунд.
+cover:
+  picture: scales
+tags:
+  grade: [7, 8]
+modules:
+  - slug: expressions
+    title: Выражения с x
+    lessons:
+      - slug: cancel-factors
+        title: Сократи множители
+        intro:
+          html: >-
+            <p>В дроби <math><mfrac><mrow><mi>x</mi><mo>·</mo><mn>4</mn></mrow><mn>2</mn></mfrac></math>
+            можно сократить 4 и 2 на 2. Получится 2x при любом x.</p>
+        drill: { algebra: cancel-factors }
+      - slug: like-terms
+        title: Собери подобные слагаемые
+        intro: В выражении 3x − 5x вычти коэффициенты и сохрани букву. Получится −2x.
+        drill: { algebra: like-terms }
+  - slug: roots
+    title: Квадратные корни
+    lessons:
+      - slug: square-roots
+        title: Узнай полный квадрат
+        intro: Какое неотрицательное число в квадрате даёт 49? Это 7, поэтому √49 = 7.
+        drill: { algebra: square-roots }
+      - slug: root-quotients
+        title: Извлеки корень и раздели
+        intro:
+          html: >-
+            <p>В дроби <math><mfrac><msqrt><mn>4</mn></msqrt><mn>2</mn></mfrac></math>
+            сначала вычисли числитель. Корень из 4 равен 2, поэтому вся дробь равна 1.</p>
+        drill: { algebra: root-quotients }
+  - slug: equations
+    title: Найди x
+    lessons:
+      - slug: one-step
+        title: Уравнения в одно действие
+        intro: Чтобы решить 2x = 8, раздели обе части на 2. Получишь x = 4.
+        drill: { algebra: one-step }
+      - slug: two-step
+        title: Уравнения в два действия
+        intro: В уравнении 3x + 2 = 14 сначала вычти 2 из обеих частей. Теперь 3x = 12, значит x = 4.
+        drill: { algebra: two-step }

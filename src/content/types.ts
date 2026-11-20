@@ -31,8 +31,15 @@ export type QuestionCard = {
   explanation: string | null;
 };
 
-export type DrillFact = { prompt: string; answer: number };
-export type DrillCard = { id: string; kind: "drill"; facts: DrillFact[]; alternateFacts?: DrillFact[] };
+export type DrillFact = { prompt: string; promptHtml?: string; answer: number };
+export type DrillCard = {
+  id: string;
+  kind: "drill";
+  facts: DrillFact[];
+  alternateFacts?: DrillFact[];
+  answerLabels?: Record<number, string>;
+  equation?: boolean;
+};
 
 export type Card = TheoryCard | QuestionCard | DrillCard;
 export type Lesson = { slug: string; title: string; cards: Card[] };

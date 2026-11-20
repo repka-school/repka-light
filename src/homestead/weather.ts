@@ -9,7 +9,12 @@ export function weatherAt(time: number) {
   const duration = Math.round(35_000 + scatter(period, 1) * 50_000);
   const start = period * PERIOD + Math.round(10_000 + scatter(period, 2) * (PERIOD - duration - 20_000));
   const end = start + duration;
-  if (time < start) return { rain: false, next: start };
-  if (time < end) return { rain: true, next: end };
-  return { rain: false, next: (period + 1) * PERIOD };
+  const rain = time >= start && time < end;
+  return { rain, start, end, next: time < start ? start : rain ? end : (period + 1) * PERIOD };
+}
+
+/** The first drops gather over eight seconds. The last drizzle takes longer to clear. */
+export function showerStrength(time: number, start: number, end: number) {
+  const t = Math.max(0, Math.min(1, (time - start) / 8000, (end - time) / 14000));
+  return t * t * (3 - 2 * t);
 }

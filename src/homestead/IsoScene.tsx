@@ -326,7 +326,7 @@ export function IsoScene({ home, rain, cursor, marks, ghost, fits, burst, onTile
         </span>
       ))}
       <RoamingPets things={home.things} rain={rain} placing={!!ghost} onSelect={onTile} />
-      {!rain && <Critters home={home} />}
+      <Critters home={home} />
       {home.things.map((thing) => (
         <Float key={`float-${thingKey(thing)}`} thing={thing} />
       ))}

@@ -221,10 +221,10 @@ function readPack(root, packId, base) {
   const writeMedia = (put) => {
     for (const file of media) put(path.join("media", packId, file), fs.readFileSync(path.join(packDir, file)));
   };
-  return { packDir, card, image, writeMedia };
+  return { packDir, card, image, body, writeMedia };
 }
 
-function coursesOf(packId, { packDir, image }, cardFor) {
+function coursesOf(packId, { packDir, image, body }, cardFor) {
   const coursesDir = path.join(packDir, "courses");
   const courseFiles = fs.existsSync(coursesDir) ? fs.readdirSync(coursesDir) : [];
   return courseFiles.filter((f) => f.endsWith(".yaml")).sort().map((name) => {
@@ -247,7 +247,9 @@ function coursesOf(packId, { packDir, image }, cardFor) {
           if (!lesson.drill || typeof lesson.drill !== "object" || Array.isArray(lesson.drill) || lesson.tasks !== undefined) {
             throw new Error(`${id}: invalid drill lesson`);
           }
-          return { slug: lesson.slug, title: lesson.title, cards: drillCards(id, lesson.title, lesson.drill) };
+          const introPart = typeof lesson.intro === "string" ? { text: lesson.intro } : lesson.intro;
+          const intro = introPart ? body(introPart, `${id} intro`) : "";
+          return { slug: lesson.slug, title: lesson.title, cards: drillCards(id, lesson.title, lesson.drill, intro) };
         }
         const cards = (lesson.tasks ?? []).map((taskId) => cardFor(packId, taskId)).filter(Boolean);
         if (!cards.some((c) => c.kind === "question")) throw new Error(`${slug}/${lesson.slug}: a lesson without questions`);

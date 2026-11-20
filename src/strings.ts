@@ -11,6 +11,12 @@ const courseForms = ["курс", "курса", "курсов"] as const;
 
 const amount = (n: number) => n.toLocaleString("ru-RU");
 
+function drillDuration(tenths: number) {
+  const minutes = Math.floor(tenths / 600);
+  const seconds = amount((tenths % 600) / 10);
+  return minutes ? `${minutes} мин ${seconds} с` : `${seconds} с`;
+}
+
 /** «2 класс», «2–4 класс», or nothing when no grade is named. */
 const gradesLine = (grades: string[]) => (grades.length === 0 ? "" : grades.length === 1 ? `${grades[0]} класс` : `${grades[0]}–${grades[grades.length - 1]} класс`);
 
@@ -97,17 +103,31 @@ export const t = {
     next: "К игре",
     start: "Начать игру",
     replay: "Играть ещё",
-    instructions: (rounds: number, seconds: number) => `${count(rounds, taskForms)} за игру. На ответ — ${seconds} секунд. В конце игры получишь 1 XP за каждый верный ответ.`,
+    instructions: (rounds: number, seconds: number) => `${count(rounds, taskForms)} за игру. Ответь верно за ${seconds} секунд, чтобы получить 1 XP. Когда время выйдет, можно ответить для тренировки.`,
     controls: "Выбери один из трёх ответов или нажми 1, 2 или 3.",
     time: (seconds: number) => `${seconds} с`,
     remaining: "Время на ответ",
+    timeUp: "Время вышло. Выбери ответ, чтобы продолжить.",
+    lateAnswer: "Время вышло — 0 XP.",
     correct: "Верно!",
-    wrong: (answer: number) => `Верный ответ — ${answer}.`,
+    wrong: (answer: string) => `Верный ответ — ${answer}.`,
     result: "Результат игры",
+    totalTime: (tenths: number) => `Время на ответы — ${drillDuration(tenths)}.`,
+    timeRecord: (tenths: number, best?: number) => {
+      if (best === undefined) return "Первый рекорд времени!";
+      if (tenths === best) return "Личный рекорд повторён!";
+      const difference = drillDuration(Math.abs(tenths - best));
+      return tenths < best
+        ? `Новый рекорд! На ${difference} быстрее прежнего (${drillDuration(best)}).`
+        : `Рекорд — ${drillDuration(best)}. В этот раз на ${difference} дольше.`;
+    },
     score: (correct: number, rounds: number) => `Верных ответов — ${correct} из ${rounds}`,
     xp: (score: number) => `+${score} XP`,
     lessonMeta: "Таблица и игра на время",
-    best: (score: number, rounds: number) => `Лучший результат — ${score} из ${rounds}`,
+    best: (score: number, rounds: number, bestTime?: number) => {
+      const result = `Лучший результат — ${score} из ${rounds}`;
+      return bestTime === undefined ? result : `${result} (${drillDuration(bestTime)})`;
+    },
     progress: (played: number, total: number, perfect: number) => `${played} из ${count(total, lessonOfForms)} сыграно · ${perfect} без ошибок`,
     saved: (total: number) => `Уроков с результатом игры — ${total}.`,
   },

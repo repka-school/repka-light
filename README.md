@@ -56,7 +56,7 @@ not committed. A failed test leaves a screenshot and a trace there:
 | `e2e/` | The browser tests, and the script that builds and serves the site for them. |
 | `docs/style-guide.md` | Type scale, colours, components and how the copy is written. |
 
-Routes are plain paths (`/course/math-olympiad-2`) under the path the site is
+Routes are plain paths under the path the site is
 served from. A static host has no file for most of them, so the build also
 writes `404.html`, a copy of the page: GitHub Pages serves it for any address
 it does not know, and the app shows the right screen.
@@ -110,61 +110,31 @@ The build accepts Repka courses with modules, top-level lessons, or a flat
 `other-pack:group:task` resolves to a question in another pack listed in
 the bundle. Draft, voided, and retired tasks are skipped.
 
-A timed arithmetic lesson uses `drill` in place of `tasks`. The build creates
-its theory table and game card from the same facts. Use `drill: { factor: 7 }`
-for multiplication, `drill: { divisor: 7 }` for division or
-`drill: { squares: true }` for the squares from 1 to 20. For addition and
-subtraction, set `operation` to `add`, `subtract` or `mixed` and `limit` to 10,
-20 or 100. At 100, `regroup` distinguishes examples with and without carrying
-or borrowing. Mixed games use five examples of each operation per play.
-Course covers can use a built-in theory illustration with `cover.picture`.
+A timed lesson uses `drill` in place of `tasks`. The build generates the
+theory table and game questions from the same pool. The supported drill
+settings are defined in [the drill builder](scripts/drill-content.mjs).
+Use `intro` for a plain-text introduction or `intro.html` for one with MathML.
+A course can use a built-in illustration as its cover with `cover.picture`.
 
-A theory card (`kind: theory`) opens a lesson. Its title is `learning.title`.
-It shows plain text or markup from `question`, a list of `blocks`, or both.
-Blocks make a card a young learner will read: short lines with a drawing each,
-and something to try.
+Each game draws ten questions. A correct answer given before the deadline
+advances the game within two seconds. If time runs out before the learner
+answers, the question stays open. A late answer receives feedback and earns
+zero points.
 
-```yaml
-kind: theory
-status: active
-learning:
-  title: Читай как сыщик
-blocks:
-  - kind: says            # the guide says it, in a speech bubble
-    text: В задачах прячутся ловушки.
-  - kind: steps           # numbered steps, each with a drawing
-    items:
-      - picture: reread
-        title: Прочитай два раза
-        text: Представь, что происходит.
-  - kind: facts           # the same rows without numbers: rules, not an order
-    title: Каждый герой — рыцарь или лжец
-    items:
-      - picture: shield
-        title: Рыцарь
-        text: Всегда говорит правду.
-  - kind: tiles           # things side by side
-    title: Что поможет
-    items:
-      - picture: pencil
-        title: Рисуй
-  - kind: image           # a picture of the pack, opened full-size on a click
-    file: images/sets-regions.png
-  - kind: try             # a riddle; the answer opens on a button
-    title: Разминка       # optional, «Попробуй» when absent
-    text: У листа бумаги 4 угла. Один уголок отрезали. Сколько углов стало?
-    answer: 5 углов!
-    picture: corner       # optional, shown with the answer
-  - kind: tip             # one line with a drawing
-    picture: cup
-    text: Хочется отдохнуть? Сделай перерыв.
-```
+A theory card (`kind: theory`) uses `learning.title` for its heading.
+It can contain text or markup in `question`, structured `blocks`, or both.
 
-Block text is plain. The `title` of `steps`, `facts` and `tiles` and the
-`text` of their items are optional. A `picture` is the name of one of the
-drawings in `src/ui/pictures/TheoryPicture.tsx` (`book`, `magnifier`, `check`,
-`pencil`, `scales`, `clock`, …). A new drawing is added there and to
-`THEORY_PICTURES` in the content build; a test keeps the two lists equal.
+| Block | Content |
+|---|---|
+| `says` | The guide's message in `text`. |
+| `steps`, `facts`, `tiles` | An optional `title` and a list of `items`. Each item has a `picture`, a `title`, and optional `text`. |
+| `image` | A pack image referenced by `file`, with optional `alt` text. |
+| `try` | A prompt in `text` and a revealable `answer`, with an optional `title` and `picture`. |
+| `tip` | A short line of `text` with a `picture`. |
+
+Block text is plain. A `picture` names a built-in drawing. Register new
+drawings in `src/ui/pictures/TheoryPicture.tsx` and in the content build's
+`THEORY_PICTURES` list. A test checks that the lists match.
 
 The build writes only what a lesson shows: task text, options, the right
 answer, hint and solution. Other fields of a task file are not published. It
@@ -184,29 +154,9 @@ files.
 
 ## Saved data
 
-One key, `repka-light.v1`:
-
-```json
-{
-  "version": 1,
-  "profile": { "name": "Маша", "avatar": "kitten", "frame": "stars" },
-  "results": {
-    "math-olympiad-2/reading/sweets": { "outcome": "first", "choices": [3], "at": "2026-01-01T10:00:00.000Z" }
-  },
-  "runs": {
-    "math-olympiad-2/read-carefully": {
-      "cards": ["math-olympiad-2/reading/read-twice", "math-olympiad-2/reading/sweets"],
-      "index": 1,
-      "phase": "solving",
-      "entries": [
-        { "first": null, "final": null, "seen": true, "opened": false },
-        { "first": [1], "final": null, "seen": false, "opened": false }
-      ]
-    }
-  },
-  "xp": { "math-olympiad-2/reading/sweets": 10 }
-}
-```
+The browser stores progress under the `localStorage` key `repka-light.v1`.
+Within that record, each course has its own task results, lesson runs, drill
+records and XP. The storage format is defined in [storage.ts](src/store/storage.ts).
 
 `results` is what progress counts. `outcome` is how a task ended: `first`
 (right on the first try), `second` (right on the second) or `wrong`. A better
@@ -225,21 +175,25 @@ the first try and asks the rest again; «Повторить урок» starts fr
 
 `drills` stores the best score in each timed game. Scoring 10 out of 10
 marks the lesson as finished. A timed game starts over if its page is reloaded.
+`bestAnswerTimeTenths` stores each drill's lowest total answer time. Each card
+contributes the time from its start to the learner's first answer, including
+time spent answering after the countdown. The game rounds the sum to the
+nearest tenth of a second. The first run with this timing sets a new baseline.
 
 `xp` is the experience each task or timed game has given; see below.
 
 `homestead` stores the garden once the learner makes a change.
 
-«Сбросить прогресс» on the profile page clears `results`, `runs` and `drills` and keeps
+«Сбросить прогресс» on the profile page clears `results`, `runs`, `drills` and `bestAnswerTimeTenths` and keeps
 the profile, `xp` and `homestead`.
 
 «Скачать файл» on the profile page saves the profile, `results`, `runs`,
-`drills`, `xp` and `homestead` as a backup file, and «Загрузить файл» replaces everything
+`drills`, `bestAnswerTimeTenths`, `xp` and `homestead` as a backup file, and «Загрузить файл» replaces everything
 saved with one, after asking. The file has its own version, apart from the
 key's:
 
 ```json
-{ "format": "repka-light-backup", "version": 5, "exportedAt": "…", "profile": {}, "courses": {}, "homestead": {} }
+{ "format": "repka-light-backup", "version": 7, "exportedAt": "…", "profile": {}, "courses": {}, "homestead": {} }
 ```
 
 A change to its shape bumps `BACKUP_VERSION` in `src/store/backup.ts` and adds
@@ -263,13 +217,9 @@ their course is next opened.
 A finished timed game adds 1 XP for each correct answer, up to 10 XP per
 game. Every replay also earns XP.
 
-The level is read off the total. Level 2 takes 100 experience, about one
-lesson, and each next level takes 2 more than the one before, so early levels
-come a little faster. Level 100 starts at 19 602; from there every level takes
-the same 298, and there is no top level. The numbers are in `src/store/xp.ts`,
-sized by the first course: its first lesson brings level 2, its 35 lessons
-(3 720 experience) level 30, and level 100 takes about five courses of that
-size.
+Total XP determines the level. Level 2 takes 100 XP. Each subsequent level
+takes 2 XP more than the previous one until level 100, after which each
+level takes 298 XP. The thresholds are defined in [xp.ts](src/store/xp.ts).
 
 The header shows the level in a ring that fills toward the next one and opens
 the details. A checked answer shows the experience it added, and a lesson's
@@ -301,7 +251,7 @@ are configured inside Google Tag Manager.
 - **Course content** — tasks, hints, solutions, theory and illustrations in
   `courses/` and their built copy in `public/content/`:
   [CC BY-NC-SA 4.0](courses/LICENSE.md). The course credits identify the
-  contributors and the source of the graph theory adaptation.
+  contributors and the sources of adapted material.
 - **Bundled libraries** keep their own licences. The build writes them, with
   their full texts, to `third-party-licenses.txt` next to the page.
 

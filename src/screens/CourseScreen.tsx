@@ -166,6 +166,7 @@ function LessonRow({ number, course, lesson, saved, primary }: { number: number;
   const questions = questionsOf(lesson);
   const drill = drillOf(lesson);
   const best = drill && saved.drills?.[drill.id];
+  const bestTime = drill && saved.bestAnswerTimeTenths?.[drill.id];
   const theory = lesson.cards.length - questions.length;
   const state = standing(course, lesson, saved);
   const done = solvedCount(
@@ -185,7 +186,7 @@ function LessonRow({ number, course, lesson, saved, primary }: { number: number;
             {state === "finished" && <span className="sr-only"> · {t.lessonFinished}</span>}
           </span>
           <span className="lesson-meta">{drill ? t.drill.lessonMeta : t.lessonCounts(theory, questions.length)}</span>
-          {drill ? best !== undefined && <Progress className="lesson-progress" value={best} max={DRILL_ROUNDS} label={lesson.title} text={t.drill.best(best, DRILL_ROUNDS)} /> : (
+          {drill ? best !== undefined && <Progress className="lesson-progress" value={best} max={DRILL_ROUNDS} label={lesson.title} text={t.drill.best(best, DRILL_ROUNDS, bestTime)} /> : (
             <Progress className="lesson-progress" value={answered} strong={done} max={questions.length} label={lesson.title} text={t.lessonProgress(answered, questions.length)} />
           )}
         </span>

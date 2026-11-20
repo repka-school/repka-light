@@ -19,6 +19,12 @@ export function Pond({ animate }: { animate: boolean }) {
       <g fill="none" stroke="#c4e7d8" strokeLinecap="round" strokeWidth="1.8" opacity=".76">
         <path d="M-80 69q8-4 18-2m45-24q9-2 15-1m64 24q9 2 16-1m-82 38q13 3 25-1" />
       </g>
+      {animate && <g className="pond-raindrops" fill="none" stroke="#def4ec" pointerEvents="none">
+        <ellipse cx="-70" cy="73" rx="6" ry="2.4" />
+        <ellipse cx="-18" cy="51" rx="4.5" ry="1.8" />
+        <ellipse cx="13" cy="98" rx="7" ry="2.8" />
+        <ellipse cx="68" cy="68" rx="5" ry="2" />
+      </g>}
       <g fill="#94bb76" stroke="#669567" strokeWidth="1">
         <path d="M-62 80a9 4 0 1 1 2 2l5-3Z" />
         <path d="M-47 85a6 3 0 1 1 1 1l4-2Z" />
