@@ -1,5 +1,6 @@
 import { Link } from "react-router";
-import { BookOpen, Bookmark, Lightbulb, ListChecks } from "lucide-react";
+import { ArrowRight, BookOpen, Bookmark, Lightbulb, ListChecks } from "lucide-react";
+import homesteadPreview from "@/ui/assets/homestead-preview.webp";
 import { PageHeading } from "@/ui/components/PageHeading";
 import { Button } from "@/ui/components/ui/button";
 import { Eyebrow, Page } from "@/components/Chrome";
@@ -51,6 +52,17 @@ export function LandingScreen() {
           {total && <p className="landing-reach">{t.landingReach(total.courses, total.tasks, total.lessons, total.grades)}</p>}
         </div>
         <SampleCards />
+      </section>
+      <section className="landing-garden" aria-labelledby="landing-garden-title">
+        <div>
+          <h2 id="landing-garden-title">{t.landingGardenTitle}</h2>
+          <p>{t.landingGardenText}</p>
+          <Link className="landing-garden-link" to="/homestead">
+            {t.landingGardenOpen}
+            <ArrowRight size={18} aria-hidden="true" />
+          </Link>
+        </div>
+        <img src={homesteadPreview} alt="" width="700" height="476" loading="lazy" />
       </section>
       <section className="landing-steps" aria-labelledby="landing-steps-title">
         <h2 id="landing-steps-title">{t.landingStepsTitle}</h2>

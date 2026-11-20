@@ -43,6 +43,9 @@ export const t = {
   /** What there is to practise: «3 курса · 48 заданий · 6 уроков · 2–4 класс»; a single course is not counted. */
   landingReach: (courses: number, tasks: number, lessons: number, grades: string[]): string =>
     [courses > 1 ? count(courses, courseForms) : "", count(tasks, taskForms), count(lessons, lessonForms), gradesLine(grades)].filter(Boolean).join(" · "),
+  landingGardenTitle: "От семечка до репки",
+  landingGardenText: "В своём огороде можно посадить семечко и вырастить репку. Для роста нужен опыт, а его дают за решённые задачи.",
+  landingGardenOpen: "Открыть огород",
   landingStepsTitle: "Как проходит урок",
   landingSteps: [
     { title: "Короткие уроки", text: "В уроке — короткое объяснение и несколько заданий на одну тему." },

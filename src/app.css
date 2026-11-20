@@ -2133,6 +2133,65 @@ select,
   }
 }
 
+.landing-garden {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 24px;
+  margin-top: clamp(28px, 4vw, 52px);
+  padding: 24px clamp(24px, 5vw, 64px);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: linear-gradient(115deg, var(--warm-soft), var(--homestead-sky-low) 56%, var(--accent));
+  box-shadow: 0 2px 4px var(--shadow-card), 0 8px 22px var(--shadow-card);
+}
+.landing-garden h2 {
+  font-size: var(--type-section-title);
+}
+.landing-garden p {
+  max-width: 45ch;
+  margin: 8px 0 10px;
+  color: var(--secondary-foreground);
+}
+.landing-garden-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--primary);
+  font-weight: 600;
+}
+.landing-garden-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 22px;
+}
+.landing-garden:hover .landing-garden-link {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.landing-garden-link:focus-visible::after {
+  outline: 3px solid var(--ring);
+  outline-offset: 3px;
+}
+.landing-garden img {
+  justify-self: center;
+  width: min(100%, 310px);
+  height: auto;
+}
+@media (max-width: 600px) {
+  .landing-garden {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .landing-garden img {
+    grid-row: 1;
+    width: min(100%, 210px);
+  }
+}
+
 /* How a lesson goes: four short points under the first screen. */
 .landing-steps {
   margin-top: 72px;
