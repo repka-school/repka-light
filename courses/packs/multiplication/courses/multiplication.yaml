@@ -1,0 +1,41 @@
+title: Таблица умножения
+description: Повтори умножение от 2 до 10 и квадраты чисел до 20. Затем проверь себя в игре на время.
+tags:
+  grade: [2, 3]
+modules:
+  - slug: times-tables
+    title: Умножение от 2 до 10
+    lessons:
+      - slug: times-2
+        title: Умножение на 2
+        drill: { factor: 2 }
+      - slug: times-3
+        title: Умножение на 3
+        drill: { factor: 3 }
+      - slug: times-4
+        title: Умножение на 4
+        drill: { factor: 4 }
+      - slug: times-5
+        title: Умножение на 5
+        drill: { factor: 5 }
+      - slug: times-6
+        title: Умножение на 6
+        drill: { factor: 6 }
+      - slug: times-7
+        title: Умножение на 7
+        drill: { factor: 7 }
+      - slug: times-8
+        title: Умножение на 8
+        drill: { factor: 8 }
+      - slug: times-9
+        title: Умножение на 9
+        drill: { factor: 9 }
+      - slug: times-10
+        title: Умножение на 10
+        drill: { factor: 10 }
+  - slug: squares
+    title: Квадраты
+    lessons:
+      - slug: squares-to-20
+        title: Квадраты чисел до 20
+        drill: { squares: true }

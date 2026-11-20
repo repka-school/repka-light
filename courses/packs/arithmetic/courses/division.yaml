@@ -1,0 +1,34 @@
+title: Деление
+description: Повтори таблицу деления на числа от 2 до 10 и сыграй в игру на время.
+cover:
+  picture: pairs
+tags:
+  grade: [2, 3]
+lessons:
+  - slug: divide-by-2
+    title: Деление на 2
+    drill: { divisor: 2 }
+  - slug: divide-by-3
+    title: Деление на 3
+    drill: { divisor: 3 }
+  - slug: divide-by-4
+    title: Деление на 4
+    drill: { divisor: 4 }
+  - slug: divide-by-5
+    title: Деление на 5
+    drill: { divisor: 5 }
+  - slug: divide-by-6
+    title: Деление на 6
+    drill: { divisor: 6 }
+  - slug: divide-by-7
+    title: Деление на 7
+    drill: { divisor: 7 }
+  - slug: divide-by-8
+    title: Деление на 8
+    drill: { divisor: 8 }
+  - slug: divide-by-9
+    title: Деление на 9
+    drill: { divisor: 9 }
+  - slug: divide-by-10
+    title: Деление на 10
+    drill: { divisor: 10 }

@@ -31,7 +31,10 @@ export type QuestionCard = {
   explanation: string | null;
 };
 
-export type Card = TheoryCard | QuestionCard;
+export type DrillFact = { prompt: string; answer: number };
+export type DrillCard = { id: string; kind: "drill"; facts: DrillFact[]; alternateFacts?: DrillFact[] };
+
+export type Card = TheoryCard | QuestionCard | DrillCard;
 export type Lesson = { slug: string; title: string; cards: Card[] };
 export type Module = { slug: string; title: string; lessons: Lesson[] };
 
@@ -54,6 +57,7 @@ export type Course = {
   title: string;
   description: string;
   cover: string | null;
+  coverPicture?: string;
   grades: string[];
   modules: Module[];
   source?: CourseSource;
@@ -64,14 +68,18 @@ export type CourseSummary = {
   title: string;
   description: string;
   cover: string | null;
+  coverPicture?: string;
   grades: string[];
   lessons: number;
   /** Ids of every question of the course, for its progress. */
   questions: string[];
+  /** Ids of repeatable games whose best score counts towards progress. */
+  drills?: string[];
 };
 
 export type CourseIndex = { courses: CourseSummary[] };
 
 export const isQuestion = (card: Card): card is QuestionCard => card.kind === "question";
 export const questionsOf = (lesson: Lesson): QuestionCard[] => lesson.cards.filter(isQuestion);
+export const drillOf = (lesson: Lesson) => lesson.cards.find((card) => card.kind === "drill");
 export const lessonsOf = (course: Course): Lesson[] => course.modules.flatMap((m) => m.lessons);

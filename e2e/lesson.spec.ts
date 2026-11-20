@@ -179,8 +179,8 @@ test("hidden options show when asked for, and stay shown after a reload", async 
 });
 
 test("a theory riddle keeps its answer until asked", async ({ page, site }) => {
-  const { lesson, index, card } = findCard(site, (card) => !isQuestion(card) && card.blocks.some((block) => block.kind === "try"));
-  const riddle = !isQuestion(card) && card.blocks.find((block) => block.kind === "try");
+  const { lesson, index, card } = findCard(site, (card) => card.kind === "theory" && card.blocks.some((block) => block.kind === "try"));
+  const riddle = card.kind === "theory" && card.blocks.find((block) => block.kind === "try");
   if (!riddle || riddle.kind !== "try") throw new Error("no riddle");
   await openLesson(page, site, lesson);
   await goToCard(page, lesson, index);

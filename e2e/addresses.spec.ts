@@ -80,7 +80,7 @@ test("the page asks for nothing outside its own address, and every picture it sh
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
 
-  const pictured = site.lessons.find((lesson) => lesson.cards.some((card) => card.body.includes("<img"))) ?? site.lessons[0];
+  const pictured = site.lessons.find((lesson) => lesson.cards.some((card) => card.kind !== "drill" && card.body.includes("<img"))) ?? site.lessons[0];
   for (const address of ["", "courses", coursePath(site), lessonPath(site, pictured), "profile"]) {
     await page.goto(address);
     await expect(page.locator("#app")).toBeVisible();

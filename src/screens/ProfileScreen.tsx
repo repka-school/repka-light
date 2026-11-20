@@ -31,11 +31,12 @@ const dayOf = (iso: string) => {
 /** The learner's profile: a nickname, a picture and its frame, saved as they change; the backup file; and the reset of saved results. */
 export function ProfileScreen() {
   const all = useSaved();
-  const { profile, results } = all;
+  const { profile, results, drills } = all;
   // The field holds what is typed; the saved nickname is its trimmed form.
   const [name, setName] = useState(profile.name);
   const [confirming, setConfirming] = useState(false);
   const saved = Object.keys(results).length;
+  const played = Object.keys(drills ?? {}).length;
   const fileInput = useRef<HTMLInputElement>(null);
   const [incoming, setIncoming] = useState<{ saved: Saved; exportedAt: string } | null>(null);
   const [importError, setImportError] = useState<ImportError | null>(null);
@@ -104,10 +105,10 @@ export function ProfileScreen() {
           </div>
           <div className="settings-list">
             <div className="settings-row">
-              <span className="settings-row-text">{t.solvedTotal(saved)}</span>
+              <span className="settings-row-text">{played ? t.drill.saved(played) + (saved ? ` ${t.solvedTotal(saved)}` : "") : t.solvedTotal(saved)}</span>
               <Dialog open={confirming} onOpenChange={setConfirming}>
                 <DialogTrigger asChild>
-                  <Button type="button" variant="outline" className="secondary" id="reset-progress" disabled={saved === 0}>
+                  <Button type="button" variant="outline" className="secondary" id="reset-progress" disabled={saved + played === 0}>
                     {t.resetProgress}
                   </Button>
                 </DialogTrigger>
@@ -145,7 +146,11 @@ export function ProfileScreen() {
                   <DialogHeader>
                     <DialogTitle>{t.importTitle}</DialogTitle>
                     <DialogDescription>
-                      {incoming && t.importText(incoming.saved.profile.name || t.guest, Object.keys(incoming.saved.results).length, dayOf(incoming.exportedAt))}
+                      {incoming && t.importText(
+                        incoming.saved.profile.name || t.guest,
+                        Object.keys(incoming.saved.results).length + Object.keys(incoming.saved.drills ?? {}).length,
+                        dayOf(incoming.exportedAt),
+                      )}
                     </DialogDescription>
                   </DialogHeader>
                   <DialogFooter closeLabel={t.resetCancel}>

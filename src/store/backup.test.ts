@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { BACKUP_FORMAT, BACKUP_VERSION, backupFileName, fromBackup, toBackup } from "./backup";
 import { apply, starter } from "@/homestead/rules";
 import { pack } from "@/homestead/saved";
-import { cardsKey, empty, withPractice, withProfile, withResult, withRun, withXp, type Saved } from "./storage";
+import { cardsKey, empty, withDrillResult, withPractice, withProfile, withResult, withRun, withXp, type Saved } from "./storage";
 
 const now = new Date("2026-03-04T05:06:07.000Z");
 const filled = () =>
@@ -45,6 +45,14 @@ describe("fromBackup", () => {
     expect(read).toEqual({ ok: true, saved, exportedAt: "2026-03-04T05:06:07.000Z" });
   });
 
+  it("keeps the best game score and the XP earned across replays in a backup", () => {
+    const id = "multiplication/times-2/game";
+    const first = withDrillResult(empty(), id, 10, "2026-03-01T00:00:00.000Z");
+    const replay = withDrillResult(first, id, 6, "2026-03-02T00:00:00.000Z");
+    const read = fromBackup(JSON.stringify(toBackup(replay, now)));
+    expect(read).toMatchObject({ ok: true, saved: { drills: { [id]: 10 }, xp: { [id]: 16 } } });
+  });
+
   it("keeps the state in the short form, grouped by course", () => {
     const backup = toBackup(filled(), now);
     expect(backup.courses.c).toMatchObject({ last: "2026-03-01T00:00:00.000Z", results: { t1: ["f", 2] }, xp: { t1: 20 } });
@@ -57,7 +65,7 @@ describe("fromBackup", () => {
       '{"format":"repka-light-backup","version":4,"exportedAt":"2026-03-04T05:06:07.000Z","profile":{"name":"Маша","avatar":"fox-cub","frame":"sea"},' +
       '"courses":{"c":{"last":"2026-03-01T00:00:00.000Z","results":{"t1":["f",2]},"xp":{"t1":20},"runs":{"l1":["bch440",1,0,[1,[1],[2]],[0]]}}}}';
     expect(fromBackup(text)).toEqual({ ok: true, saved: filled(), exportedAt: "2026-03-04T05:06:07.000Z" });
-    expect(JSON.stringify(toBackup(filled(), now))).toBe(text);
+    expect(JSON.stringify(toBackup(filled(), now))).toBe(text.replace('"version":4', `"version":${BACKUP_VERSION}`));
   });
 
   it("loads a file with a course named __proto__ as any other", () => {

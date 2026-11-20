@@ -6,6 +6,7 @@ const taskForms = ["задание", "задания", "заданий"] as cons
 const taskOfForms = ["задания", "заданий", "заданий"] as const;
 const theoryForms = ["теория", "теории", "теорий"] as const;
 const lessonForms = ["урок", "урока", "уроков"] as const;
+const lessonOfForms = ["урока", "уроков", "уроков"] as const;
 const courseForms = ["курс", "курса", "курсов"] as const;
 
 const amount = (n: number) => n.toLocaleString("ru-RU");
@@ -39,10 +40,10 @@ export const t = {
   landingContinue: "Продолжить",
   landingAll: "Все курсы",
   landingCurrent: (title: string) => `Начатый курс: «${title}»`,
-  landingNote: "Начать можно сразу. Урок продолжится с того места, где его оставили.",
+  landingNote: "Начать можно сразу. Результаты сохраняются в этом браузере.",
   /** What there is to practise: «3 курса · 48 заданий · 6 уроков · 2–4 класс»; a single course is not counted. */
   landingReach: (courses: number, tasks: number, lessons: number, grades: string[]): string =>
-    [courses > 1 ? count(courses, courseForms) : "", count(tasks, taskForms), count(lessons, lessonForms), gradesLine(grades)].filter(Boolean).join(" · "),
+    [courses > 1 ? count(courses, courseForms) : "", tasks ? count(tasks, taskForms) : "", count(lessons, lessonForms), gradesLine(grades)].filter(Boolean).join(" · "),
   landingGardenTitle: "От семечка до репки",
   landingGardenText: "В своём огороде можно посадить семечко и вырастить репку. Для роста нужен опыт, а его дают за решённые задачи.",
   landingGardenOpen: "Открыть огород",
@@ -90,6 +91,26 @@ export const t = {
   startLesson: "Начать урок",
   continueLesson: "Продолжить",
   repeatLesson: "Повторить",
+
+  drill: {
+    title: "Игра на время",
+    next: "К игре",
+    start: "Начать игру",
+    replay: "Играть ещё",
+    instructions: (rounds: number, seconds: number) => `${count(rounds, taskForms)} за игру. На ответ — ${seconds} секунд. В конце игры получишь 1 XP за каждый верный ответ.`,
+    controls: "Выбери один из трёх ответов или нажми 1, 2 или 3.",
+    time: (seconds: number) => `${seconds} с`,
+    remaining: "Время на ответ",
+    correct: "Верно!",
+    wrong: (answer: number) => `Верный ответ — ${answer}.`,
+    result: "Результат игры",
+    score: (correct: number, rounds: number) => `Верных ответов — ${correct} из ${rounds}`,
+    xp: (score: number) => `+${score} XP`,
+    lessonMeta: "Таблица и игра на время",
+    best: (score: number, rounds: number) => `Лучший результат — ${score} из ${rounds}`,
+    progress: (played: number, total: number, perfect: number) => `${played} из ${count(total, lessonOfForms)} сыграно · ${perfect} без ошибок`,
+    saved: (total: number) => `Уроков с результатом игры — ${total}.`,
+  },
 
   backToCourse: "К курсу",
   theory: "Теория",
@@ -162,6 +183,7 @@ export const t = {
     "На каждом задании написано, сколько опыта оно даёт: чем сложнее задание, тем больше.",
     "Верный ответ с первой попытки приносит весь опыт, со второй\u00A0— половину.",
     "Задание с ошибкой можно решить заново и получить остальной опыт. За повтор решённого задания опыт не добавляется.",
+    "В игре на время каждый верный ответ даёт 1 XP, в том числе в повторных играх.",
     `Первые уровни идут быстрее: каждый следующий требует чуть больше опыта. После ${STEADY_LEVEL}-го уровня все уровни требуют одинаково.`,
     "Опыт можно тратить в огороде: на семечки и на рост репок. Уровень от этого не уменьшается.",
     "Опыт хранится в этом браузере и остаётся после сброса прогресса.",
@@ -184,7 +206,7 @@ export const t = {
   solvedTotal: (n: number) => (n === 0 ? "Пока нет решённых заданий." : `Сохранено результатов: ${n}.`),
   resetProgress: "Сбросить прогресс",
   resetTitle: "Сбросить весь прогресс?",
-  resetText: "Результаты всех заданий будут удалены из этого браузера. Профиль, опыт, уровень и огород останутся.",
+  resetText: "Результаты всех заданий и игр будут удалены из этого браузера. Профиль, опыт, уровень и огород останутся.",
   resetConfirm: "Сбросить",
   resetCancel: "Отмена",
   resetDone: "Прогресс сброшен.",

@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { basePath, buildContent, textToHtml, THEORY_PICTURES } from "./build-content.mjs";
 import { parseMarkup, renderMarkup } from "./content-markup.mjs";
 import { theoryPictureIds } from "../src/ui/pictures/TheoryPicture.tsx";
+import { DRILL_ROUNDS, drillQuestions } from "../src/lesson/drill";
 
 const courses = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "courses");
 const checkedHtml = (source, where) => renderMarkup(parseMarkup(source, where), { where }).html;
@@ -58,6 +59,60 @@ describe("the bundled courses", () => {
       expect(text).not.toMatch(/"note"|"classification"|"origin"/);
       for (const src of text.matchAll(/src=\\"([^"\\]+)\\"/g)) expect(fs.existsSync(path.join(out, src[1].replace(/^\/content\//, "")))).toBe(true);
       if (course.cover) expect(fs.existsSync(path.join(out, course.cover.replace(/^\/content\//, "")))).toBe(true);
+    }
+  });
+
+  it("builds arithmetic tables and games whose examples fit each lesson", () => {
+    const out = temp();
+    const index = buildContent({ root: courses, out });
+    for (const [slug, lessonCount] of [["addition", 4], ["subtraction", 4], ["division", 9], ["addition-subtraction", 4]]) {
+      const course = JSON.parse(fs.readFileSync(path.join(out, `${slug}.json`), "utf8"));
+      const lessons = course.modules.flatMap((module) => module.lessons);
+      expect(lessons).toHaveLength(lessonCount);
+      const gameIds = [];
+      for (const [lessonIndex, { cards }] of lessons.entries()) {
+        expect(cards.map((card) => card.kind)).toEqual(["theory", "drill"]);
+        const [theory, drill] = cards;
+        gameIds.push(drill.id);
+        const facts = [...drill.facts, ...(drill.alternateFacts ?? [])];
+        const tableRows = [...theory.body.matchAll(/<th scope="row">([^<]+)<\/th><td>(\d+)<\/td>/g)];
+        expect(tableRows.length).toBeGreaterThan(0);
+        for (const [, prompt, answer] of tableRows) expect(facts).toContainEqual({ prompt, answer: Number(answer) });
+        for (const { prompt, answer } of facts) {
+          const [a, sign, b] = prompt.split(" ");
+          const left = Number(a);
+          const right = Number(b);
+          if (slug === "division") {
+            expect(sign).toBe("÷");
+            expect(right).toBe(lessonIndex + 2);
+            expect(answer).toBeGreaterThanOrEqual(1);
+            expect(answer).toBeLessThanOrEqual(10);
+            expect(left).toBe(right * answer);
+          } else {
+            expect(sign).toMatch(/^[+−]$/);
+            expect(answer).toBe(sign === "+" ? left + right : left - right);
+            expect(answer).toBeGreaterThanOrEqual(0);
+            const limit = [10, 20, 100, 100][lessonIndex];
+            expect(Math.max(left, right, answer)).toBeLessThanOrEqual(limit);
+            if (limit === 100) {
+              const crossing = sign === "+" ? left % 10 + right % 10 >= 10 : left % 10 < right % 10;
+              expect(crossing).toBe(lessonIndex === 3);
+            }
+          }
+        }
+        const game = drillQuestions(drill);
+        expect(game).toHaveLength(DRILL_ROUNDS);
+        expect(new Set(game.map((question) => question.prompt)).size).toBe(DRILL_ROUNDS);
+        for (const { answer, options } of game) {
+          expect(new Set(options).size).toBe(3);
+          expect(options).toContain(answer);
+        }
+        if (slug === "addition-subtraction") {
+          expect(game.filter(({ prompt }) => prompt.includes(" + "))).toHaveLength(5);
+          expect(game.filter(({ prompt }) => prompt.includes(" − "))).toHaveLength(5);
+        }
+      }
+      expect(index.courses.find((summary) => summary.slug === slug).drills).toEqual(gameIds);
     }
   });
 });

@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
 import { escapeHtml, parseMarkup, renderMarkup } from "./content-markup.mjs";
 import { presentOptions } from "./content-options.mjs";
+import { drillCards } from "./drill-content.mjs";
 
 const LETTERS = ["А", "Б", "В", "Г", "Д", "Е"];
 const IMAGE_ALT = "Иллюстрация к заданию";
@@ -229,6 +230,10 @@ function coursesOf(packId, { packDir, image }, cardFor) {
   return courseFiles.filter((f) => f.endsWith(".yaml")).sort().map((name) => {
     const slug = name.replace(/\.yaml$/, "");
     const source = readYaml(path.join(coursesDir, name));
+    const coverPicture = source.cover?.picture;
+    if (coverPicture !== undefined && (source.cover.file || !THEORY_PICTURES.includes(coverPicture))) {
+      throw new Error(`${slug}: invalid course cover picture ${coverPicture}`);
+    }
     const lessonSlugs = new Set();
     const lessons = source.lessons ?? (source.tasks ? [{ slug, title: source.title, tasks: source.tasks }] : []);
     const modules = (source.modules ?? [{ slug, title: "", lessons }]).map((module) => ({
@@ -237,6 +242,13 @@ function coursesOf(packId, { packDir, image }, cardFor) {
       lessons: (module.lessons ?? []).map((lesson) => {
         if (lessonSlugs.has(lesson.slug)) throw new Error(`${slug}: repeated lesson ${lesson.slug}`);
         lessonSlugs.add(lesson.slug);
+        if (lesson.drill !== undefined) {
+          const id = `${slug}/${lesson.slug}`;
+          if (!lesson.drill || typeof lesson.drill !== "object" || Array.isArray(lesson.drill) || lesson.tasks !== undefined) {
+            throw new Error(`${id}: invalid drill lesson`);
+          }
+          return { slug: lesson.slug, title: lesson.title, cards: drillCards(id, lesson.title, lesson.drill) };
+        }
         const cards = (lesson.tasks ?? []).map((taskId) => cardFor(packId, taskId)).filter(Boolean);
         if (!cards.some((c) => c.kind === "question")) throw new Error(`${slug}/${lesson.slug}: a lesson without questions`);
         return { slug: lesson.slug, title: lesson.title, cards };
@@ -248,6 +260,7 @@ function coursesOf(packId, { packDir, image }, cardFor) {
       title: source.title,
       description: source.description ?? "",
       cover: source.cover?.file ? image(source.cover.file, slug) : null,
+      ...(coverPicture ? { coverPicture } : {}),
       grades: (source.tags?.grade ?? []).map(String),
       modules,
     };
@@ -283,14 +296,18 @@ export function buildContent({ root, out, base = "/" }) {
   const index = {
     courses: courses.map((course) => {
       const lessons = course.modules.flatMap((m) => m.lessons);
+      const cards = lessons.flatMap((l) => l.cards);
+      const drills = cards.filter((c) => c.kind === "drill").map((c) => c.id);
       return {
         slug: course.slug,
         title: course.title,
         description: course.description,
         cover: course.cover,
+        ...(course.coverPicture ? { coverPicture: course.coverPicture } : {}),
         grades: course.grades,
         lessons: lessons.length,
-        questions: lessons.flatMap((l) => l.cards.filter((c) => c.kind === "question").map((c) => c.id)),
+        questions: cards.filter((c) => c.kind === "question").map((c) => c.id),
+        ...(drills.length ? { drills } : {}),
       };
     }),
   };
@@ -314,5 +331,8 @@ export function buildContent({ root, out, base = "/" }) {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const project = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
   const index = buildContent({ root: path.join(project, "courses"), out: path.join(project, "public", "content"), base: basePath(process.env.BASE_PATH) });
-  for (const course of index.courses) console.log(`${course.slug}: ${course.lessons} lessons, ${course.questions.length} questions`);
+  for (const course of index.courses) {
+    const content = course.drills ? `${course.drills.length} games` : `${course.questions.length} questions`;
+    console.log(`${course.slug}: ${course.lessons} lessons, ${content}`);
+  }
 }

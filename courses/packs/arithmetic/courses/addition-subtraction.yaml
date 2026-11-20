@@ -1,0 +1,19 @@
+title: Сложение и вычитание
+description: В каждой игре есть примеры на сложение и вычитание. Смотри на знак и выбирай ответ.
+cover:
+  picture: plusminus
+tags:
+  grade: [1, 2]
+lessons:
+  - slug: within-10
+    title: Сложение и вычитание в пределах 10
+    drill: { operation: mixed, limit: 10 }
+  - slug: within-20
+    title: Сложение и вычитание в пределах 20
+    drill: { operation: mixed, limit: 20 }
+  - slug: within-100-no-regroup
+    title: Примеры в пределах 100 без перехода через десяток
+    drill: { operation: mixed, limit: 100, regroup: false }
+  - slug: within-100-regroup
+    title: Примеры в пределах 100 с переходом через десяток
+    drill: { operation: mixed, limit: 100, regroup: true }

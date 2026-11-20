@@ -8,11 +8,12 @@ export type Reach = { courses: number; tasks: number; lessons: number; grades: s
 
 /** The reach of the course list, or null when it has no task, so the page never says «0 заданий». */
 export function reach(courses: CourseSummary[]): Reach | null {
+  const available = courses.filter((course) => course.questions.length > 0 || course.drills?.length);
+  if (!available.length) return null;
   const tasks = courses.reduce((n, course) => n + course.questions.length, 0);
-  if (!tasks) return null;
   const numbers = [...new Set(courses.flatMap((course) => course.grades.map((grade) => parseInt(grade, 10))).filter((n) => !Number.isNaN(n)))].sort((a, b) => a - b);
   const grades = numbers.length > 1 ? [String(numbers[0]), String(numbers[numbers.length - 1])] : numbers.map(String);
-  return { courses: courses.filter((course) => course.questions.length > 0).length, tasks, lessons: courses.reduce((n, course) => n + course.lessons, 0), grades };
+  return { courses: available.length, tasks, lessons: courses.reduce((n, course) => n + course.lessons, 0), grades };
 }
 
 /**

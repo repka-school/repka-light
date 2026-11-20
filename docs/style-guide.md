@@ -89,6 +89,10 @@ list, the task numbers and the progress bars.
 Progress bars and rings draw answered tasks in a light green and first-try
 solves over them in `--progress-fill`.
 
+Timed games use `--progress-fill` for the countdown. Each answer button
+shows its number key above the answer. After a choice, the same result
+colours mark the correct answer and any wrong choice, with a written verdict.
+
 ### Difficulty
 
 A task's difficulty, 1 to 5, colours its experience tag: `--difficulty-N` is

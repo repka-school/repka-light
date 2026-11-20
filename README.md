@@ -110,6 +110,15 @@ The build accepts Repka courses with modules, top-level lessons, or a flat
 `other-pack:group:task` resolves to a question in another pack listed in
 the bundle. Draft, voided, and retired tasks are skipped.
 
+A timed arithmetic lesson uses `drill` in place of `tasks`. The build creates
+its theory table and game card from the same facts. Use `drill: { factor: 7 }`
+for multiplication, `drill: { divisor: 7 }` for division or
+`drill: { squares: true }` for the squares from 1 to 20. For addition and
+subtraction, set `operation` to `add`, `subtract` or `mixed` and `limit` to 10,
+20 or 100. At 100, `regroup` distinguishes examples with and without carrying
+or borrowing. Mixed games use five examples of each operation per play.
+Course covers can use a built-in theory illustration with `cover.picture`.
+
 A theory card (`kind: theory`) opens a lesson. Its title is `learning.title`.
 It shows plain text or markup from `question`, a list of `blocks`, or both.
 Blocks make a card a young learner will read: short lines with a drawing each,
@@ -214,20 +223,23 @@ an unfinished one where it was left, a finished one as its summary. From the
 summary, «Решить ошибки заново» starts a pass that keeps the tasks solved on
 the first try and asks the rest again; «Повторить урок» starts from scratch.
 
-`xp` is the experience each task has given; see below.
+`drills` stores the best score in each timed game. Scoring 10 out of 10
+marks the lesson as finished. A timed game starts over if its page is reloaded.
+
+`xp` is the experience each task or timed game has given; see below.
 
 `homestead` stores the garden once the learner makes a change.
 
-«Сбросить прогресс» on the profile page clears `results` and `runs` and keeps
+«Сбросить прогресс» on the profile page clears `results`, `runs` and `drills` and keeps
 the profile, `xp` and `homestead`.
 
 «Скачать файл» on the profile page saves the profile, `results`, `runs`,
-`xp` and `homestead` as a backup file, and «Загрузить файл» replaces everything
+`drills`, `xp` and `homestead` as a backup file, and «Загрузить файл» replaces everything
 saved with one, after asking. The file has its own version, apart from the
 key's:
 
 ```json
-{ "format": "repka-light-backup", "version": 3, "exportedAt": "…", "profile": {}, "results": {}, "runs": {}, "xp": {}, "homestead": {} }
+{ "format": "repka-light-backup", "version": 5, "exportedAt": "…", "profile": {}, "courses": {}, "homestead": {} }
 ```
 
 A change to its shape bumps `BACKUP_VERSION` in `src/store/backup.ts` and adds
@@ -247,6 +259,9 @@ at most. `xp` keeps what each task has given; the total is their sum. It never
 goes down: a reset keeps it, and a task solved again after a reset gives
 nothing more. Results saved before experience was counted earn theirs when
 their course is next opened.
+
+A finished timed game adds 1 XP for each correct answer, up to 10 XP per
+game. Every replay also earns XP.
 
 The level is read off the total. Level 2 takes 100 experience, about one
 lesson, and each next level takes 2 more than the one before, so early levels

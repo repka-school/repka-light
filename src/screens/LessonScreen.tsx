@@ -5,12 +5,13 @@ import { Button } from "@/ui/components/ui/button";
 import { Page, SiteFooter, SiteHeader } from "@/components/Chrome";
 import { LoadError, Loading, NotFound } from "@/components/LoadState";
 import { loadCourse, useLoaded } from "@/content/load";
-import { isQuestion, lessonsOf, questionsOf, type Course, type Lesson } from "@/content/types";
+import { drillOf, isQuestion, lessonsOf, questionsOf, type Course, type Lesson } from "@/content/types";
 import { hasMistakes, open, outcomeOf, reduce, snapshot, type Action } from "@/lesson/session";
 import { spokenVerdict } from "@/lesson/words";
 import { lessonPath } from "@/screens/CourseScreen";
 import { QuestionView } from "@/screens/QuestionView";
 import { SummaryView } from "@/screens/SummaryView";
+import { DrillLesson } from "@/screens/DrillLesson";
 import { getSaved, grantXp, saveResult, saveRun } from "@/store/store";
 import { standingOf, totalXp } from "@/store/xp";
 import { t } from "@/strings";
@@ -20,7 +21,13 @@ export function LessonScreen() {
   const { slug = "", lesson: lessonSlug = "" } = useParams();
   const course = useLoaded(`course:${slug}`, () => loadCourse(slug));
   const lesson = course.data && lessonsOf(course.data).find((l) => l.slug === lessonSlug);
-  if (course.data && lesson) return <LessonRun key={`${slug}/${lessonSlug}`} course={course.data} lesson={lesson} />;
+  if (course.data && lesson) {
+    const key = `${slug}/${lessonSlug}`;
+    const drill = drillOf(lesson);
+    const theory = lesson.cards.find((card) => card.kind === "theory");
+    if (drill && theory) return <DrillLesson key={key} course={course.data} lesson={lesson} theory={theory} drill={drill} />;
+    return <LessonRun key={key} course={course.data} lesson={lesson} />;
+  }
   return (
     <Page focusKey={`lesson:${slug}/${lessonSlug}:${course.loading ? "loading" : "shown"}`} busy={course.loading}>
       {course.loading && <Loading />}

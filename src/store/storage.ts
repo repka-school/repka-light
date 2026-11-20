@@ -10,6 +10,7 @@
 import { avatarIds, frameIds } from "@/ui/pictures/set";
 import type { Homestead } from "@/homestead/rules";
 import { pack, unpack, type PackedHomestead } from "@/homestead/saved";
+import { DRILL_ROUNDS } from "@/lesson/drill";
 import { taskXp } from "./xp";
 
 /** The key stays as it is; the shape of what is under it is `Stored["version"]`. */
@@ -56,7 +57,9 @@ export type Saved = {
   last: Record<string, string>;
   /** The latest pass through each lesson, by `<course>/<lesson>`. */
   runs: Record<string, SavedRun>;
-  /** The experience each task has given, by task id. It only grows, and a reset keeps it. */
+  /** The best score in each timed game, by card id. */
+  drills?: Record<string, number>;
+  /** The experience each task or game has given, by card id. A reset keeps it. */
   xp: Record<string, number>;
   /** The homestead, once it has been changed; until then it is the starter one. A reset keeps it. */
   homestead?: Homestead;
@@ -126,7 +129,9 @@ export type PackedEntry = [flags: number, first?: number[] | 0, final?: number[]
 /** A pass: `cardsKey` of its cards, the card on screen, 1 when the summary shows, then one entry per card. */
 export type PackedRun = [cards: string, index: number, summary: 0 | 1, ...entries: PackedEntry[]];
 /** One course's part of the saved state; ids inside are without the `<course>/` in front. */
-export type StoredCourse = { last?: string; results?: Record<string, PackedResult>; xp?: Record<string, number>; runs?: Record<string, PackedRun> };
+export type StoredCourse = { last?: string; results?: Record<string, PackedResult>; xp?: Record<string, number>; runs?: Record<string, PackedRun>; drills?: Record<string, number> };
+
+const isDrillScore = (value: unknown): value is number => typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= DRILL_ROUNDS;
 
 /** The saved state as it is written. */
 export type Stored = { version: typeof STORED_VERSION; profile: Profile; courses: Record<string, StoredCourse>; homestead?: PackedHomestead };
@@ -148,6 +153,10 @@ export function toStored(saved: Saved): Stored {
   for (const [id, amount] of Object.entries(saved.xp)) {
     const [slug, rest] = split(id);
     (course(slug).xp ??= record())[rest] = amount;
+  }
+  for (const [id, score] of Object.entries(saved.drills ?? {})) {
+    const [slug, rest] = split(id);
+    (course(slug).drills ??= record())[rest] = score;
   }
   for (const [key, run] of Object.entries(saved.runs)) {
     const [slug, rest] = split(key);
@@ -198,6 +207,9 @@ export function fromStored(raw: unknown): Saved {
     }
     for (const [rest, amount] of entriesOf(course.xp)) {
       if (Number.isSafeInteger(amount) && (amount as number) > 0) saved.xp[join(slug, rest)] = amount as number;
+    }
+    for (const [rest, score] of entriesOf(course.drills)) {
+      if (isDrillScore(score)) (saved.drills ??= record())[join(slug, rest)] = score;
     }
     for (const [rest, packed] of entriesOf(course.runs)) {
       const run = unpackRun(packed);
@@ -293,8 +305,21 @@ export function withXp(saved: Saved, tasks: Scored[]): Saved {
   return xp === saved.xp ? saved : { ...saved, xp };
 }
 
+/** Keeps the best score for progress and gives one XP per correct answer in this game. */
+export function withDrillResult(saved: Saved, id: string, score: number, at: string): Saved {
+  if (!isDrillScore(score)) return saved;
+  const best = Math.max(saved.drills?.[id] ?? 0, score);
+  return withPractice({
+    ...saved,
+    drills: { ...saved.drills, [id]: best },
+    xp: score > 0 ? { ...saved.xp, [id]: (saved.xp[id] ?? 0) + score } : saved.xp,
+  }, id, at);
+}
+
 /** The reset: every task result, practice time and lesson pass goes; the profile, the experience and the homestead stay. */
-export const withoutResults = (saved: Saved): Saved => ({ ...saved, results: {}, last: {}, runs: {} });
+export function withoutResults({ drills: _drills, ...saved }: Saved): Saved {
+  return { ...saved, results: {}, last: {}, runs: {} };
+}
 
 /** How many of the given tasks are solved on the first try. */
 export function solvedCount(results: Saved["results"], taskIds: string[]): number {

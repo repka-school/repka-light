@@ -5,7 +5,7 @@
 import { fromStored, toStored, upgradeV1, type Saved, type Stored } from "./storage";
 
 export const BACKUP_FORMAT = "repka-light-backup";
-export const BACKUP_VERSION = 4;
+export const BACKUP_VERSION = 5;
 /** A real backup is a few hundred kilobytes at most; anything far larger is not one. */
 export const BACKUP_MAX_BYTES = 5 * 1024 * 1024;
 
@@ -29,6 +29,8 @@ const upgrades: Record<number, (old: Record<string, unknown>) => Record<string, 
   2: ({ homestead: _none, ...old }) => old,
   // Version 3 had every id in full, a time on every result and the card ids in every pass.
   3: upgradeV1,
+  // Version 4 had no saved game scores. The new field is optional.
+  4: (old) => old,
 };
 
 export type ImportError = "notJson" | "notBackup" | "tooNew" | "tooLarge";

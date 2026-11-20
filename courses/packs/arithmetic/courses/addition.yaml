@@ -1,0 +1,19 @@
+title: Сложение
+description: Тренируй сложение в пределах 10, 20 и 100, с переходом через десяток и без него.
+cover:
+  picture: plus
+tags:
+  grade: [1, 2]
+lessons:
+  - slug: within-10
+    title: Сложение в пределах 10
+    drill: { operation: add, limit: 10 }
+  - slug: within-20
+    title: Сложение в пределах 20
+    drill: { operation: add, limit: 20 }
+  - slug: within-100-no-carry
+    title: Сложение в пределах 100 без перехода через десяток
+    drill: { operation: add, limit: 100, regroup: false }
+  - slug: within-100-carry
+    title: Сложение в пределах 100 с переходом через десяток
+    drill: { operation: add, limit: 100, regroup: true }

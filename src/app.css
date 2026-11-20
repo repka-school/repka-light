@@ -502,6 +502,118 @@ select,
   width: 15px;
   height: 15px;
 }
+.drill-page {
+  padding-block: 24px 48px;
+}
+.drill-page .progress-row {
+  margin: 8px 0 12px;
+}
+.drill-page .theory-card, .drill-card {
+  padding: clamp(16px, 4vw, 32px);
+}
+.drill-page .theory-card .rich-body table {
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.drill-page .theory-card thead {
+  background: var(--accent);
+}
+.drill-page .theory-card tbody tr:nth-child(even) {
+  background: var(--muted);
+}
+.drill-card h1 {
+  margin-bottom: 14px;
+  font-size: var(--type-task-title);
+}
+.drill-round {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted-foreground);
+  font-size: var(--type-sm);
+  font-variant-numeric: tabular-nums;
+}
+.drill-clock {
+  height: 8px;
+  margin-top: 6px;
+  background: var(--progress-track);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.drill-clock span {
+  display: block;
+  height: 100%;
+  background: var(--progress-fill);
+}
+.drill-prompt {
+  margin: 16px 0;
+  text-align: center;
+  font-size: var(--type-3xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.drill-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(6px, 2vw, 16px);
+}
+.drill-option {
+  height: auto;
+  min-height: 64px;
+  padding: 8px 2px;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--type-xl);
+  font-weight: 700;
+}
+.drill-option kbd {
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--muted-foreground);
+  background: var(--background);
+  font-size: var(--type-xs);
+}
+.drill-option[data-mark="correct"] {
+  border-color: var(--success);
+  background: var(--success-soft);
+  color: var(--success-text);
+}
+.drill-option[data-mark="wrong"] {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+  color: var(--danger-text);
+}
+.drill-verdict {
+  min-height: 1.65em;
+  margin-top: 8px;
+  text-align: center;
+}
+.drill-score {
+  font-size: var(--type-stat);
+  font-weight: 600;
+}
+.drill-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+.drill-theory-action {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  justify-content: flex-end;
+  margin-top: 0;
+  padding-block: 12px calc(12px + env(safe-area-inset-bottom));
+  background: var(--background);
+}
+.course-cover > svg, .course-hero-art > svg {
+  position: relative;
+  width: min(100%, 144px);
+  height: auto;
+}
 .theory-blocks {
   display: grid;
   gap: 20px;

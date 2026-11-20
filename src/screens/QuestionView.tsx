@@ -1,4 +1,3 @@
-import { BookOpen } from "lucide-react";
 import { Link } from "react-router";
 import { ChoiceGroup } from "@/ui/components/ChoiceGroup";
 import { OptionText } from "@/ui/components/OptionText";
@@ -10,7 +9,7 @@ import { Progress } from "@/ui/components/ui/progress";
 import { SiteFooter } from "@/components/Chrome";
 import { QuestionNavigator } from "@/components/QuestionNavigator";
 import { XpTag } from "@/components/XpTag";
-import { TheoryBlocks } from "@/components/TheoryBlocks";
+import { TheoryCardView } from "@/components/TheoryCardView";
 import type { Lesson, QuestionCard } from "@/content/types";
 import { cardState, checkable, doneCount, marksOf, primaryAction, questionNumber, sameAsFirst, type Entry, type State } from "@/lesson/session";
 import { useLessonLayout } from "@/lesson/useLessonLayout";
@@ -71,21 +70,8 @@ export function QuestionView({ lesson, state, coursePath, courseTitle, gained, o
         </div>
         <div className="practice-main">
           <div className="solving-scroll" ref={layout.content}>
-            {card.kind === "theory" ? (
-              <article className="question-card theory-card">
-                <div className="theory-heading">
-                  {card.title && (
-                    <p className="theory-label">
-                      <BookOpen aria-hidden="true" />
-                      {t.theory}
-                    </p>
-                  )}
-                  <PageHeading>{card.title || t.theory}</PageHeading>
-                </div>
-                {card.body && <RichBody html={card.body} className="question-body" {...bodyLabels} />}
-                {card.blocks.length > 0 && <TheoryBlocks key={card.id} blocks={card.blocks} />}
-              </article>
-            ) : (
+            {card.kind === "theory" && <TheoryCardView card={card} />}
+            {card.kind === "question" && (
               <article className="question-card">
                 <div className="question-heading">
                   <PageHeading>{t.question(questionNumber(lesson, state.index))}</PageHeading>

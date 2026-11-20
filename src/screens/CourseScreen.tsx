@@ -4,20 +4,29 @@ import { BookOpen, FileText, GraduationCap } from "lucide-react";
 import { PageHeading } from "@/ui/components/PageHeading";
 import { Progress } from "@/ui/components/ui/progress";
 import { Button } from "@/ui/components/ui/button";
+import { TheoryPicture } from "@/ui/pictures/TheoryPicture";
 import { Eyebrow, Page } from "@/components/Chrome";
 import { LoadError, Loading, NotFound } from "@/components/LoadState";
 import { loadCourse, useLoaded } from "@/content/load";
-import { lessonsOf, questionsOf, type Course, type CourseSource, type Lesson } from "@/content/types";
+import { drillOf, lessonsOf, questionsOf, type Course, type CourseSource, type Lesson } from "@/content/types";
+import { courseProgress } from "@/content/progress";
+import { DRILL_ROUNDS } from "@/lesson/drill";
 import { hasAnswers, lessonState, type LessonState } from "@/lesson/session";
 import { solvedCount, type Saved } from "@/store/storage";
+import { grantXp, useSaved } from "@/store/store";
+import { t } from "@/strings";
 
 /** Where a lesson stands, counting a pass with answers but no settled task yet as started. */
 function standing(course: string, lesson: Lesson, saved: Saved): LessonState {
+  const drill = drillOf(lesson);
+  if (drill) {
+    const score = saved.drills?.[drill.id];
+    if (score === undefined) return "new";
+    return score === DRILL_ROUNDS ? "finished" : "partial";
+  }
   const state = lessonState(lesson, saved.results);
   return state === "new" && hasAnswers(saved.runs[`${course}/${lesson.slug}`]) ? "partial" : state;
 }
-import { grantXp, useSaved } from "@/store/store";
-import { t } from "@/strings";
 
 const startWords: Record<LessonState, string> = { new: t.startLesson, partial: t.continueLesson, finished: t.repeatLesson };
 
@@ -43,11 +52,13 @@ function CourseOutline({ course }: { course: Course }) {
   // Results saved before experience was counted earn theirs now.
   useEffect(() => grantXp(lessonsOf(course).flatMap(questionsOf)), [course]);
   // The first lesson not finished carries the filled button.
-  const primary = lessons.find((l) => lessonState(l, saved.results) !== "finished");
+  const primary = lessons.find((l) => standing(course.slug, l, saved) !== "finished");
   const questionIds = lessons.flatMap((l) => questionsOf(l).map((q) => q.id));
-  const done = solvedCount(saved.results, questionIds);
-  const answered = questionIds.filter((id) => saved.results[id]).length;
-  const total = questionIds.length;
+  const drillIds = lessons.flatMap((l) => l.cards.filter((c) => c.kind === "drill").map((c) => c.id));
+  const drillCourse = !questionIds.length && drillIds.length > 0;
+  const coverPicture = course.coverPicture ?? (drillCourse ? "table" : null);
+  const { done, answered, total } = courseProgress({ slug: course.slug, questions: questionIds, drills: drillIds }, saved);
+  const progress = drillCourse ? t.drill.progress(answered, total, done) : t.progressLine(answered, total, done);
   const grades = t.grades(course.grades);
   // Lessons are numbered through the whole course, across modules.
   let number = 0;
@@ -69,23 +80,25 @@ function CourseOutline({ course }: { course: Course }) {
               <BookOpen aria-hidden="true" />
               {t.lessonsCount(lessons.length)}
             </span>
-            <span className="catalog-card-item">
-              <FileText aria-hidden="true" />
-              {t.tasks(total)}
-            </span>
+            {!!questionIds.length && (
+              <span className="catalog-card-item">
+                <FileText aria-hidden="true" />
+                {t.tasks(questionIds.length)}
+              </span>
+            )}
           </span>
         </div>
-        {course.cover && (
+        {(course.cover || coverPicture) && (
           <span className="course-hero-art">
-            <img src={course.cover} alt="" width={192} height={192} />
+            {course.cover ? <img src={course.cover} alt="" width={192} height={192} /> : coverPicture && <TheoryPicture name={coverPicture} size={144} />}
           </span>
         )}
       </div>
       <div className={`course-next${answered > 0 ? " is-started" : ""}`}>
-        {answered > 0 && <ProgressRing value={answered} strong={done} max={total} label={t.progressLabel(course.title)} text={t.progressLine(answered, total, done)} />}
+        {answered > 0 && <ProgressRing value={answered} strong={done} max={total} label={t.progressLabel(course.title)} text={progress} />}
         <span className="course-next-text">
           <span className="course-next-title">{answered === 0 ? t.courseNextNew : primary ? t.courseNextStarted : t.courseNextDone}</span>
-          {answered > 0 && <span className="course-next-line">{t.progressLine(answered, total, done)}</span>}
+          {answered > 0 && <span className="course-next-line">{progress}</span>}
         </span>
         {primary && (
           <Button asChild className="primary" id="course-primary-start">
@@ -151,6 +164,8 @@ function ProgressRing({ value, strong, max, label, text }: { value: number; stro
 
 function LessonRow({ number, course, lesson, saved, primary }: { number: number; course: string; lesson: Lesson; saved: Saved; primary: boolean }) {
   const questions = questionsOf(lesson);
+  const drill = drillOf(lesson);
+  const best = drill && saved.drills?.[drill.id];
   const theory = lesson.cards.length - questions.length;
   const state = standing(course, lesson, saved);
   const done = solvedCount(
@@ -169,8 +184,10 @@ function LessonRow({ number, course, lesson, saved, primary }: { number: number;
             {lesson.title}
             {state === "finished" && <span className="sr-only"> · {t.lessonFinished}</span>}
           </span>
-          <span className="lesson-meta">{t.lessonCounts(theory, questions.length)}</span>
-          <Progress className="lesson-progress" value={answered} strong={done} max={questions.length} label={lesson.title} text={t.lessonProgress(answered, questions.length)} />
+          <span className="lesson-meta">{drill ? t.drill.lessonMeta : t.lessonCounts(theory, questions.length)}</span>
+          {drill ? best !== undefined && <Progress className="lesson-progress" value={best} max={DRILL_ROUNDS} label={lesson.title} text={t.drill.best(best, DRILL_ROUNDS)} /> : (
+            <Progress className="lesson-progress" value={answered} strong={done} max={questions.length} label={lesson.title} text={t.lessonProgress(answered, questions.length)} />
+          )}
         </span>
         {/* Its ::after stretches over the whole row, so the row is one big target. */}
         <Button asChild variant={primary ? "default" : "outline"} className={primary ? "primary lesson-start" : "secondary lesson-start"}>

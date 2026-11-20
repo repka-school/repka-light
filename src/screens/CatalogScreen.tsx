@@ -4,6 +4,7 @@ import { PageHeading } from "@/ui/components/PageHeading";
 import { Badge } from "@/ui/components/ui/badge";
 import { Button } from "@/ui/components/ui/button";
 import { Progress } from "@/ui/components/ui/progress";
+import { TheoryPicture } from "@/ui/pictures/TheoryPicture";
 import { Page } from "@/components/Chrome";
 import { LoadError, Loading } from "@/components/LoadState";
 import { loadIndex, useLoaded } from "@/content/load";
@@ -57,10 +58,14 @@ function CatalogCard({ progress, started = false }: { progress: CourseProgress; 
   const { course, done, answered, total, finished } = progress;
   const to = `/course/${encodeURIComponent(course.slug)}`;
   const grades = t.grades(course.grades);
+  const drillCourse = !course.questions.length && !!course.drills?.length;
+  const coverPicture = course.coverPicture ?? (drillCourse ? "table" : null);
   const action = started && !finished ? t.continueCourse : t.openCourse;
   return (
     <li className={`catalog-card${started ? " is-started" : ""}${finished ? " is-finished" : ""}`} data-course={course.slug}>
-      <span className="course-cover">{course.cover && <img src={course.cover} alt="" width={192} height={192} />}</span>
+      <span className="course-cover">
+        {course.cover ? <img src={course.cover} alt="" width={192} height={192} /> : coverPicture && <TheoryPicture name={coverPicture} size={144} />}
+      </span>
       <span className="catalog-card-body">
         <span className="catalog-card-title">
           {/* Its ::after stretches over the whole card, so the card is one big target. */}
@@ -85,12 +90,14 @@ function CatalogCard({ progress, started = false }: { progress: CourseProgress; 
             <BookOpen aria-hidden="true" />
             {t.lessonsCount(course.lessons)}
           </span>
-          <span className="catalog-card-item">
-            <FileText aria-hidden="true" />
-            {t.tasks(total)}
-          </span>
+          {!!course.questions.length && (
+            <span className="catalog-card-item">
+              <FileText aria-hidden="true" />
+              {t.tasks(course.questions.length)}
+            </span>
+          )}
         </span>
-        {started && <Progress className="catalog-card-progress" value={answered} strong={done} max={total} label={t.progressLabel(course.title)} text={t.progressLine(answered, total, done)} />}
+        {started && <Progress className="catalog-card-progress" value={answered} strong={done} max={total} label={t.progressLabel(course.title)} text={drillCourse ? t.drill.progress(answered, total, done) : t.progressLine(answered, total, done)} />}
         <Button asChild variant={started && !finished ? "default" : "outline"} className={`catalog-card-action ${started && !finished ? "primary" : "secondary"}`}>
           <Link to={to} aria-label={`${action}: ${course.title}`}>
             {action}
