@@ -117,9 +117,10 @@ Use `intro` for a plain-text introduction or `intro.html` for one with MathML.
 A course can use a built-in illustration as its cover with `cover.picture`.
 
 Each game draws ten questions. A correct answer given before the deadline
-advances the game within two seconds. If time runs out before the learner
-answers, the question stays open. A late answer receives feedback and earns
-zero points.
+advances the game within two seconds. A wrong answer shows the right one
+until the deadline, and for at least two seconds. If time runs out before the
+learner answers, the question stays open. A late answer receives feedback and
+earns zero points.
 
 A theory card (`kind: theory`) uses `learning.title` for its heading.
 It can contain text or markup in `question`, structured `blocks`, or both.
@@ -175,25 +176,31 @@ the first try and asks the rest again; «Повторить урок» starts fr
 
 `drills` stores the best score in each timed game. Scoring 10 out of 10
 marks the lesson as finished. A timed game starts over if its page is reloaded.
-`bestAnswerTimeTenths` stores each drill's lowest total answer time. Each card
+`bestAnswerTimeTenths` stores the total answer time of the game that holds
+that score: a higher score brings its own time, an equal score keeps the
+lower one, and a lower score changes nothing, however fast it was. Each card
 contributes the time from its start to the learner's first answer, including
 time spent answering after the countdown. The game rounds the sum to the
-nearest tenth of a second. The first run with this timing sets a new baseline.
+nearest tenth of a second. A time saved before this rule stays until a game
+equals or beats its score.
+
+`drillDays` stores, for each timed game, the last calendar day it gave
+experience and the best score of that day; see below.
 
 `xp` is the experience each task or timed game has given; see below.
 
 `homestead` stores the garden once the learner makes a change.
 
 «Сбросить прогресс» on the profile page clears `results`, `runs`, `drills` and `bestAnswerTimeTenths` and keeps
-the profile, `xp` and `homestead`.
+the profile, `xp`, `drillDays` and `homestead`.
 
 «Скачать файл» on the profile page saves the profile, `results`, `runs`,
-`drills`, `bestAnswerTimeTenths`, `xp` and `homestead` as a backup file, and «Загрузить файл» replaces everything
+`drills`, `bestAnswerTimeTenths`, `drillDays`, `xp` and `homestead` as a backup file, and «Загрузить файл» replaces everything
 saved with one, after asking. The file has its own version, apart from the
 key's:
 
 ```json
-{ "format": "repka-light-backup", "version": 7, "exportedAt": "…", "profile": {}, "courses": {}, "homestead": {} }
+{ "format": "repka-light-backup", "version": 8, "exportedAt": "…", "profile": {}, "courses": {}, "homestead": {} }
 ```
 
 A change to its shape bumps `BACKUP_VERSION` in `src/store/backup.ts` and adds
@@ -214,8 +221,10 @@ goes down: a reset keeps it, and a task solved again after a reset gives
 nothing more. Results saved before experience was counted earn theirs when
 their course is next opened.
 
-A finished timed game adds 1 XP for each correct answer, up to 10 XP per
-game. Every replay also earns XP.
+A finished timed game adds 1 XP for each correct answer. Each game gives at
+most 10 XP per calendar day: a replay on the same day adds only what it
+scores above the day's best, and the next day the game gives its score
+again. A reset does not bring the day's experience back.
 
 Total XP determines the level. Level 2 takes 100 XP. Each subsequent level
 takes 2 XP more than the previous one until level 100, after which each

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { apply, starter } from "@/homestead/rules";
-import { cardsKey, cleanName, empty, parse, sanitize, solvedCount, toStored, withoutResults, withPractice, withProfile, withResult, withRun, withXp, type Saved, type SavedRun, type TaskResult } from "./storage";
+import { cardsKey, cleanName, drillPaidOn, empty, parse, sanitize, solvedCount, toStored, withDrillResult, withoutResults, withPractice, withProfile, withResult, withRun, withXp, type Saved, type SavedRun, type TaskResult } from "./storage";
 
 const result = (outcome: TaskResult["outcome"], choices = [1]): TaskResult => ({ outcome, choices });
 /** The text the browser keeps for a saved state. */
@@ -259,6 +259,77 @@ describe("experience", () => {
 
   it("reads data saved before experience was counted", () => {
     expect(parse(JSON.stringify({ version: 1, profile: {}, results: {}, runs: {} })).xp).toEqual({});
+  });
+});
+
+describe("timed games", () => {
+  const id = "c/l/game";
+  const at = "2026-03-01T10:00:00.000Z";
+  const play = (saved: Saved, score: number, tenths: number, day = "2026-03-01") => withDrillResult(saved, id, score, tenths, at, day);
+
+  it("keep the time of the game with the best score, and the faster one among equal scores", () => {
+    const first = play(empty(), 7, 300);
+    expect([first.drills?.[id], first.bestAnswerTimeTenths?.[id]]).toEqual([7, 300]);
+    // A fast game with fewer right answers is not a record.
+    const careless = play(first, 2, 15);
+    expect([careless.drills?.[id], careless.bestAnswerTimeTenths?.[id]]).toEqual([7, 300]);
+    // A higher score brings its own time, even a slower one.
+    const better = play(careless, 9, 420);
+    expect([better.drills?.[id], better.bestAnswerTimeTenths?.[id]]).toEqual([9, 420]);
+    expect(play(better, 9, 380).bestAnswerTimeTenths?.[id]).toBe(380);
+    expect(play(better, 9, 450).bestAnswerTimeTenths?.[id]).toBe(420);
+  });
+
+  it("take the time of a game that equals a best score saved without one", () => {
+    const old: Saved = { ...empty(), drills: { [id]: 8 } };
+    expect(play(old, 6, 100).bestAnswerTimeTenths).toBeUndefined();
+    expect(play(old, 8, 250).bestAnswerTimeTenths).toEqual({ [id]: 250 });
+  });
+
+  it("give a game's experience once a day: a replay adds only what it scores above the day's best", () => {
+    const first = play(empty(), 6, 300);
+    expect(first.xp[id]).toBe(6);
+    expect(drillPaidOn(first, id, "2026-03-01")).toBe(6);
+    const same = play(first, 6, 280);
+    expect(same.xp[id]).toBe(6);
+    const better = play(same, 9, 260);
+    expect(better.xp[id]).toBe(9);
+    const perfect = play(better, 10, 250);
+    expect(perfect.xp[id]).toBe(10);
+    expect(play(perfect, 10, 200).xp[id]).toBe(10);
+    // The next day the game gives its score again.
+    expect(drillPaidOn(perfect, id, "2026-03-02")).toBe(0);
+    const tomorrow = play(perfect, 4, 500, "2026-03-02");
+    expect(tomorrow.xp[id]).toBe(14);
+    expect(tomorrow.drillDays?.[id]).toEqual({ day: "2026-03-02", score: 4 });
+  });
+
+  it("count each game's day apart from the others'", () => {
+    const saved = withDrillResult(play(empty(), 10, 300), "c/m/game", 5, 300, at, "2026-03-01");
+    expect(saved.xp).toEqual({ [id]: 10, "c/m/game": 5 });
+  });
+
+  it("give nothing for a game without a right answer, and still mark the course as practised", () => {
+    const saved = play(empty(), 0, 600);
+    expect(saved.xp).toEqual({});
+    expect(saved.drillDays).toBeUndefined();
+    expect(saved.drills).toEqual({ [id]: 0 });
+    expect(saved.last).toEqual({ c: at });
+  });
+
+  it("keep what a game gave today through a reset, so a reset does not pay twice", () => {
+    const reset = withoutResults(play(empty(), 8, 300));
+    expect(reset.drills).toBeUndefined();
+    expect(reset.bestAnswerTimeTenths).toBeUndefined();
+    expect(play(reset, 8, 300).xp[id]).toBe(8);
+    expect(play(reset, 10, 300).xp[id]).toBe(10);
+  });
+
+  it("round-trip, and drop a day that is malformed", () => {
+    const saved = play(empty(), 7, 300);
+    expect(parse(written(saved))).toEqual(saved);
+    const read = sanitize({ version: 2, courses: { c: { drillDays: { a: ["2026-03-01", 7], b: ["yesterday", 7], c: ["2026-03-01", 11], d: ["2026-03-01", 0], e: "2026-03-01" } } } });
+    expect(read.drillDays).toEqual({ "c/a": { day: "2026-03-01", score: 7 } });
   });
 });
 

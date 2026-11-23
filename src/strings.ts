@@ -1,5 +1,6 @@
 // Every user-visible string. The interface is in Russian.
 import { count } from "@/ui/i18n/plural";
+import { DRILL_ROUNDS } from "@/lesson/drill";
 import { STEADY_LEVEL } from "@/store/xp";
 
 const taskForms = ["задание", "задания", "заданий"] as const;
@@ -103,7 +104,7 @@ export const t = {
     next: "К игре",
     start: "Начать игру",
     replay: "Играть ещё",
-    instructions: (rounds: number, seconds: number) => `${count(rounds, taskForms)} за игру. Ответь верно за ${seconds} секунд, чтобы получить 1 XP. Когда время выйдет, можно ответить для тренировки.`,
+    instructions: (rounds: number, seconds: number) => `${count(rounds, taskForms)} за игру. Ответь верно за ${seconds} секунд, чтобы получить 1 XP. За день одна игра даёт не больше ${rounds} XP. Когда время выйдет, можно ответить для тренировки.`,
     controls: "Выбери один из трёх ответов или нажми 1, 2 или 3.",
     time: (seconds: number) => `${seconds} с`,
     remaining: "Время на ответ",
@@ -113,16 +114,27 @@ export const t = {
     wrong: (answer: string) => `Верный ответ — ${answer}.`,
     result: "Результат игры",
     totalTime: (tenths: number) => `Время на ответы — ${drillDuration(tenths)}.`,
-    timeRecord: (tenths: number, best?: number) => {
-      if (best === undefined) return "Первый рекорд времени!";
-      if (tenths === best) return "Личный рекорд повторён!";
+    /** How a finished game stands against the best one before it: a higher score is the record, and among equal scores the faster game. */
+    record: (score: number, rounds: number, tenths: number, previous?: { score: number; tenths?: number }) => {
+      if (!previous) return "Первый рекорд!";
+      if (score > previous.score) return `Новый рекорд! Раньше было ${previous.score} из ${rounds}.`;
+      const best = previous.tenths;
+      if (score < previous.score) return `Рекорд — ${previous.score} из ${rounds}${best === undefined ? "" : ` (${drillDuration(best)})`}.`;
+      if (best === undefined || tenths === best) return "Личный рекорд повторён!";
       const difference = drillDuration(Math.abs(tenths - best));
       return tenths < best
         ? `Новый рекорд! На ${difference} быстрее прежнего (${drillDuration(best)}).`
         : `Рекорд — ${drillDuration(best)}. В этот раз на ${difference} дольше.`;
     },
     score: (correct: number, rounds: number) => `Верных ответов — ${correct} из ${rounds}`,
-    xp: (score: number) => `+${score} XP`,
+    /** What the game added, and what the same game had already given today when that kept some of it back. */
+    xp: (gained: number, paidToday: number, rounds: number) => {
+      if (paidToday === 0) return `+${gained} XP`;
+      if (gained > 0) return `+${gained} XP. Сегодня эта игра уже дала ${paidToday} XP.`;
+      return paidToday >= rounds
+        ? `Сегодня эта игра уже дала ${paidToday} XP — больше за день не бывает.`
+        : `Сегодня эта игра уже дала ${paidToday} XP. Больше будет за результат выше.`;
+    },
     lessonMeta: "Таблица и игра на время",
     best: (score: number, rounds: number, bestTime?: number) => {
       const result = `Лучший результат — ${score} из ${rounds}`;
@@ -203,7 +215,7 @@ export const t = {
     "На каждом задании написано, сколько опыта оно даёт: чем сложнее задание, тем больше.",
     "Верный ответ с первой попытки приносит весь опыт, со второй\u00A0— половину.",
     "Задание с ошибкой можно решить заново и получить остальной опыт. За повтор решённого задания опыт не добавляется.",
-    "В игре на время каждый верный ответ даёт 1 XP, в том числе в повторных играх.",
+    `В игре на время каждый верный ответ даёт 1 XP. За день одна игра даёт не больше ${DRILL_ROUNDS} XP: повторная игра добавляет только за результат выше прежнего.`,
     `Первые уровни идут быстрее: каждый следующий требует чуть больше опыта. После ${STEADY_LEVEL}-го уровня все уровни требуют одинаково.`,
     "Опыт можно тратить в огороде: на семечки и на рост репок. Уровень от этого не уменьшается.",
     "Опыт хранится в этом браузере и остаётся после сброса прогресса.",

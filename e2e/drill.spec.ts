@@ -34,7 +34,7 @@ test("the multiplication course opens with theory and ends with squares through 
   await expect(table.getByRole("row").last()).toHaveText(/20²\s*400/);
 });
 
-test("correct answers cap the wait at two seconds and a repeat game grants its own XP", async ({ page, hasTouch }) => {
+test("correct answers cap the wait at two seconds and a repeat game on the same day adds only what it scores above the first", async ({ page, hasTouch }) => {
   await page.clock.install({ time: new Date("2026-01-01T00:00:00Z") });
   await page.clock.pauseAt(new Date("2026-01-01T00:01:00Z"));
   await page.goto(timesTwo);
@@ -95,7 +95,7 @@ test("correct answers cap the wait at two seconds and a repeat game grants its o
   await expect(page.getByText("Верных ответов — 7 из 10")).toBeVisible();
   await expect(page.getByText("+7 XP", { exact: true })).toBeVisible();
   await expect(page.getByText("Время на ответы — 44,2 с.")).toBeVisible();
-  await expect(page.getByText("Первый рекорд времени!")).toBeVisible();
+  await expect(page.getByText("Первый рекорд!")).toBeVisible();
   await expect.poll(async () => (await stored(page)).courses.multiplication).toMatchObject({
     drills: { "times-2/game": 7 }, bestAnswerTimeTenths: { "times-2/game": 442 }, xp: { "times-2/game": 7 },
   });
@@ -108,17 +108,54 @@ test("correct answers cap the wait at two seconds and a repeat game grants its o
     await page.clock.runFor(2000);
   }
   await expect(page.getByText("Верных ответов — 10 из 10")).toBeVisible();
-  await expect(page.getByText("+10 XP", { exact: true })).toBeVisible();
+  await expect(page.getByText("+3 XP. Сегодня эта игра уже дала 7 XP.", { exact: true })).toBeVisible();
   await expect(page.getByText("Время на ответы — 1,4 с.")).toBeVisible();
-  await expect(page.getByText("Новый рекорд! На 42,8 с быстрее прежнего (44,2 с).")).toBeVisible();
+  await expect(page.getByText("Новый рекорд! Раньше было 7 из 10.")).toBeVisible();
   await expect.poll(async () => (await stored(page)).courses.multiplication).toMatchObject({
-    drills: { "times-2/game": 10 }, bestAnswerTimeTenths: { "times-2/game": 14 }, xp: { "times-2/game": 17 },
+    drills: { "times-2/game": 10 }, bestAnswerTimeTenths: { "times-2/game": 14 }, xp: { "times-2/game": 10 }, drillDays: { "times-2/game": [expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/), 10] },
+  });
+
+  // A quick game with mistakes is not a record, and the day's ten XP are already given.
+  await page.getByRole("button", { name: "Играть ещё" }).click();
+  for (let i = 0; i < 10; i++) {
+    await page.clock.runFor(50);
+    const choice = await options(page);
+    await (i === 0 ? choice.wrong : choice.right).click();
+    await page.clock.runFor(5000);
+  }
+  await expect(page.getByText("Верных ответов — 9 из 10")).toBeVisible();
+  await expect(page.getByText("Рекорд — 10 из 10 (1,4 с).")).toBeVisible();
+  await expect(page.getByText("Сегодня эта игра уже дала 10 XP — больше за день не бывает.", { exact: true })).toBeVisible();
+  await expect.poll(async () => (await stored(page)).courses.multiplication).toMatchObject({
+    drills: { "times-2/game": 10 }, bestAnswerTimeTenths: { "times-2/game": 14 }, xp: { "times-2/game": 10 },
   });
 
   await page.reload();
   await page.locator("#to-course").click();
   await expect(page.getByText("Лучший результат — 10 из 10 (1,4 с)", { exact: true })).toBeVisible();
   await expect(page.locator("#course-primary-start")).toContainText("Умножение на 3");
+});
+
+test("a wrong answer just before the deadline still shows the right one for two seconds", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-01-01T00:00:00Z") });
+  await page.clock.pauseAt(new Date("2026-01-01T00:01:00Z"));
+  await page.goto(timesTwo);
+  await page.getByRole("button", { name: "К игре" }).click();
+  await page.getByRole("button", { name: "Начать игру" }).click();
+  const before = await prompt(page).innerText();
+  const choice = await options(page);
+  await page.clock.runFor(4800);
+  await expect(page.getByRole("timer")).toHaveText("1 с");
+  await choice.wrong.click();
+  await expect(page.getByRole("status").filter({ hasText: /^Верный ответ — \d+\.$/ })).toBeVisible();
+  // The timer does not climb back while the answer stays on screen.
+  await expect(page.getByRole("timer")).toHaveText("1 с");
+  await page.clock.runFor(1999);
+  await expect(prompt(page)).toHaveText(before);
+  await expect(page.getByRole("timer")).toHaveText("1 с");
+  await page.clock.runFor(1);
+  await expect(prompt(page)).not.toHaveText(before);
+  await expect(page.getByRole("timer")).toHaveText("5 с");
 });
 
 test("the theory and the game pass axe", async ({ page }) => {

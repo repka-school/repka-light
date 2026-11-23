@@ -6,7 +6,7 @@ import type { Course, DrillCard, Lesson, TheoryCard } from "@/content/types";
 import { lessonsOf } from "@/content/types";
 import { DRILL_ROUNDS, DRILL_SECONDS, drillQuestions, type DrillQuestion } from "@/lesson/drill";
 import { lessonPath } from "@/screens/CourseScreen";
-import { saveDrillResult } from "@/store/store";
+import { saveDrillResult, type DrillSaved } from "@/store/store";
 import { bodyLabels, t } from "@/strings";
 import { PageHeading } from "@/ui/components/PageHeading";
 import { RichBody } from "@/ui/components/RichBody";
@@ -18,7 +18,8 @@ type Run = {
   totalAnswerMs: number;
   index: number;
   deadline: number;
-  selected: { value: number; late: boolean } | null;
+  /** The answer given, whether it came after the deadline, and the whole seconds the timer showed then. */
+  selected: { value: number; late: boolean; seconds: number } | null;
   score: number;
 };
 
@@ -29,7 +30,7 @@ export function DrillLesson({ course, lesson, theory, drill }: { course: Course;
   const [showGame, setShowGame] = useState(false);
   const [run, setRun] = useState<Run | null>(null);
   const [seconds, setSeconds] = useState(DRILL_SECONDS);
-  const [timing, setTiming] = useState<{ tenths: number; previousBest?: number } | null>(null);
+  const [outcome, setOutcome] = useState<({ tenths: number } & DrillSaved) | null>(null);
   const savedRun = useRef<Run | null>(null);
   const index = run?.index;
   const deadline = run?.deadline;
@@ -69,7 +70,8 @@ export function DrillLesson({ course, lesson, theory, drill }: { course: Course;
         return;
       }
       const remaining = Math.ceil(timeLeft / 1000);
-      setSeconds(selected?.late ? 0 : remaining);
+      // After an answer the timer only runs down: a wrong answer's feedback can outlast the time that was left.
+      setSeconds(selected ? (selected.late ? 0 : Math.min(remaining, selected.seconds)) : remaining);
       timer = window.setTimeout(tick, timeLeft - (remaining - 1) * 1000);
     };
     tick();
@@ -80,14 +82,13 @@ export function DrillLesson({ course, lesson, theory, drill }: { course: Course;
     if (!finished || savedRun.current === run) return;
     savedRun.current = run;
     const tenths = Math.round(run.totalAnswerMs / 100);
-    const previousBest = saveDrillResult(drill.id, run.score, tenths);
-    setTiming({ tenths, previousBest });
+    setOutcome({ tenths, ...saveDrillResult(drill.id, run.score, tenths) });
   }, [drill.id, finished, run]);
 
   const start = () => {
     const questions = drillQuestions(drill);
     const cardStartedAt = performance.now();
-    setTiming(null);
+    setOutcome(null);
     setSeconds(DRILL_SECONDS);
     setRun({ questions, cardStartedAt, totalAnswerMs: 0, index: 0, deadline: cardStartedAt + turnTime, selected: null, score: 0 });
   };
@@ -99,12 +100,12 @@ export function DrillLesson({ course, lesson, theory, drill }: { course: Course;
       if (!current || current.index !== index || current.deadline !== deadline || current.selected !== null) return current;
       const late = now >= current.deadline;
       const correct = value === question.answer;
-      let advanceAt = current.deadline;
-      if (late) advanceAt = now + feedbackMs;
-      else if (correct) advanceAt = Math.min(current.deadline, now + feedbackMs);
+      // A right answer moves on within two seconds; a wrong or late one shows the right answer for at least two.
+      let advanceAt = now + feedbackMs;
+      if (!late) advanceAt = correct ? Math.min(current.deadline, advanceAt) : Math.max(current.deadline, advanceAt);
       return {
         ...current,
-        selected: { value, late },
+        selected: { value, late, seconds: late ? 0 : Math.ceil((current.deadline - now) / 1000) },
         totalAnswerMs: current.totalAnswerMs + (now - current.cardStartedAt),
         score: current.score + (correct && !late ? 1 : 0),
         deadline: advanceAt,
@@ -184,8 +185,8 @@ export function DrillLesson({ course, lesson, theory, drill }: { course: Course;
             {finished && (
               <>
                 <p className="drill-score">{t.drill.score(run.score, run.questions.length)}</p>
-                {timing && <p>{t.drill.totalTime(timing.tenths)}<br />{t.drill.timeRecord(timing.tenths, timing.previousBest)}</p>}
-                <p className="xp-gain">{t.drill.xp(run.score)}</p>
+                {outcome && <p>{t.drill.totalTime(outcome.tenths)}<br />{t.drill.record(run.score, run.questions.length, outcome.tenths, outcome.previous)}</p>}
+                {outcome && <p className="xp-gain">{t.drill.xp(outcome.gained, outcome.paidToday, run.questions.length)}</p>}
                 <div className="drill-actions">
                   <Button type="button" className="primary" onClick={start}>{t.drill.replay}</Button>
                   <Button asChild variant="outline" className="secondary">

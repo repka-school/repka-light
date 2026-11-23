@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
-import { freeXp, starter, type Homestead } from "@/homestead/rules";
-import { empty, parse, STORAGE_KEY, toStored, withoutResults, withDrillResult, withPractice, withProfile, withResult, withRun, withXp, type Outcome, type Profile, type Saved, type SavedRun, type Scored } from "./storage";
+import { dayOf, freeXp, starter, type Homestead } from "@/homestead/rules";
+import { drillPaidOn, empty, parse, STORAGE_KEY, toStored, withoutResults, withDrillResult, withPractice, withProfile, withResult, withRun, withXp, type Outcome, type Profile, type Saved, type SavedRun, type Scored } from "./storage";
 import { totalXp } from "./xp";
 
 // One copy of the saved state for the page, written through to localStorage.
@@ -54,10 +54,20 @@ export function saveResult(task: Scored, outcome: Outcome, choices: number[]): n
 }
 /** Gives the experience of results saved earlier that have none yet: from before experience was counted, or from an older backup file. */
 export const grantXp = (tasks: Scored[]) => commit(withXp(state, tasks));
-export function saveDrillResult(id: string, score: number, tenths: number) {
-  const previousBest = state.bestAnswerTimeTenths?.[id];
-  commit(withDrillResult(state, id, score, tenths, new Date().toISOString()));
-  return previousBest;
+/** What saving a timed game changed: the best result before it, what the game had already given today, and the experience this game added. */
+export type DrillSaved = { previous?: { score: number; tenths?: number }; paidToday: number; gained: number };
+
+export function saveDrillResult(id: string, score: number, tenths: number): DrillSaved {
+  const before = state;
+  const now = new Date();
+  const day = dayOf(now);
+  commit(withDrillResult(state, id, score, tenths, now.toISOString(), day));
+  const previousScore = before.drills?.[id];
+  return {
+    previous: previousScore === undefined ? undefined : { score: previousScore, tenths: before.bestAnswerTimeTenths?.[id] },
+    paidToday: drillPaidOn(before, id, day),
+    gained: (state.xp[id] ?? 0) - (before.xp[id] ?? 0),
+  };
 }
 export const saveProfile = (patch: Partial<Profile>) => commit(withProfile(state, patch));
 export const saveRun = (key: string, run: SavedRun) => commit(withRun(state, key, run));

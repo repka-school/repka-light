@@ -45,13 +45,19 @@ describe("fromBackup", () => {
     expect(read).toEqual({ ok: true, saved, exportedAt: "2026-03-04T05:06:07.000Z" });
   });
 
-  it("keeps the best game score and the XP earned across replays in a backup", () => {
+  it("keeps the best game, the XP earned across days and what the game gave on its last day in a backup", () => {
     const id = "multiplication/times-2/game";
-    const first = withDrillResult(empty(), id, 10, 317, "2026-03-01T00:00:00.000Z");
-    const replay = withDrillResult(first, id, 6, 404, "2026-03-02T00:00:00.000Z");
+    const first = withDrillResult(empty(), id, 10, 317, "2026-03-01T00:00:00.000Z", "2026-03-01");
+    const replay = withDrillResult(first, id, 6, 404, "2026-03-02T00:00:00.000Z", "2026-03-02");
     const read = fromBackup(JSON.stringify(toBackup(replay, now)));
-    expect(read).toMatchObject({ ok: true, saved: { drills: { [id]: 10 }, bestAnswerTimeTenths: { [id]: 317 }, xp: { [id]: 16 } } });
+    expect(read).toMatchObject({ ok: true, saved: { drills: { [id]: 10 }, bestAnswerTimeTenths: { [id]: 317 }, xp: { [id]: 16 }, drillDays: { [id]: { day: "2026-03-02", score: 6 } } } });
     expect(withoutResults(replay).bestAnswerTimeTenths).toBeUndefined();
+  });
+
+  it("imports a file written before a game's day was kept", () => {
+    const course = { drills: { game: 8 }, bestAnswerTimeTenths: { game: 350 }, xp: { game: 16 } };
+    const read = fromBackup(JSON.stringify({ format: BACKUP_FORMAT, version: 7, courses: { c: course } }));
+    expect(read).toEqual({ ok: true, exportedAt: "", saved: { ...empty(), drills: { "c/game": 8 }, bestAnswerTimeTenths: { "c/game": 350 }, xp: { "c/game": 16 } } });
   });
 
   it("imports an older drill score without inventing a time record", () => {

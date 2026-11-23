@@ -82,7 +82,7 @@ test("a backup downloaded in one browser brings everything to another", async ({
   const [download] = await Promise.all([page.waitForEvent("download"), page.locator("#backup-export").click()]);
   expect(download.suggestedFilename()).toMatch(/^repka-progress-\d{4}-\d{2}-\d{2}-\d{4}\.json$/);
   const text = fs.readFileSync(await download.path(), "utf8");
-  expect(JSON.parse(text)).toMatchObject({ format: "repka-light-backup", version: 7, profile: { name: "Маша" }, courses: before.courses });
+  expect(JSON.parse(text)).toMatchObject({ format: "repka-light-backup", version: 8, profile: { name: "Маша" }, courses: before.courses });
 
   // Another browser: nothing saved yet.
   await page.evaluate((key) => localStorage.removeItem(key), STORAGE_KEY);
