@@ -8,10 +8,13 @@
 // pinch or a hover; the arrows show only while part of the scene is out of
 // view. A view asked for by a button or a key glides into place; one made by
 // a drag, the wheel or a pinch follows the hand at once. The highlighted tile
-// is brought into view after a key, never after a tap or a hover, which act on
-// what is already in view. Whatever is passed as children (the tool's line, a
-// thing's card, the seed chooser) floats over the scene's bottom on a wide
-// page and sits under it on a narrow one.
+// is brought into view after a key, never after a hover or a tap, which act on
+// what is already in view; a tapped thing is moved only out from under its own
+// card. Whatever is passed as children (the tool's line, a thing's card, the
+// seed chooser) floats over the scene: the tool's line over its bottom edge, a
+// card or the chooser over its bottom left on a wide page and, on a narrow
+// one, along the bottom of the screen, over the tray. The tray is laid out
+// with the scene, so nothing under the scene moves when one of them shows.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { CloudRain, Sun, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Maximize, Minus, Plus, type LucideIcon } from "lucide-react";
@@ -49,6 +52,8 @@ type Props = {
   /** R was pressed: a fence in hand, or the selected one, turns. */
   onRotate: () => void;
   onEscape: () => void;
+  /** The tray of tools, under the scene. */
+  tray: ReactNode;
   children?: ReactNode;
 };
 
@@ -67,12 +72,22 @@ function entry(el: HTMLElement, tile: Tile): View {
   return { z, x: el.clientWidth / 2 - c.x * z, y: el.clientHeight / 2 - c.y * z };
 }
 
-/** How much of the viewport's bottom the overlay covers: nothing when it sits under the scene. */
+/** How much of the viewport's bottom the overlay covers: nothing when it is clear of the scene. */
 function coveredBy(overlay: HTMLElement | null, viewport: HTMLElement) {
   if (!overlay) return 0;
   const o = overlay.getBoundingClientRect();
   const v = viewport.getBoundingClientRect();
   return o.height > 0 && o.top < v.bottom ? v.bottom - o.top : 0;
+}
+
+/** Whether a point of the viewport lies under the overlay. */
+function under(overlay: HTMLElement | null, viewport: HTMLElement, x: number, y: number) {
+  if (!overlay) return false;
+  const o = overlay.getBoundingClientRect();
+  const v = viewport.getBoundingClientRect();
+  const px = v.left + viewport.clientLeft + x;
+  const py = v.top + viewport.clientTop + y;
+  return o.height > 0 && px >= o.left && px <= o.right && py >= o.top && py <= o.bottom;
 }
 
 /** How a view is shown: remembered for the next visit, and gliding into place or set at once. */
@@ -142,12 +157,16 @@ function useView(start: Tile) {
     const el = viewport.current;
     if (el) show({ ...current.current, x: current.current.x + (dx * el.clientWidth) / 3, y: current.current.y + (dy * el.clientHeight) / 3 }, { glide: true });
   };
+  /** Brings a tile into view; with `covered`, only a tile that lies under the overlay. */
   const reveal = useCallback(
-    (tile: Tile) => {
+    (tile: Tile, covered = false) => {
       const el = viewport.current;
       if (!el) return;
-      const next = showing(current.current, { w: el.clientWidth, h: el.clientHeight, bottom: coveredBy(overlay.current, el) }, tileCentre(tile[0], tile[1]));
-      if (next !== current.current) show(next, { glide: true });
+      const view = current.current;
+      const centre = tileCentre(tile[0], tile[1]);
+      if (covered && !under(overlay.current, el, view.x + centre.x * view.z, view.y + centre.y * view.z)) return;
+      const next = showing(view, { w: el.clientWidth, h: el.clientHeight, bottom: coveredBy(overlay.current, el) }, centre);
+      if (next !== view) show(next, { glide: true });
     },
     [show],
   );
@@ -301,7 +320,7 @@ function Round({ id, label, icon: Icon, onClick, spent = false }: { id: string; 
 
 const plain = (event: KeyboardEvent) => !event.ctrlKey && !event.metaKey && !event.altKey;
 
-export function Scene({ home, cursor, marks, ghost, fits, selected, burst, onCursor, onActivate, onCarry, onRotate, onEscape, children }: Props) {
+export function Scene({ home, cursor, marks, ghost, fits, selected, burst, onCursor, onActivate, onCarry, onRotate, onEscape, tray, children }: Props) {
   const [weather, setWeather] = useState(() => weatherAt(Date.now()));
   useEffect(() => {
     const refresh = () => setWeather(weatherAt(Date.now()));
@@ -334,9 +353,22 @@ export function Scene({ home, cursor, marks, ghost, fits, selected, burst, onCur
   useEffect(() => {
     if (!pointed.current) reveal(cursor);
   }, [cursor, reveal]);
+  // A thing selected by a key is brought into view; one that was tapped is moved only out from under its own card.
   useEffect(() => {
-    if (selected && !pointed.current) reveal(selected);
+    if (selected) reveal(selected, pointed.current);
   }, [selected, reveal]);
+  // A card that grew, as a bed's does once it is planted, may now lie over its thing.
+  const shown = useRef(selected);
+  shown.current = selected;
+  useEffect(() => {
+    const el = overlay.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => {
+      if (shown.current) reveal(shown.current, true);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [overlay, reveal]);
   const closer = () => zoomAt((z) => z * ZOOM.step, undefined, undefined, { glide: true });
   const farther = () => zoomAt((z) => z / ZOOM.step, undefined, undefined, { glide: true });
   const keys = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -417,7 +449,11 @@ export function Scene({ home, cursor, marks, ghost, fits, selected, burst, onCur
             <Round id="homestead-pan-down" label={w.zoom.down} icon={ChevronDown} onClick={() => pan(0, -1)} />
           </div>
         </div>
-        <p className="homestead-scene-hint">{w.scene.hint}</p>
+        {/* One of the two is shown: by whether the screen has a pointer that hovers. */}
+        <p className="homestead-scene-hint">
+          <span className="homestead-hint-mouse">{w.scene.hint}</span>
+          <span className="homestead-hint-touch">{w.scene.hintTouch}</span>
+        </p>
         {/* The grid's description; shown in place of the drag hint while the scene has keyboard focus. */}
         <p id="homestead-scene-keys" className="homestead-scene-keys">
           {w.scene.keys}
@@ -425,6 +461,7 @@ export function Scene({ home, cursor, marks, ghost, fits, selected, burst, onCur
         <div ref={overlay} className="homestead-overlay">
           {children}
         </div>
+        {tray}
       </div>
     </div>
   );

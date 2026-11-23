@@ -1,5 +1,104 @@
-import { expect, test } from "./support";
+import { expect, STORAGE_KEY, test } from "./support";
 import { weatherAt } from "../src/homestead/weather";
+
+/** A saved state with experience to spend and the starter homestead; the experience is under a course of no name, which the homestead counts all the same. */
+const earned = (xp: number) => JSON.stringify({ version: 2, profile: { name: "", avatar: null, frame: "none" }, courses: { earned: { xp: { task: xp } } } });
+/** How far down the page an element starts, wherever the page is scrolled to. */
+const topOf = (el: Element) => el.getBoundingClientRect().top + window.scrollY;
+
+test("a bed is planted, grown, gathered and planted again from its own card, which stays on the screen", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(([key, value]) => localStorage.getItem(key) ?? localStorage.setItem(key, value), [STORAGE_KEY, earned(200)]);
+  await page.goto("homestead");
+  const title = page.locator("#homestead-card-title");
+  const plant = page.getByRole("button", { name: "Посадить обычное семечко" });
+  // The cursor starts on the first bed.
+  await page.getByRole("grid").press("Enter");
+  await expect(title).toHaveText("Грядка");
+  await expect(plant).toBeInViewport({ ratio: 1 });
+  await plant.click();
+  await expect(title).toHaveText("обычная репка, посажено");
+  const grow = page.getByRole("button", { name: "Растить +50" });
+  await expect(grow).toBeInViewport({ ratio: 1 });
+  await grow.click();
+  await grow.click();
+  await expect(title).toHaveText("обычная репка, созрела");
+  const gather = page.getByRole("button", { name: "Собрать в урожай" });
+  await expect(gather).toBeInViewport({ ratio: 1 });
+  await gather.click();
+  await expect(page.locator(".homestead-harvest")).toContainText("Собрано: 1 репка");
+  // The bed is empty again and no seed is left: its card leads to the seeds, and comes back when they are closed.
+  await expect(title).toHaveText("Грядка");
+  await expect(plant).toHaveCount(0);
+  await page.locator("#homestead-card-seeds").click();
+  await expect(page.locator("#homestead-chooser-title")).toBeFocused();
+  await page.locator("#homestead-buy-common").click();
+  // «Купить» ignores a double tap's second tap for half a second.
+  await page.waitForTimeout(600);
+  await page.locator("#homestead-buy-confirm-common").click();
+  await expect(page.locator("#homestead-tray-seed-common")).toBeVisible();
+  await page.locator("#homestead-chooser-close").click();
+  await expect(title).toHaveText("Грядка");
+  await expect(plant).toBeFocused();
+  await plant.click();
+  await expect(title).toHaveText("обычная репка, посажено");
+});
+
+test("the tray holds only what is in stock and stays in its place when a tool is picked up", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("homestead");
+  await expect(page.getByRole("gridcell")).toHaveCount(144);
+  const tray = page.getByRole("group", { name: "Опыт, семечки и склад" });
+  const tools = () => tray.getByRole("button").evaluateAll((buttons) => buttons.map((button) => button.id.replace("homestead-tray-", "")));
+  expect(await tools()).toEqual(["grow", "seed-common", "chooser", "bed", "bush", "chicken"]);
+  const before = await tray.evaluate(topOf);
+  await page.locator("#homestead-tray-bed").click();
+  await expect(page.locator(".homestead-mode")).toContainText("Ставим грядку.");
+  expect(await tray.evaluate(topOf)).toBe(before);
+  // The last bed goes onto the ground: it is no tool any more.
+  const grid = page.getByRole("grid");
+  await grid.press("ArrowDown");
+  await grid.press("Enter");
+  expect(await tools()).toEqual(["grow", "seed-common", "chooser", "bush", "chicken"]);
+});
+
+test("a card never lies over the button the keyboard is on", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("homestead");
+  await page.getByRole("grid").press("Enter");
+  await expect(page.locator("#homestead-card-title")).toHaveText("Грядка");
+  /** Whether the focused element is the topmost thing at its own centre. */
+  const inSight = () =>
+    page.evaluate(() => {
+      const el = document.activeElement!;
+      const box = el.getBoundingClientRect();
+      const top = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+      return !!top && el.contains(top);
+    });
+  // From the scene by its buttons and the card to the tray's last tool.
+  const seen: string[] = [];
+  for (let presses = 0; presses < 30 && seen.at(-1) !== "homestead-tray-chicken"; presses++) {
+    await page.keyboard.press("Tab");
+    seen.push(await page.evaluate(() => document.activeElement!.id));
+    expect(await inSight(), `${seen.at(-1)} is in sight`).toBe(true);
+  }
+  expect(seen).toContain("homestead-plant");
+  expect(seen.at(-1)).toBe("homestead-tray-chicken");
+});
+
+test("a wide page shows the whole tray without scrolling it sideways @desktop", async ({ page }) => {
+  await page.goto("homestead");
+  await expect(page.getByRole("gridcell")).toHaveCount(144);
+  const tray = page.getByRole("group", { name: "Опыт, семечки и склад" });
+  // Everything goes to stock, so the tray holds a tool for every kind.
+  for (let left = await page.locator("[data-thing]").count(); left > 0; left--) {
+    await page.locator("[data-thing]").first().dispatchEvent("click");
+    await page.getByRole("button", { name: "Убрать на склад" }).click();
+    await expect(page.locator("[data-thing]")).toHaveCount(left - 1);
+  }
+  await expect(tray.getByRole("button")).toHaveCount(14);
+  expect(await tray.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+});
 
 test("pollinators shelter during a passing shower", async ({ page }) => {
   // Start at a period boundary, before its shower, and advance the browser clock.

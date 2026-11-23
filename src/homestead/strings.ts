@@ -26,15 +26,6 @@ export const w = {
   kinds: kindNames,
   /** A turnip's growth stages, by stage number − 1. */
   stages: ["посажено", "проклюнулось", "росток", "первые листья", "кустик", "завязь", "наливается", "крупнеет", "почти созрела", "созрела"],
-  resources: {
-    label: "Запасы",
-    seeds: "Семечки",
-    noSeeds: "нет",
-    seed: (type: Quality, n: number) => `${seedQualities[type]} ×${n}`,
-    xp: "Свободный опыт",
-    beds: "Грядки",
-    bedsOf: (placed: number, owned: number) => `${placed} из ${owned}`,
-  },
   tray: {
     label: "Опыт, семечки и склад",
     grow: "Растить",
@@ -55,6 +46,8 @@ export const w = {
   scene: {
     label: "Огород",
     hint: "Тяни огород, чтобы осмотреться; колёсико или два пальца — ближе и дальше. Выбранную вещь можно перетащить.",
+    /** The same on a screen that is only touched: no wheel. */
+    hintTouch: "Тяни огород, чтобы осмотреться; двумя пальцами — ближе и дальше. Выбранную вещь можно перетащить.",
     keys: "Стрелками выбирай клетку, Enter — выбрать или применить, Escape — отмена, плюс и минус — ближе и дальше, 0 — весь огород, R — повернуть забор.",
     position: (x: number, y: number) => `ряд ${y + 1}, место ${x + 1}`,
     free: "свободно",
@@ -69,8 +62,9 @@ export const w = {
     toNext: (since: number, span: number) => `до следующей стадии ${since}/${span}`,
     total: (given: number, total: number) => `всего ${given}/${total} опыта`,
     grow: (n: number) => `Растить +${n}`,
-    emptyBed: "Грядка пустая. Возьми семечко внизу и нажми на грядку.",
-    emptyBedNoSeed: "Грядка пустая. Семечки — в «Семечки за опыт» внизу.",
+    emptyBed: "Грядка пустая. Посади в неё семечко.",
+    emptyBedNoSeed: "Грядка пустая, а семечек нет.",
+    plant: (type: Quality) => `Посадить ${seedQualities[type]} семечко`,
     ripe: "созрела",
     ripenedOn: (day: string) => `Созрела ${dayWords(day)}`,
     gather: "Собрать в урожай",

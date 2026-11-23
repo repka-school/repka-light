@@ -82,10 +82,13 @@ export function showing(view: View, size: { w: number; h: number; bottom: number
   const sx = view.x + centre.x * view.z;
   const sy = view.y + centre.y * view.z;
   const margin = Math.min(64, w / 4, h / 4);
-  // The lowest a point may sit: above what covers the bottom, unless that leaves no room at all.
-  const low = h - bottom - margin > margin ? h - bottom - margin : h - margin;
+  /** What is left of the viewport above what covers its bottom. */
+  const room = h - bottom;
+  // The lowest a point may sit: a margin above what covers the bottom; in the middle of a band too low for the margins; anywhere when hardly a band is left.
+  const low = room - margin > margin ? room - margin : room > margin ? room / 2 : h - margin;
+  const high = Math.min(margin, low);
   const dx = sx < margin ? margin - sx : sx > w - margin ? w - margin - sx : 0;
-  const dy = sy < margin ? margin - sy : sy > low ? low - sy : 0;
+  const dy = sy < high ? high - sy : sy > low ? low - sy : 0;
   return dx || dy ? { ...view, x: view.x + dx, y: view.y + dy } : view;
 }
 

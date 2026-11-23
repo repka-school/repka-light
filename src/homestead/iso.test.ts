@@ -68,6 +68,15 @@ describe("the view", () => {
     expect(showing(view, { ...size, bottom: 120 }, { x: 200, y: 250 })).toEqual({ z: 1, x: 0, y: -134 });
     expect(showing(view, { w: 0, h: 0, bottom: 0 }, { x: 500, y: 500 })).toBe(view);
   });
+
+  it("shows a point in the middle of a narrow band left above what covers the bottom", () => {
+    const view = { z: 1, x: 0, y: 0 };
+    // 100 of 300 is left: too low for a margin above and under the point.
+    expect(showing(view, { w: 400, h: 300, bottom: 200 }, { x: 200, y: 250 })).toEqual({ z: 1, x: 0, y: -200 });
+    expect(showing(view, { w: 400, h: 300, bottom: 200 }, { x: 200, y: 50 })).toBe(view);
+    // Hardly anything is left: the cover is not counted.
+    expect(showing(view, { w: 400, h: 300, bottom: 280 }, { x: 200, y: 250 })).toEqual({ z: 1, x: 0, y: -14 });
+  });
 });
 
 describe("shadows and scatter", () => {

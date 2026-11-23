@@ -43,24 +43,7 @@ main.homestead-page {
   color: var(--primary);
 }
 
-/* What is held, and the lines above the scene. */
-.homestead-resources {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem 0.6rem;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  font-size: var(--type-sm);
-}
-.homestead-resources li {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 0.3rem 0.6rem;
-  overflow-wrap: anywhere;
-  font-variant-numeric: tabular-nums;
-}
+/* The lines above the scene. */
 .homestead-line {
   display: flex;
   flex-wrap: wrap;
@@ -81,8 +64,9 @@ main.homestead-page {
 }
 
 /* The scene: a viewport of a set height over the zoomed ground, dragged to
-   pan, with round buttons floating over it. The heading, the scene and the
-   tray fit a laptop screen without scrolling. */
+   pan, with round buttons floating over it, and the tray under it. The
+   heading, the scene and the tray fit a laptop's screen and a phone's without
+   scrolling. */
 .homestead-stage {
   container-type: inline-size;
   container-name: homestead-stage;
@@ -106,7 +90,7 @@ main.homestead-page {
   cursor: grab;
   height: var(--homestead-scene-h);
   /* A phone's narrow scene shows the ground small: no taller than it needs. */
-  max-height: max(16rem, 75cqw);
+  max-height: max(16rem, 110cqw);
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -601,6 +585,18 @@ main.homestead-page {
   font-size: var(--type-xs);
   color: var(--muted-foreground);
 }
+/* The drag hint names the wheel only where a pointer hovers. */
+.homestead-hint-touch {
+  display: none;
+}
+@media (hover: none) {
+  .homestead-hint-mouse {
+    display: none;
+  }
+  .homestead-hint-touch {
+    display: inline;
+  }
+}
 /* The keys' line describes the grid for a screen reader at all times; it is shown, in place of the drag hint, while the scene has keyboard focus. */
 .homestead-scene-keys {
   position: absolute;
@@ -750,11 +746,12 @@ main.homestead-page {
   height: 50%;
 }
 
-/* The tool's line, a thing's card or the seed chooser: under the scene on a narrow page. */
+/* The tool's line, a thing's card or the seed chooser, over the scene and the tray: nothing under the scene moves when one of them shows. */
 .homestead-overlay {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 0.5rem;
+  border-radius: var(--radius);
 }
 .homestead-overlay:empty {
   display: none;
@@ -767,17 +764,27 @@ main.homestead-page {
     border-top: 0;
     border-left: 1px solid var(--divider);
   }
-  /* A phone's scene is too short for the cross of arrows: they sit in a row under it. */
-  .homestead-frame {
-    display: grid;
-    gap: 0.4rem;
-    grid-template-columns: minmax(0, 1fr);
+  /* The rows of a narrow page: the scene, the arrows, the hint, the tray. The
+     frame gives its place to its parts, so the arrows are a row of their own;
+     a row that is not there leaves no gap. */
+  .homestead-stage-scene {
+    grid-template-areas: "scene" "pan" "hint" "tray";
+    gap: 0;
   }
+  .homestead-frame {
+    display: contents;
+  }
+  .homestead-viewport {
+    grid-area: scene;
+  }
+  /* A phone's scene is too short for the cross of arrows: they sit in a row under it. */
   .homestead-pan {
+    grid-area: pan;
     position: static;
     display: flex;
     flex-wrap: wrap;
     justify-self: end;
+    margin-top: 0.4rem;
     border-radius: calc(var(--homestead-round) / 2);
   }
   /* Under the scene the pad takes a row of the page: it gives the row up while it has nothing to do. */
@@ -790,11 +797,81 @@ main.homestead-page {
   .homestead-pan #homestead-pan-down {
     grid-area: auto;
   }
+  .homestead-scene-hint,
+  .homestead-scene-keys {
+    grid-area: hint;
+    margin-top: 0.4rem;
+  }
+  .homestead-tray {
+    grid-area: tray;
+    margin-top: 0.6rem;
+  }
+  /* A card or the chooser is a sheet along the bottom of the screen, over the
+     tray: its buttons are in reach wherever the page is scrolled to. */
+  .homestead-overlay {
+    grid-row: 1 / -1;
+    grid-column: 1;
+    align-self: end;
+    position: sticky;
+    bottom: max(0.4rem, env(safe-area-inset-bottom));
+    z-index: 2;
+    max-height: calc(100dvh - 0.8rem);
+    overflow: auto;
+    box-shadow: 0 -1px 2px var(--shadow-card), 0 -8px 24px var(--shadow-card);
+  }
+  /* The tool's line lies over the scene's bottom edge: the tray stays in reach, to change the tool. */
+  .homestead-overlay:has(> .homestead-mode) {
+    grid-area: scene;
+    position: static;
+    z-index: 1;
+    margin: 0 0.4rem 0.4rem;
+    max-height: none;
+    overflow: visible;
+    box-shadow: 0 1px 2px var(--shadow-card), 0 6px 16px var(--shadow-card);
+  }
+  /* Keyboard focus is never left under the sheet: while it is on the arrows or in the tray, the sheet lies under the tray. */
+  .homestead-stage-scene:has(:is(.homestead-pan, .homestead-tray) :focus-visible) .homestead-overlay:not(:has(> .homestead-mode)) {
+    grid-row: 5;
+    position: static;
+    margin-top: 0.6rem;
+    max-height: none;
+    box-shadow: none;
+  }
+  /* The sheet lies over the scene on a short screen, so a card is kept low:
+     a smaller picture, each strip beside its words, and narrower buttons,
+     which then stand two in a row. */
+  .homestead-card {
+    padding: 0.6rem 0.75rem;
+    gap: 0.4rem;
+  }
+  .homestead-card-art {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+  .homestead-card-facts {
+    grid-template-columns: auto minmax(3rem, 1fr);
+    column-gap: 0.5rem;
+  }
+  .homestead-card-facts > p {
+    grid-column: 1 / -1;
+  }
+  /* The two strips start on one line, whatever their words. */
+  .homestead-strip-row {
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: center;
+  }
+  .homestead-strip-label {
+    order: -1;
+  }
+  .homestead-card-actions button {
+    padding-inline: 0.7rem;
+  }
 }
 /* On a wide page it floats over the scene's bottom left, clear of the arrows. */
 @container homestead-stage (width >= 48rem) {
   .homestead-stage-scene {
-    grid-template-areas: "scene" "hint";
+    grid-template-areas: "scene" "hint" "tray";
   }
   .homestead-frame {
     grid-area: scene;
@@ -802,6 +879,10 @@ main.homestead-page {
   .homestead-scene-hint,
   .homestead-scene-keys {
     grid-area: hint;
+  }
+  .homestead-tray {
+    grid-area: tray;
+    margin-top: 0.2rem;
   }
   .homestead-overlay {
     grid-area: scene;
@@ -837,10 +918,22 @@ main.homestead-page {
   overflow-wrap: anywhere;
   font-size: var(--type-sm);
 }
+/* The tool's line is short, so it covers little of the scene: its words beside its buttons. */
 .homestead-mode {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.75rem;
+  padding: 0.5rem 0.75rem;
   background: var(--success-soft);
   color: var(--success-text);
   border-color: var(--success);
+}
+.homestead-mode p {
+  flex: 1 1 9rem;
+}
+.homestead-mode-actions {
+  flex: none;
 }
 .homestead-mode-actions,
 .homestead-card-actions {
@@ -915,7 +1008,7 @@ main.homestead-page {
   font-variant-numeric: tabular-nums;
 }
 
-/* The tray: a strip of tools that scrolls sideways. */
+/* The tray: a strip of tools that scrolls sideways on a narrow page and wraps on a wide one. */
 .homestead-tray {
   display: flex;
   flex-wrap: nowrap;
@@ -926,6 +1019,8 @@ main.homestead-page {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   scrollbar-width: thin;
+  /* A tool brought into view stops clear of the faded edges. */
+  scroll-padding-inline: 3rem;
 }
 /* More tools lie past an edge: they fade out there, which says the strip scrolls. */
 .homestead-tray[data-more~="right"] {
@@ -942,6 +1037,12 @@ main.homestead-page {
   align-self: stretch;
   background: var(--divider);
   margin: 0 0.3rem;
+}
+@container homestead-stage (width >= 48rem) {
+  .homestead-tray {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
 }
 /* A tool's name breaks only between words; the button grows to fit instead. */
 .homestead-shell .homestead-chip {

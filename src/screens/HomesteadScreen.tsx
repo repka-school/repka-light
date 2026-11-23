@@ -5,14 +5,14 @@ import { PageHeading } from "@/ui/components/PageHeading";
 import { Button } from "@/ui/components/ui/button";
 import { useFocusAfter } from "@/ui/hooks/useFocusAfter";
 import { Page } from "@/components/Chrome";
-import { CHOOSER_CHIP_ID, HarvestShelf, ResourceBar, Tray } from "@/homestead/Panels";
-import { apply, dayOf, seedTotal, targetOf, thingAt, type Action, type Homestead, type Quality, type Thing, type Tile } from "@/homestead/rules";
+import { CHOOSER_CHIP_ID, HarvestShelf, Tray } from "@/homestead/Panels";
+import { apply, dayOf, heldSeeds, seedTotal, targetOf, thingAt, type Action, type Homestead, type Quality, type Thing, type Tile } from "@/homestead/rules";
 import type { Burst } from "@/homestead/IsoScene";
 import { Scene, SCENE_ID } from "@/homestead/Scene";
 import { afterOutcome, firstTile, fitsHere, intentAt, marksOf, modeLasts, startTile, type Mode } from "@/homestead/screen";
 import { CHOOSER_TITLE_ID, SeedChooser } from "@/homestead/SeedChooser";
 import { Paints } from "@/homestead/shapes";
-import { ThingCard } from "@/homestead/ThingCard";
+import { CARD_SEEDS_ID, PLANT_ID, ThingCard } from "@/homestead/ThingCard";
 import { modeLine, saidWords } from "@/homestead/words";
 import { freeXpOf, getSaved, homesteadOf, saveHomestead, useSaved } from "@/store/store";
 import { totalXp } from "@/store/xp";
@@ -24,7 +24,9 @@ const PICK_ID = "homestead-pick";
 
 /**
  * The homestead: a ground to arrange, a tray of tools under it, a card for
- * whatever is selected, and the harvest. Every change is saved as it is made.
+ * whatever is selected, and the harvest. The tray says what is held; the card
+ * does everything its thing can have done to it. Every change is saved as it
+ * is made.
  */
 export default function HomesteadScreen() {
   const saved = useSaved();
@@ -87,6 +89,11 @@ function ModeLine({ mode, fits, onRotate, onCancel }: { mode: Mode; fits: boolea
 
 const sameTile = (a: Tile, b: Tile) => a[0] === b[0] && a[1] === b[1];
 
+/** What opened the seed chooser. */
+type Opener = "chip" | "pick" | "card";
+/** Where focus goes when the chooser closes: to what opened it, or to the first of what stands in its place. */
+const BACK_TO: Record<Opener, string[]> = { chip: [CHOOSER_CHIP_ID], pick: [PICK_ID, CHOOSER_CHIP_ID], card: [PLANT_ID, CARD_SEEDS_ID, CHOOSER_CHIP_ID] };
+
 function Loaded({ home, free }: { home: Homestead; free: number }) {
   const [cursor, setCursor] = useState<Tile>(() => firstTile(home));
   const [selected, setSelected] = useState<Tile | null>(null);
@@ -95,8 +102,8 @@ function Loaded({ home, free }: { home: Homestead; free: number }) {
   // What the last press gave a turnip, and where that turnip stands; each press is told from the one before.
   const [given, setGiven] = useState<Burst | null>(null);
   const presses = useRef(0);
-  // What opened the chooser: the tray's button or the line's «Выбрать семечко».
-  const opener = useRef<"chip" | "pick">("chip");
+  // What opened the chooser: the tray's button, the line's «Выбрать семечко», or the card of an empty bed there is no seed for.
+  const opener = useRef<Opener>("chip");
   const focusAfter = useFocusAfter();
   const toScene = (tile?: Tile) => {
     if (tile) setCursor(tile);
@@ -121,25 +128,19 @@ function Loaded({ home, free }: { home: Homestead; free: number }) {
     if (after.focus.to === "scene") toScene(after.focus.tile);
   };
 
-  const openChooser = () => {
+  const openChooser = (from: Opener) => {
+    opener.current = from;
     setChooser(true);
-    setSelected(null);
+    // A bed that asked for a seed stays selected: its card comes back when the chooser closes.
+    if (from !== "card") setSelected(null);
     setMode(null);
     focusAfter(CHOOSER_TITLE_ID);
   };
   const closeChooser = () => {
     setChooser(false);
-    focusAfter(...(opener.current === "pick" ? [PICK_ID, CHOOSER_CHIP_ID] : [CHOOSER_CHIP_ID]));
+    focusAfter(...BACK_TO[opener.current]);
   };
-  const toggleChooser = () => {
-    if (chooser) return closeChooser();
-    opener.current = "chip";
-    openChooser();
-  };
-  const pick = () => {
-    opener.current = "pick";
-    openChooser();
-  };
+  const toggleChooser = () => (chooser ? closeChooser() : openChooser("chip"));
 
   const startMode = (next: Mode | null) => {
     if (next?.mode === "grow" && free <= 0) return announce(w.reasons.no_xp);
@@ -192,8 +193,7 @@ function Loaded({ home, free }: { home: Homestead; free: number }) {
   return (
     <>
       <Paints />
-      <ResourceBar home={home} free={free} />
-      <Lines home={home} free={free} onPick={pick} />
+      <Lines home={home} free={free} onPick={() => openChooser("pick")} />
       <Scene
         home={home}
         cursor={cursor}
@@ -207,14 +207,14 @@ function Loaded({ home, free }: { home: Homestead; free: number }) {
         onCarry={move}
         onRotate={rotate}
         onEscape={escape}
+        tray={<Tray home={home} free={free} mode={mode} onMode={startMode} chooser={chooser} onChooser={toggleChooser} />}
       >
         {mode && <ModeLine mode={mode} fits={fits} onRotate={rotate} onCancel={() => startMode(null)} />}
         {chooser && <SeedChooser home={home} free={free} onBuy={buy} onClose={closeChooser} />}
         {thing && !mode && !chooser && (
-          <ThingCard thing={thing} free={free} seedHeld={seedTotal(home) > 0} given={given && sameTile(given.at, [thing.x, thing.y]) ? given.amount : null} onAct={run} onMove={move} onClose={close} />
+          <ThingCard thing={thing} free={free} seeds={heldSeeds(home)} given={given && sameTile(given.at, [thing.x, thing.y]) ? given.amount : null} onAct={run} onMove={move} onSeeds={() => openChooser("card")} onClose={close} />
         )}
       </Scene>
-      <Tray home={home} free={free} mode={mode} onMode={startMode} chooser={chooser} onChooser={toggleChooser} />
       <HarvestShelf home={home} />
     </>
   );

@@ -236,11 +236,21 @@ loads with the page.
 - **The buttons over the scene** are one strip (closer, farther, the whole
   ground) and one pad of arrows, on a translucent `--card`. The pad shows only
   while part of the scene is out of view.
-- **The panels** (what is held, the tool's line, a thing's card, the seed
-  chooser, the tray, the harvest) are cards on `--card` with a 1px `--border`.
-  Their text is `--type-sm`; a card's title is `--type-card-title`. Every
-  button is at least 44px high.
-- **A tool in the tray** is pressed (`--selected`) while it is in hand, and
-  dashed on `--muted` when there is none of it left; it stays focusable then.
+- **The panels** (the tool's line, a thing's card, the seed chooser, the tray,
+  the harvest) are cards on `--card` with a 1px `--border`. Their text is
+  `--type-sm`; a card's title is `--type-card-title`. Every button is at least
+  44px high.
+- **Nothing under the scene moves** when a panel shows. The tool's line lies
+  over the scene's bottom edge. A card or the chooser floats over the scene's
+  bottom left on a wide page; on a narrow one it is a sheet along the bottom
+  of the screen, over the tray, so its buttons are in reach without scrolling.
+- **A thing's card** does everything its thing can have done to it: an empty
+  bed is planted from its card, a turnip grown and gathered from it.
+- **The tray** says what is held: the free experience, the seeds, what is in
+  stock. A tool is pressed (`--selected`) while it is in hand. A kind there is
+  none of in stock is not shown: every one of it stands on the ground. The
+  experience, when there is none, stays as a tool, dashed on `--muted` and
+  focusable. The tray scrolls sideways on a narrow page and wraps on a wide
+  one.
 - **Copy** speaks of «опыт» and «свободный опыт», never of money. Prices read
   «Купить за 25 опыта»; the growing buttons read «Растить +10».

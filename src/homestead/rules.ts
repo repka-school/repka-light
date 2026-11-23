@@ -162,6 +162,9 @@ export const stockOf = (home: Homestead, kind: Kind) => Math.max(0, OWNED[kind] 
 
 export const bedCount = (home: Homestead) => home.things.filter((thing) => thing.kind === "bed").length;
 
+/** The qualities of seed held, from the commonest. */
+export const heldSeeds = (home: Homestead) => QUALITIES.filter((type) => (home.seeds[type] ?? 0) > 0);
+
 /** All the seeds held, of every quality. */
 export const seedTotal = (home: Homestead) => QUALITIES.reduce((sum, type) => sum + (home.seeds[type] ?? 0), 0);
 

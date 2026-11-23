@@ -1,43 +1,22 @@
-// The panels round the scene: the line of what is held (seeds, free
-// experience, beds), the tray of tools, and the harvest shelf.
-import { useEffect, useRef, type ReactNode } from "react";
+// The panels round the scene: the tray of tools, which also says what is
+// held (the free experience, the seeds, what is in stock), and the harvest shelf.
+import { useEffect, useRef, type FocusEvent, type ReactNode } from "react";
 import { Plus, Sprout } from "lucide-react";
 import { w } from "./strings";
 import { Art } from "./IsoScene";
-import { bedCount, harvestTotal, KINDS, OWNED, QUALITIES, STAGES, stockOf, type Homestead, type Quality } from "./rules";
+import { harvestTotal, heldSeeds, KINDS, QUALITIES, STAGES, stockOf, type Homestead, type Quality } from "./rules";
 import type { Mode } from "./screen";
 import { Bed, Seed } from "./Turnip";
 
 /** The tray button that opens the seed chooser; focus returns to it when the chooser closes. */
 export const CHOOSER_CHIP_ID = "homestead-tray-chooser";
 
-const heldSeeds = (home: Homestead) => QUALITIES.filter((type) => (home.seeds[type] ?? 0) > 0);
-
-export function ResourceBar({ home, free }: { home: Homestead; free: number }) {
-  const seeds = heldSeeds(home)
-    .map((type) => w.resources.seed(type, home.seeds[type] ?? 0))
-    .join(", ");
-  return (
-    <ul className="homestead-resources" aria-label={w.resources.label}>
-      <li>
-        <b>{w.resources.seeds}</b> {seeds || w.resources.noSeeds}
-      </li>
-      <li id="homestead-free">
-        <b>{w.resources.xp}</b> {w.tray.xp(free)}
-      </li>
-      <li>
-        <b>{w.resources.beds}</b> {w.resources.bedsOf(bedCount(home), OWNED.bed)}
-      </li>
-    </ul>
-  );
-}
-
 type ChipProps = { id: string; pressed: boolean; art: ReactNode; label: string; count: string; onClick: () => void; onRefused?: () => void; disabled?: boolean };
 
 /**
- * One tool of the tray. A tool there is none of is aria-disabled, not
- * disabled: it stays in the Tab order, so its «×0» is heard and the strip can
- * be scrolled by keyboard; a tap on it may say why it cannot be used.
+ * One tool of the tray. A tool that cannot be used now is aria-disabled, not
+ * disabled: it stays in the Tab order, so what it holds is heard, and a tap
+ * on it may say why it cannot be used.
  */
 function Chip({ id, pressed, art, label, count, onClick, onRefused, disabled = false }: ChipProps) {
   return (
@@ -76,20 +55,28 @@ function useMore() {
   return strip;
 }
 
+/** A tool the keyboard came to is brought whole into the strip; a tapped one stays under the finger. */
+function intoView(event: FocusEvent<HTMLDivElement>) {
+  if (event.target instanceof HTMLElement && event.target.matches(":focus-visible")) event.target.scrollIntoView({ block: "nearest", inline: "nearest" });
+}
+
 type TrayProps = { home: Homestead; free: number; mode: Mode | null; onMode: (mode: Mode | null) => void; chooser: boolean; onChooser: () => void };
 
 /**
- * The tray, a strip that scrolls sideways: the free experience, which grows
- * turnips; each quality of seed held; the button that opens the seed chooser;
- * then every kind of thing with how many are in stock. A tap picks a tool up,
- * a second tap puts it down.
+ * The tray: the free experience, which grows turnips; each quality of seed
+ * held; the button that opens the seed chooser; then each kind of thing there
+ * is some of in stock, with how many. A kind there is none of is not shown:
+ * every one of it stands on the ground. A tap picks a tool up, a second tap
+ * puts it down. On a narrow page the tray is a strip that scrolls sideways;
+ * on a wide one it wraps.
  */
 export function Tray({ home, free, mode, onMode, chooser, onChooser }: TrayProps) {
   const toggle = (next: Mode, on: boolean) => onMode(on ? null : next);
   const growing = mode?.mode === "grow";
   const strip = useMore();
+  const stocked = KINDS.filter((kind) => stockOf(home, kind) > 0);
   return (
-    <div ref={strip} className="homestead-tray" role="group" aria-label={w.tray.label}>
+    <div ref={strip} className="homestead-tray" role="group" aria-label={w.tray.label} onFocus={intoView}>
       <Chip
         id="homestead-tray-grow"
         pressed={growing}
@@ -110,11 +97,10 @@ export function Tray({ home, free, mode, onMode, chooser, onChooser }: TrayProps
         </span>
         <span>{w.chooser.title}</span>
       </button>
-      <span className="homestead-tray-gap" aria-hidden="true" />
-      {KINDS.map((kind) => {
+      {stocked.length > 0 && <span className="homestead-tray-gap" aria-hidden="true" />}
+      {stocked.map((kind) => {
         const on = mode?.mode === "place" && mode.kind === kind;
-        const count = stockOf(home, kind);
-        return <Chip key={kind} id={`homestead-tray-${kind}`} pressed={on} art={<Art thing={{ kind, rot: 0, turnip: kind === "bed" ? home.storedCrops?.[0] : undefined }} />} label={w.kinds[kind]} count={w.tray.count(count)} disabled={count <= 0} onClick={() => toggle({ mode: "place", kind, rot: 0 }, on)} />;
+        return <Chip key={kind} id={`homestead-tray-${kind}`} pressed={on} art={<Art thing={{ kind, rot: 0, turnip: kind === "bed" ? home.storedCrops?.[0] : undefined }} />} label={w.kinds[kind]} count={w.tray.count(stockOf(home, kind))} onClick={() => toggle({ mode: "place", kind, rot: 0 }, on)} />;
       })}
     </div>
   );
