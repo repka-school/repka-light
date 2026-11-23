@@ -1,4 +1,4 @@
-// The shape of the course files the content build writes (scripts/build-content.mjs).
+// The shape of the course and program files the content build writes (scripts/build-content.mjs).
 
 export type Choice = { id: number; label: string; text: string; html: string };
 
@@ -84,7 +84,21 @@ export type CourseSummary = {
   drills?: string[];
 };
 
-export type CourseIndex = { courses: CourseSummary[] };
+/** A part of the subject a program's topics belong to, «Алгебра» or «Геометрия», and the built-in drawing it is told by. */
+export type ProgramSection = { slug: string; title: string; picture?: string };
+
+/** A topic of a program, the slug of its section, when it has one, and the points it covers; the list may be empty. */
+export type ProgramTopic = { slug: string; title: string; section?: string; covers: string[] };
+
+/** A program: the main topics of a school year, in order. It is a plan and names no lessons. */
+export type Program = { slug: string; title: string; description: string; grades: string[]; sections: ProgramSection[]; topics: ProgramTopic[] };
+
+export type ProgramSummary = Omit<Program, "topics" | "sections"> & {
+  /** How many topics the program has. */
+  topics: number;
+};
+
+export type CourseIndex = { courses: CourseSummary[]; programs: ProgramSummary[] };
 
 export const isQuestion = (card: Card): card is QuestionCard => card.kind === "question";
 export const questionsOf = (lesson: Lesson): QuestionCard[] => lesson.cards.filter(isQuestion);

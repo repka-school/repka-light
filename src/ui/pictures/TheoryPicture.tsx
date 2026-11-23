@@ -278,6 +278,24 @@ const sketches: Record<string, Sketch> = {
   },
   brackets: { bg: PALE_BLUE, draw: () => glyph("( )", BLUE, 32, 32, 30) },
   letter: { bg: LILAC, draw: () => glyph("А", PURPLE, 36) },
+  // The unknown of an equation.
+  variable: { bg: PALE_BLUE, draw: () => glyph("x", BLUE, 44, 32, 29) },
+  // A triangle with its corners marked.
+  triangle: {
+    bg: LILAC,
+    draw: () => (
+      <>
+        <path d="M11 50 L27 13 L54 50 Z" fill="#fff" stroke={PURPLE} strokeWidth="3.4" strokeLinejoin="round" />
+        {[
+          [11, 50],
+          [27, 13],
+          [54, 50],
+        ].map(([x, y]) => (
+          <circle key={`${x}-${y}`} cx={x} cy={y} r="4.2" fill={PURPLE} />
+        ))}
+      </>
+    ),
+  },
   zero: { bg: MINT, draw: () => glyph("0", GREEN, 36) },
   two: { bg: CREAM, draw: () => glyph("2", ORANGE, 36) },
   four: { bg: ROSE, draw: () => glyph("4", PINK, 36) },

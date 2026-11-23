@@ -9,6 +9,7 @@ const theoryForms = ["теория", "теории", "теорий"] as const;
 const lessonForms = ["урок", "урока", "уроков"] as const;
 const lessonOfForms = ["урока", "уроков", "уроков"] as const;
 const courseForms = ["курс", "курса", "курсов"] as const;
+const topicForms = ["тема", "темы", "тем"] as const;
 
 const amount = (n: number) => n.toLocaleString("ru-RU");
 
@@ -27,7 +28,7 @@ export const t = {
   brandNote: "Растём с каждой задачей",
   footerNote: "Прогресс и профиль хранятся только в этом браузере.",
   /** Shown only in a build that loads the analytics scripts. */
-  footerAnalytics: "Для статистики посещений сайт использует Google Analytics и Cloudflare Web Analytics.",
+  footerAnalytics: "Статистика посещений: Google Analytics, Cloudflare.",
   footerContent: "Задания и иллюстрации",
   footerCode: "код",
   loading: "Загружаем…",
@@ -86,6 +87,22 @@ export const t = {
   progressLabel: (title: string) => `Прогресс по курсу «${title}»`,
   /** Answered tasks of all, and how many of them went right on the first try when that is not all of them. */
   progressLine: (answered: number, total: number, first: number) => `${answered} из ${count(total, taskOfForms)}${first < answered ? ` · ${first} с первого раза` : ""}`,
+
+  // The switch between the two lists, and the programs.
+  listSwitchLabel: "Курсы и программы",
+  switchCourses: "Курсы",
+  switchPrograms: "Программы",
+  programsTitle: "Программы",
+  programsIntro: "Программа\u00A0— это главные темы учебного года по порядку.",
+  programsEmpty: "Программ пока нет.",
+  programEyebrow: "ПРОГРАММА",
+  topicsCount: (n: number) => count(n, topicForms),
+  /** Under the number of topics in a program's ring. */
+  programPlanned: "в плане",
+  programNoLessons: "Уроков пока нет",
+  programPlanText: "Это план программы. Открой тему и посмотри, что в неё входит.",
+  programTopics: "Темы программы",
+  openPlan: "Посмотреть план",
 
   courseEyebrow: "КУРС",
   courseSource: "Источник курса",

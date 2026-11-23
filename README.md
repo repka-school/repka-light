@@ -2,7 +2,8 @@
 
 A static practice site: an index page that says what the site is, a list of
 courses, a course page with its lessons, lessons worked through one task
-at a time, and a homestead where the experience earned grows turnips. It runs
+at a time, a list of programs with the topics of a school year, and a
+homestead where the experience earned grows turnips. It runs
 entirely in the browser. There is no server and no sign-in; a learner's
 profile, task results, experience, level and homestead are kept in that
 browser's `localStorage` and nowhere else.
@@ -44,14 +45,14 @@ not committed. A failed test leaves a screenshot and a trace there:
 
 | Path | What it holds |
 |---|---|
-| `courses/` | Course content, as packs (see below). |
+| `courses/` | Course content, as packs, and the programs (see below). |
 | `scripts/build-content.mjs` | Turns the packs into `public/content/` (generated, not committed). |
 | `scripts/route-pages.mjs` | Writes a copy of the built page for every address of the site. |
-| `src/screens/` | The six screens: index page, course list, course, lesson (question and summary), profile, homestead. |
+| `src/screens/` | The eight screens: index page, course list, course, lesson (question and summary), program list, program, profile, homestead. |
 | `src/lesson/` | The rules of a lesson run: two tries per task, progress, the summary. No DOM. |
 | `src/store/` | What is saved in `localStorage`, the hook the screens read it with, and the rules of experience and levels. |
 | `src/homestead/` | The homestead game. |
-| `src/content/` | Types of the built course files and their loader. |
+| `src/content/` | Types of the built course and program files and their loader. |
 | `src/ui/` | Shared pieces: design tokens, answer tiles, task text, avatars and frames. |
 | `src/strings.ts` | Every user-visible string but the homestead's, which are in `src/homestead/strings.ts`. The interface is in Russian. |
 | `e2e/` | The browser tests, and the script that builds and serves the site for them. |
@@ -60,7 +61,8 @@ not committed. A failed test leaves a screenshot and a trace there:
 Routes are plain paths under the path the site is
 served from. A static host has a file only for the index, so the build writes
 a copy of the page for every address the site has: `courses.html`,
-`course/<course>.html`, `course/<course>/lesson/<lesson>.html` and so on
+`course/<course>.html`, `course/<course>/lesson/<lesson>.html`,
+`program/<program>.html` and so on
 (`scripts/route-pages.mjs`). GitHub Pages serves `name.html` for the address
 `name`, so each screen opens by its address with the status 200. The build
 also writes `404.html`, one more copy: the host serves it, with the status
@@ -73,6 +75,8 @@ also writes `404.html`, one more copy: the host serves it, with the status
 | `/courses` | The course list. |
 | `/course/<course>` | A course and its lessons. |
 | `/course/<course>/lesson/<lesson>` | A lesson. |
+| `/programs` | The program list. |
+| `/program/<program>` | A program and its topics. |
 | `/profile` | The profile. |
 | `/homestead` | The homestead. |
 
@@ -160,6 +164,38 @@ and serves them from the local pack.
 
 Answers are checked in the browser, so the right answers are in the published
 files.
+
+### Programs
+
+A program is the main topics of a school year, in order. It is a plan: a
+topic lists the points it covers and names no lessons. `courses/bundle.yaml`
+lists the programs to publish under `programs`, and each is one file:
+
+```
+courses/programs/<program>.yaml
+  title, description, tags.grade
+  sections:                                               # optional
+    - slug, title
+      picture: a built-in drawing                         # optional
+  topics:
+    - slug, title
+      section: the slug of one of the sections            # optional
+      covers: [the points of the topic, as plain text]    # optional
+```
+
+The build writes `content/programs/<program>.json` and a line for each
+program in `index.json`. It fails on a program without topics, a repeated or
+unsafe slug, an empty title or point, a topic in a section the program does
+not have, a drawing the site does not have, and any field it does not know.
+
+A section is a part of the subject, such as «Алгебра» and «Геометрия». A
+topic's row shows its section's drawing before the title and the section's
+name under it.
+
+The program list is a page of its own, `/programs`. The header has no link
+to it: a switch above the course list and above the program list leads from
+one to the other. The switch is left out of the course list while no program
+is published.
 
 ## Saved data
 

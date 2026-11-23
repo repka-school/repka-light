@@ -10,6 +10,8 @@ import { CourseScreen } from "@/screens/CourseScreen";
 import { LandingScreen } from "@/screens/LandingScreen";
 import { LessonScreen } from "@/screens/LessonScreen";
 import { ProfileScreen } from "@/screens/ProfileScreen";
+import { ProgramScreen } from "@/screens/ProgramScreen";
+import { ProgramsScreen } from "@/screens/ProgramsScreen";
 import { illustrationDialogLabels } from "@/strings";
 import "./index.css";
 
@@ -28,6 +30,8 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/courses" element={<CatalogScreen />} />
           <Route path="/course/:slug" element={<CourseScreen />} />
           <Route path="/course/:slug/lesson/:lesson" element={<LessonScreen />} />
+          <Route path="/programs" element={<ProgramsScreen />} />
+          <Route path="/program/:slug" element={<ProgramScreen />} />
           <Route path="/profile" element={<ProfileScreen />} />
           <Route
             path="/homestead"

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import type { Course, CourseIndex } from "./types";
+import type { Course, CourseIndex, Program } from "./types";
 
-// The built course files, fetched once each and kept for the visit.
+// The built course and program files, fetched once each and kept for the visit.
 const cache = new Map<string, Promise<unknown>>();
 
 function load<T>(file: string): Promise<T> {
@@ -22,6 +22,7 @@ function load<T>(file: string): Promise<T> {
 
 export const loadIndex = () => load<CourseIndex>("index.json");
 export const loadCourse = (slug: string) => load<Course>(`${encodeURIComponent(slug)}.json`);
+export const loadProgram = (slug: string) => load<Program>(`programs/${encodeURIComponent(slug)}.json`);
 
 export type Loaded<T> = { data?: T; error?: Error; loading: boolean; retry: () => void };
 

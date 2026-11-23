@@ -129,6 +129,29 @@ on the tag says the same as the colour.
 - **Covers** are 192px squares. Never draw one larger than 192px; give it room
   with a tinted panel or blob behind it instead.
 
+## Programs
+
+A program is a plan of topics, so its pages reuse the course's pieces and
+change what stands for progress.
+
+- **The switch** (`.list-switch`) sits above the title of the course list and
+  of the program list: two links on a `--muted` strip, the current one raised
+  on `--card`. It is the only way between the two lists; the header has no
+  link to the programs.
+- **The ring of topics** (`.topic-ring`) stands where a course has its cover:
+  one arc for each topic, with the number of topics in the middle, 136px on a
+  card and 176px on the program's page. A planned topic, one without lessons,
+  is a hollow arc outlined in `--control-border`.
+- **A topic** is a step of the numbered path, like a lesson. A planned one is
+  dashed, step and row, on the page's own ground. Its section, «Алгебра» or
+  «Геометрия», is told by a 40px drawing before the title (32px on a phone)
+  and named under the title in `--type-xs` and `--muted-foreground`: the
+  drawing only decorates, the word says the same. Its row opens to
+  the points it covers: `--type-sm`, in two columns where two fit.
+- **«Уроков пока нет»** is said once on a page: in the quiet `--muted` panel
+  where a course has its progress, and in one line on the program's card.
+  Never write «скоро»: it is a promise.
+
 ## Theory cards
 
 A theory card is the first thing a lesson shows, often to a seven-year-old. It

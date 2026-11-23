@@ -6,6 +6,7 @@ import { Button } from "@/ui/components/ui/button";
 import { Progress } from "@/ui/components/ui/progress";
 import { TheoryPicture } from "@/ui/pictures/TheoryPicture";
 import { Page } from "@/components/Chrome";
+import { ListSwitch } from "@/components/ListSwitch";
 import { LoadError, Loading } from "@/components/LoadState";
 import { loadIndex, useLoaded } from "@/content/load";
 import { splitCourses, type CourseProgress } from "@/content/progress";
@@ -23,6 +24,8 @@ export function CatalogScreen() {
   return (
     <Page focusKey="catalog" busy={index.loading}>
       <section className="courses-page">
+        {/* The way to the programs; left out while there are none. */}
+        {!!index.data?.programs.length && <ListSwitch />}
         <div className="courses-heading">
           <PageHeading>{t.catalogTitle}</PageHeading>
           <p className="courses-intro">{t.catalogIntro}</p>

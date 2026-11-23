@@ -1,5 +1,6 @@
 // Turns the course packs under courses/ into the JSON and pictures the site
-// loads: public/content/index.json, one file per course, and media/.
+// loads: public/content/index.json, one file per course, one per program,
+// and media/.
 // Fails on anything a lesson could not show: a missing task or picture, a
 // question without a right answer, or MathML outside the supported subset.
 // Fails also on a task that still carries an editorial note: the packs are
@@ -17,7 +18,7 @@ const LETTERS = ["А", "Б", "В", "Г", "Д", "Е"];
 const IMAGE_ALT = "Иллюстрация к заданию";
 /** The drawings a theory block may name; the site draws each one (src/ui/pictures/TheoryPicture.tsx). */
 export const THEORY_PICTURES = [
-  "book", "reread", "question", "magnifier", "check", "pencil", "list", "counters", "cup", "corner", "plus", "minus", "plusminus", "brackets", "letter",
+  "book", "reread", "question", "magnifier", "check", "pencil", "list", "counters", "cup", "corner", "plus", "minus", "plusminus", "brackets", "letter", "variable", "triangle",
   "zero", "two", "four", "roman", "arrow", "swap", "rewind", "table", "shield", "mask", "bulb", "venn-left", "venn-both", "venn-right", "venn-out",
   "pattern", "cells", "pairs", "odd", "tree", "pair", "bag", "chicken", "rabbit", "grid-small", "grid-big", "scissors", "equal", "shapes", "sticks",
   "medal", "talk", "posts", "log", "bell", "cake", "people", "boat", "jug-full", "jug-empty", "jug-pour", "scales", "clock", "calendar", "stones",
@@ -272,11 +273,67 @@ function coursesOf(packId, { packDir, image, body }, cardFor) {
   });
 }
 
+/** A name that is safe as a file name and as a part of an address. */
+const PLAIN_SLUG = /^[a-z0-9][a-z0-9-]*$/;
+
+/**
+ * A program: the main topics of a school year, in order, each with the
+ * section it belongs to and the points it covers. It is a plan: a topic names no lessons. Fails on a field it does
+ * not know, so a misspelt one is not dropped in silence.
+ */
+function readProgram(root, slug) {
+  if (typeof slug !== "string" || !PLAIN_SLUG.test(slug)) throw new Error(`program ${slug}: the slug is not a plain name`);
+  const file = path.join(root, "programs", `${slug}.yaml`);
+  if (!fs.existsSync(file)) throw new Error(`${slug}: missing program file`);
+  const source = readYaml(file);
+  const text = (value, where, what) => {
+    if (typeof value !== "string" || !value.trim()) throw new Error(`${where}: ${what} is empty`);
+    return value.trim();
+  };
+  const known = (object, fields, where) => {
+    if (!object || typeof object !== "object" || Array.isArray(object)) throw new Error(`${where}: not a set of fields`);
+    for (const field of Object.keys(object)) if (!fields.includes(field)) throw new Error(`${where}: unknown field ${field}`);
+  };
+  known(source, ["title", "description", "tags", "sections", "topics"], slug);
+  if (source.sections !== undefined && !Array.isArray(source.sections)) throw new Error(`${slug}: sections is not a list`);
+  // The parts of the subject its topics belong to, each with its name and a built-in drawing to tell it by.
+  const sections = (source.sections ?? []).map((section, i) => {
+    const where = `${slug}/section ${section?.slug ?? i + 1}`;
+    known(section, ["slug", "title", "picture"], where);
+    if (typeof section.slug !== "string" || !PLAIN_SLUG.test(section.slug)) throw new Error(`${where}: the slug is not a plain name`);
+    if (section.picture !== undefined && !THEORY_PICTURES.includes(section.picture)) throw new Error(`${where}: an unknown picture ${section.picture}`);
+    return { slug: section.slug, title: text(section.title, where, "the title"), ...(section.picture ? { picture: section.picture } : {}) };
+  });
+  if (new Set(sections.map((s) => s.slug)).size !== sections.length) throw new Error(`${slug}: a repeated section`);
+  if (!Array.isArray(source.topics) || source.topics.length === 0) throw new Error(`${slug}: a program without topics`);
+  const topicSlugs = new Set();
+  const topics = source.topics.map((topic, i) => {
+    const where = `${slug}/${topic?.slug ?? `topic ${i + 1}`}`;
+    known(topic, ["slug", "title", "section", "covers"], where);
+    if (typeof topic.slug !== "string" || !PLAIN_SLUG.test(topic.slug)) throw new Error(`${where}: the slug is not a plain name`);
+    if (topicSlugs.has(topic.slug)) throw new Error(`${slug}: repeated topic ${topic.slug}`);
+    topicSlugs.add(topic.slug);
+    if (topic.covers !== undefined && !Array.isArray(topic.covers)) throw new Error(`${where}: covers is not a list`);
+    const covers = (topic.covers ?? []).map((point, n) => text(point, where, `point ${n + 1} of covers`));
+    if (new Set(covers).size !== covers.length) throw new Error(`${where}: a point of covers is repeated`);
+    if (topic.section !== undefined && !sections.some((s) => s.slug === topic.section)) throw new Error(`${where}: an unknown section ${topic.section}`);
+    return { slug: topic.slug, title: text(topic.title, where, "the title"), ...(topic.section ? { section: topic.section } : {}), covers };
+  });
+  return {
+    slug,
+    title: text(source.title, slug, "the title"),
+    description: source.description === undefined ? "" : text(source.description, slug, "the description"),
+    grades: (source.tags?.grade ?? []).map(String),
+    sections,
+    topics,
+  };
+}
+
 /** The path the site is served from, with a slash at each end: "/" or "/name/". */
 export const basePath = (value) => `/${(value ?? "").replace(/^\/+|\/+$/g, "")}/`.replace("//", "/");
 
 /**
- * Builds every pack the bundle lists from `root` into `out`; returns the course index.
+ * Builds every pack and program the bundle lists from `root` into `out`; returns the index.
  * Picture addresses start with `base`, so they hold on a page at any depth.
  */
 export function buildContent({ root, out, base = "/" }) {
@@ -297,6 +354,8 @@ export function buildContent({ root, out, base = "/" }) {
   const courses = [...packs].flatMap(([packId, pack]) => coursesOf(packId, pack, cardFor));
   if (courses.length === 0) throw new Error("no courses to build");
   if (new Set(courses.map((c) => c.slug)).size !== courses.length) throw new Error("two courses share a slug");
+  const programs = (bundle.programs ?? []).map((slug) => readProgram(root, slug));
+  if (new Set(programs.map((p) => p.slug)).size !== programs.length) throw new Error("two programs share a slug");
 
   const index = {
     courses: courses.map((course) => {
@@ -315,6 +374,7 @@ export function buildContent({ root, out, base = "/" }) {
         ...(drills.length ? { drills } : {}),
       };
     }),
+    programs: programs.map(({ slug, title, description, grades, topics }) => ({ slug, title, description, grades, topics: topics.length })),
   };
   const sources = new Map();
   for (const { book, courses: sectionsByCourse } of bundle.sources ?? []) {
@@ -327,6 +387,8 @@ export function buildContent({ root, out, base = "/" }) {
     const source = sources.get(course.slug);
     put(`${course.slug}.json`, JSON.stringify(source ? { ...course, source } : course));
   }
+  // In a folder of their own, so a program and a course may share a slug.
+  for (const program of programs) put(path.join("programs", `${program.slug}.json`), JSON.stringify(program));
   for (const pack of packs.values()) pack.writeMedia(put);
   put("index.json", JSON.stringify(index));
   sweep();
@@ -340,4 +402,5 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     const content = course.drills ? `${course.drills.length} games` : `${course.questions.length} questions`;
     console.log(`${course.slug}: ${course.lessons} lessons, ${content}`);
   }
+  for (const program of index.programs) console.log(`program ${program.slug}: ${program.topics} topics`);
 }

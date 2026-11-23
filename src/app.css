@@ -2644,3 +2644,239 @@ select,
   display: inline-block;
   animation: xp-pop 0.5s 0.4s cubic-bezier(0.3, 1.5, 0.5, 1) backwards;
 }
+
+/* --- Programs ------------------------------------------------------------ */
+
+/* The switch above the two lists, courses and programs. */
+.list-switch {
+  justify-self: start;
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--muted);
+}
+.list-switch a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 9px;
+  font-size: var(--type-sm);
+  font-weight: 600;
+  color: var(--secondary-foreground);
+  text-decoration: none;
+}
+.list-switch a:hover {
+  color: var(--primary);
+}
+.list-switch a[aria-current="page"] {
+  background: var(--card);
+  color: var(--primary);
+  box-shadow: 0 1px 2px var(--shadow-card), 0 2px 6px var(--shadow-card);
+}
+
+/* A program as a ring, one arc per topic; a planned topic is a hollow arc. */
+.topic-ring {
+  --ring-size: 136px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--ring-size);
+  height: var(--ring-size);
+  border-radius: 999px;
+  background: var(--card);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--primary-shadow) 18%, transparent);
+}
+.topic-ring.is-large {
+  --ring-size: 176px;
+}
+.topic-ring svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.topic-ring circle {
+  fill: none;
+}
+.topic-ring-planned {
+  stroke: var(--control-border);
+  stroke-width: 11;
+}
+.topic-ring-hollow {
+  stroke: var(--card);
+  stroke-width: 7;
+}
+.topic-ring-text {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  line-height: 1.15;
+}
+.topic-ring-count {
+  font-size: var(--type-xl);
+  font-weight: 700;
+  color: var(--accent-foreground);
+  font-variant-numeric: tabular-nums;
+}
+.topic-ring.is-large .topic-ring-count {
+  font-size: var(--type-stat);
+}
+.topic-ring-note {
+  font-size: var(--type-xs);
+  color: var(--secondary-foreground);
+}
+.program-card-note {
+  font-size: var(--type-xs);
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+/* A program that is only a plan: a quiet panel where a course has its progress. */
+.course-next.is-plan {
+  background: var(--muted);
+  border-color: var(--border);
+}
+.course-next.is-plan .course-next-title {
+  color: var(--foreground);
+}
+
+/* A topic of a program: a step of the path, like a lesson of a course. Its
+   row opens, so the step keeps to the row's first line. */
+.topic-item {
+  align-items: start;
+}
+.topic-item > .lesson-step {
+  margin-top: calc((60px - var(--step)) / 2);
+}
+.topic-item:not(:last-child)::before {
+  top: 30px;
+}
+.topic {
+  min-width: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+.topic > summary,
+div.topic {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 60px;
+  padding: 10px 18px;
+}
+.topic > summary {
+  cursor: pointer;
+  list-style: none;
+  border-radius: 16px;
+}
+.topic > summary::-webkit-details-marker {
+  display: none;
+}
+.topic > summary::after {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin: 0 4px 3px;
+  border-right: 2px solid var(--muted-foreground);
+  border-bottom: 2px solid var(--muted-foreground);
+  transform: rotate(45deg);
+  transition: transform 0.18s ease;
+}
+.topic[open] > summary::after {
+  transform: rotate(-135deg);
+  margin-bottom: -3px;
+}
+/* The drawing of the topic's section, then its name, which takes the room left. */
+.topic-picture {
+  flex: none;
+}
+.topic-name {
+  flex: 1;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.topic-section {
+  font-size: var(--type-xs);
+  color: var(--muted-foreground);
+}
+.topic-title {
+  font-size: var(--type-card-title);
+  font-weight: 600;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.topic > summary:hover .topic-title {
+  color: var(--primary);
+}
+/* A planned topic has no lessons yet: dashed, on the page's own ground. */
+.topic-item.is-planned > .lesson-step {
+  border-style: dashed;
+  border-color: var(--control-border);
+  background: var(--background);
+}
+.topic-item.is-planned > .topic {
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--control-border);
+}
+.topic-covers {
+  list-style: none;
+  margin: 0;
+  padding: 14px 18px 16px;
+  border-top: 1px dashed var(--border);
+  display: grid;
+  /* Two columns where two fit; never wider than the row on a narrow phone. */
+  grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
+  gap: 8px 24px;
+  font-size: var(--type-sm);
+  line-height: 1.45;
+  color: var(--secondary-foreground);
+}
+.topic-covers li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.topic-covers li::before {
+  content: "";
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--control-border);
+  transform: translateY(-2px);
+}
+@media (max-width: 600px) {
+  .topic-ring {
+    --ring-size: 120px;
+  }
+  /* On a phone the ring sits above the title, in the art's smaller square. */
+  .course-hero-art .topic-ring.is-large {
+    --ring-size: 112px;
+  }
+  .course-hero-art .topic-ring.is-large .topic-ring-count {
+    font-size: var(--type-lg);
+  }
+  .course-next.is-plan .secondary {
+    flex-basis: 100%;
+  }
+  .topic > summary,
+  div.topic {
+    gap: 10px;
+    padding: 10px 14px;
+  }
+  .topic-picture {
+    width: 32px;
+    height: 32px;
+  }
+  .topic-covers {
+    padding: 12px 14px 14px;
+  }
+}

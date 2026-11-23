@@ -70,6 +70,16 @@ describe("the bundled courses", () => {
     }
   });
 
+  it("build every program into a file with as many topics as the index says", () => {
+    const out = temp();
+    const index = buildContent({ root: courses, out });
+    for (const summary of index.programs) {
+      const program = JSON.parse(fs.readFileSync(path.join(out, "programs", `${summary.slug}.json`), "utf8"));
+      expect(program.topics).toHaveLength(summary.topics);
+      expect(program).toMatchObject({ slug: summary.slug, title: summary.title, grades: summary.grades });
+    }
+  });
+
   it("publishes replayable algebra lessons with symbolic answers and exact roots", () => {
     const out = temp();
     const index = buildContent({ root: courses, out });
@@ -307,7 +317,7 @@ describe("a pack", () => {
 
   it("builds the course index with each course's lessons and questions", () => {
     const index = buildContent({ root: fixture(), out: temp() });
-    expect(index).toEqual({ courses: [{ slug: "demo", title: "Demo", description: "", cover: null, grades: [], lessons: 1, questions: ["demo/a/one"] }] });
+    expect(index).toEqual({ courses: [{ slug: "demo", title: "Demo", description: "", cover: null, grades: [], lessons: 1, questions: ["demo/a/one"] }], programs: [] });
   });
 
   it.each([
@@ -332,6 +342,79 @@ describe("a pack", () => {
     ["a lesson of theory only", { task: "kind: theory\nstatus: active\nquestion:\n  text: T\n" }, /without questions/],
   ])("refuses %s", (_, options, message) => {
     expect(() => buildContent({ root: fixture(options), out: temp() })).toThrow(message);
+  });
+});
+
+describe("a program", () => {
+  const plan = "title: Plan\ndescription: The year.\ntags:\n  grade: [8]\nsections:\n  - slug: algebra\n    title: Algebra\n    picture: variable\n  - slug: geometry\n    title: Geometry\ntopics:\n  - slug: roots\n    title: Roots\n    section: algebra\n    covers:\n      - Square roots\n      - Real numbers\n  - slug: circle\n    title: Circle\n";
+  /** The fixture with the programs the bundle lists: each `programs` entry is a slug and its file's text, or null for no file. */
+  function withPrograms(programs) {
+    const root = fixture();
+    fs.mkdirSync(path.join(root, "programs"));
+    fs.appendFileSync(path.join(root, "bundle.yaml"), `programs:\n${Object.keys(programs).map((slug) => `  - ${slug}\n`).join("")}`);
+    for (const [slug, text] of Object.entries(programs)) if (text !== null) fs.writeFileSync(path.join(root, "programs", `${slug}.yaml`), text);
+    return root;
+  }
+
+  it("builds into a file of its own and a line of the index", () => {
+    const out = temp();
+    const index = buildContent({ root: withPrograms({ plan }), out });
+    expect(index.programs).toEqual([{ slug: "plan", title: "Plan", description: "The year.", grades: ["8"], topics: 2 }]);
+    expect(JSON.parse(fs.readFileSync(path.join(out, "programs", "plan.json"), "utf8"))).toEqual({
+      slug: "plan",
+      title: "Plan",
+      description: "The year.",
+      grades: ["8"],
+      sections: [
+        { slug: "algebra", title: "Algebra", picture: "variable" },
+        { slug: "geometry", title: "Geometry" },
+      ],
+      topics: [
+        { slug: "roots", title: "Roots", section: "algebra", covers: ["Square roots", "Real numbers"] },
+        { slug: "circle", title: "Circle", covers: [] },
+      ],
+    });
+  });
+
+  it("may share its slug with a course", () => {
+    const out = temp();
+    buildContent({ root: withPrograms({ demo: plan }), out });
+    expect(JSON.parse(fs.readFileSync(path.join(out, "demo.json"), "utf8")).modules).toHaveLength(1);
+    expect(JSON.parse(fs.readFileSync(path.join(out, "programs", "demo.json"), "utf8")).topics).toHaveLength(2);
+  });
+
+  it("is removed from the built files when the bundle no longer lists it", () => {
+    const out = temp();
+    buildContent({ root: withPrograms({ plan }), out });
+    buildContent({ root: fixture(), out });
+    expect(fs.readdirSync(out).sort()).toEqual(["demo.json", "index.json"]);
+  });
+
+  it.each([
+    ["a program the bundle lists but has no file for", { plan: null }, /plan: missing program file/],
+    ["a slug that is not a plain name", { "../up": plan }, /the slug is not a plain name/],
+    ["a program without topics", { plan: "title: Plan\ntopics: []\n" }, /plan: a program without topics/],
+    ["a program without a title", { plan: plan.replace("title: Plan\n", "") }, /plan: the title is empty/],
+    ["a field it does not know", { plan: `${plan}lessons: []\n` }, /plan: unknown field lessons/],
+    ["a topic with a field it does not know", { plan: `${plan}    lessons:\n      - demo/l\n` }, /plan\/circle: unknown field lessons/],
+    ["a topic without a title", { plan: plan.replace("    title: Circle\n", "") }, /plan\/circle: the title is empty/],
+    ["a topic in a section the program does not have", { plan: plan.replace("section: algebra", "section: physics") }, /plan\/roots: an unknown section physics/],
+    ["a section used twice", { plan: plan.replace("slug: geometry", "slug: algebra") }, /plan: a repeated section/],
+    ["a section without a title", { plan: plan.replace("    title: Geometry\n", "") }, /plan\/section geometry: the title is empty/],
+    ["a section with a drawing the site does not have", { plan: plan.replace("picture: variable", "picture: unicorn") }, /plan\/section algebra: an unknown picture unicorn/],
+    ["a topic slug used twice", { plan: plan.replace("slug: circle", "slug: roots") }, /plan: repeated topic roots/],
+    ["a topic slug that is not a plain name", { plan: plan.replace("slug: circle", "slug: The Circle") }, /the slug is not a plain name/],
+    ["an empty point", { plan: plan.replace("- Real numbers", '- " "') }, /plan\/roots: point 2 of covers is empty/],
+    ["a point written twice", { plan: plan.replace("- Real numbers", "- Square roots") }, /plan\/roots: a point of covers is repeated/],
+    ["covers that is not a list", { plan: plan.replace("    title: Circle\n", "    title: Circle\n    covers: all of it\n") }, /plan\/circle: covers is not a list/],
+  ])("refuses %s", (_, programs, message) => {
+    expect(() => buildContent({ root: withPrograms(programs), out: temp() })).toThrow(message);
+  });
+
+  it("is refused when the bundle lists it twice", () => {
+    const root = withPrograms({ plan });
+    fs.appendFileSync(path.join(root, "bundle.yaml"), "  - plan\n");
+    expect(() => buildContent({ root, out: temp() })).toThrow(/two programs share a slug/);
   });
 });
 

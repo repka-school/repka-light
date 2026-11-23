@@ -10,16 +10,18 @@ import fs from "node:fs";
 import path from "node:path";
 
 /** The screens with a fixed address (src/main.tsx). */
-const FIXED = ["courses", "profile", "homestead"];
+const FIXED = ["courses", "programs", "profile", "homestead"];
 /** A slug that is a plain file name: anything else is left to 404.html, which shows it just the same. */
 const plain = (slug) => typeof slug === "string" && /^[a-z0-9][a-z0-9-]*$/i.test(slug);
 
-/** The addresses of a built site, without the leading slash: the fixed screens, every course and every lesson. */
+/** The addresses of a built site, without the leading slash: the fixed screens, every course, every lesson and every program. */
 export function routesOf(contentDir) {
   const routes = [...FIXED];
   const indexFile = path.join(contentDir, "index.json");
   if (!fs.existsSync(indexFile)) return routes;
-  for (const { slug } of JSON.parse(fs.readFileSync(indexFile, "utf8")).courses) {
+  const index = JSON.parse(fs.readFileSync(indexFile, "utf8"));
+  for (const { slug } of index.programs ?? []) if (plain(slug)) routes.push(`program/${slug}`);
+  for (const { slug } of index.courses) {
     if (!plain(slug)) continue;
     routes.push(`course/${slug}`);
     const course = JSON.parse(fs.readFileSync(path.join(contentDir, `${slug}.json`), "utf8"));

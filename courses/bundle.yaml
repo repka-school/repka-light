@@ -5,6 +5,8 @@ packs:
   - multiplication
   - arithmetic
   - expressions-roots-equations-7-8
+programs:
+  - math-by-8
 sources:
   - book:
       author: Oscar Levin

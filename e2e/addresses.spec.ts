@@ -8,6 +8,8 @@ test("every screen opens by its address, and again after a reload", async ({ pag
   const screens: [address: string, shows: () => Promise<void>][] = [
     ["", () => expect(heading(page)).toContainText("тренажёр для школьников")],
     ["courses", () => expect(heading(page)).toHaveText("Все курсы")],
+    ["programs", () => expect(heading(page)).toHaveText("Программы")],
+    ...site.index.programs.slice(0, 1).map((program): [string, () => Promise<void>] => [`program/${program.slug}`, () => expect(heading(page)).toHaveText(program.title)]),
     [coursePath(site), () => expect(heading(page)).toHaveText(site.course.title)],
     [lessonPath(site, lesson), () => expect(page.locator(".lesson-title-line")).toHaveText(lesson.title)],
     ["profile", () => expect(heading(page)).toHaveText("Мой профиль")],
@@ -25,8 +27,8 @@ test("every screen opens by its address, and again after a reload", async ({ pag
 });
 
 test("an address the site does not have says so and leads to the courses", async ({ page, site, baseURL }) => {
-  // The last two are folders of the built site with no page of their own.
-  for (const address of ["no/such/page", "course/no-such-course", `${coursePath(site)}/lesson/no-such-lesson`, "course/no-such-course/lesson/none", "course", `${coursePath(site)}/lesson`]) {
+  // The last three are folders of the built site with no page of their own.
+  for (const address of ["no/such/page", "course/no-such-course", "program/no-such-program", `${coursePath(site)}/lesson/no-such-lesson`, "course/no-such-course/lesson/none", "course", `${coursePath(site)}/lesson`, "program"]) {
     const response = await page.goto(address);
     // The host answers with its «not found» page, which is the site.
     expect(response?.status(), address).toBe(404);
@@ -85,7 +87,7 @@ test("the page asks for nothing outside its own address, and every picture it sh
   page.on("pageerror", (error) => errors.push(error.message));
 
   const pictured = site.lessons.find((lesson) => lesson.cards.some((card) => card.kind !== "drill" && card.body.includes("<img"))) ?? site.lessons[0];
-  for (const address of ["", "courses", coursePath(site), lessonPath(site, pictured), "profile"]) {
+  for (const address of ["", "courses", "programs", ...site.index.programs.slice(0, 1).map((program) => `program/${program.slug}`), coursePath(site), lessonPath(site, pictured), "profile"]) {
     await page.goto(address);
     await expect(page.locator("#app")).toBeVisible();
     await page.waitForLoadState("networkidle");

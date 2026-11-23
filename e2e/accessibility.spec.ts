@@ -34,6 +34,19 @@ test("the index page, the course list, a course and the profile pass axe", async
   }
 });
 
+test("the program list and a program with an open topic pass axe", async ({ page, site }) => {
+  await page.goto("programs");
+  await expect(heading(page)).toHaveText("Программы");
+  expect(await violations(page), "on the program list").toEqual([]);
+  test.skip(site.index.programs.length === 0, "no program is published");
+  const program = site.index.programs[0];
+  await page.goto(`program/${program.slug}`);
+  await expect(heading(page)).toHaveText(program.title);
+  const topic = page.locator("details.topic").first();
+  if (await topic.count()) await topic.locator("summary").click();
+  expect(await violations(page), "on a program").toEqual([]);
+});
+
 test("a lesson passes axe on a theory card, on a question, after a wrong try and in the summary", async ({ page, site }) => {
   const lesson = site.lessons[0];
   const theory = lesson.cards.findIndex((card) => !isQuestion(card));
