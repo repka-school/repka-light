@@ -73,6 +73,12 @@ test("both illustrated pets swing diagonal leg pairs and sit for reduced motion"
   await expect(page.locator(".roaming-pet svg")).toHaveCount(2);
   await page.clock.pauseAt(new Date(+morning + 8000));
   await page.emulateMedia({ reducedMotion: "no-preference" });
+  // The page hears of the change a moment later, and the pets set off only then: the clock waits for it.
+  await page.evaluate(() => new Promise<void>((heard) => {
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+    if (reduced.matches) reduced.addEventListener("change", () => heard(), { once: true });
+    else heard();
+  }));
   await page.clock.runFor(6500);
 
   for (const kind of ["cat", "dog"]) {
