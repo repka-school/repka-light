@@ -1,6 +1,6 @@
 // The site's addresses, on a host that only has files: every screen opens by
-// its own address under the sub-path, links stay inside it, and the page asks
-// for nothing outside its origin.
+// its own address under the sub-path and is found there, links stay inside
+// it, and the page asks for nothing outside its origin.
 import { coursePath, expect, heading, lessonPath, test } from "./support";
 
 test("every screen opens by its address, and again after a reload", async ({ page, site, baseURL }) => {
@@ -11,11 +11,12 @@ test("every screen opens by its address, and again after a reload", async ({ pag
     [coursePath(site), () => expect(heading(page)).toHaveText(site.course.title)],
     [lessonPath(site, lesson), () => expect(page.locator(".lesson-title-line")).toHaveText(lesson.title)],
     ["profile", () => expect(heading(page)).toHaveText("Мой профиль")],
+    ["homestead", () => expect(heading(page)).toHaveText("Мой огород")],
   ];
   for (const [address, shows] of screens) {
     const response = await page.goto(address);
-    // Only the first address is a file; the host answers the rest with its «not found» page, which is the site.
-    expect(response?.status()).toBe(address ? 404 : 200);
+    // Every address the site has is a file of its own, so the host finds it.
+    expect(response?.status(), address).toBe(200);
     await shows();
     await page.reload();
     await shows();
@@ -24,8 +25,11 @@ test("every screen opens by its address, and again after a reload", async ({ pag
 });
 
 test("an address the site does not have says so and leads to the courses", async ({ page, site, baseURL }) => {
-  for (const address of ["no/such/page", "course/no-such-course", `${coursePath(site)}/lesson/no-such-lesson`, "course/no-such-course/lesson/none"]) {
-    await page.goto(address);
+  // The last two are folders of the built site with no page of their own.
+  for (const address of ["no/such/page", "course/no-such-course", `${coursePath(site)}/lesson/no-such-lesson`, "course/no-such-course/lesson/none", "course", `${coursePath(site)}/lesson`]) {
+    const response = await page.goto(address);
+    // The host answers with its «not found» page, which is the site.
+    expect(response?.status(), address).toBe(404);
     await expect(heading(page)).toHaveText("Такой страницы нет.");
   }
   await page.getByRole("link", { name: "Ко всем курсам" }).click();

@@ -4,6 +4,7 @@ import { defineConfig } from "vitest/config";
 import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { writeRoutePages } from "./scripts/route-pages.mjs";
 
 const GTM_URL = "https://www.googletagmanager.com/gtm.js?id=GTM-PGV3K8LL";
 const CF_URL = "https://static.cloudflareinsights.com/beacon.min.js";
@@ -76,14 +77,19 @@ function thirdPartyNotices(): Plugin {
 }
 
 // GitHub Pages has no rewrite rules: an address it has no file for gets
-// 404.html. A copy of the page there lets any route open or reload directly.
-function notFoundPage(): Plugin {
+// 404.html, with the status 404. Every address the site has gets a copy of
+// the page under its own name, so it opens with the status 200, and a copy
+// in 404.html shows the site's own «not found» screen for the rest.
+function routePages(): Plugin {
   let outDir = "dist";
   return {
-    name: "not-found-page",
+    name: "route-pages",
     apply: "build",
     configResolved: (config) => void (outDir = path.resolve(config.root, config.build.outDir)),
-    closeBundle: () => fs.copyFileSync(path.join(outDir, "index.html"), path.join(outDir, "404.html")),
+    closeBundle: () => {
+      fs.copyFileSync(path.join(outDir, "index.html"), path.join(outDir, "404.html"));
+      writeRoutePages(outDir);
+    },
   };
 }
 
@@ -97,7 +103,7 @@ export default defineConfig({
   base,
   // The footer names the analytics services only in a build that loads them.
   define: { __ANALYTICS__: JSON.stringify(withAnalytics) },
-  plugins: [react(), tailwindcss(), notFoundPage(), thirdPartyNotices(), ...(withAnalytics ? [analytics()] : [])],
+  plugins: [react(), tailwindcss(), routePages(), thirdPartyNotices(), ...(withAnalytics ? [analytics()] : [])],
   resolve: { alias: { "@": path.resolve(import.meta.dirname, "src") } },
   build: { outDir: "dist", emptyOutDir: true },
   // The browser tests build a site and write their traces under .e2e/; a dev server running beside them does not reload for those.

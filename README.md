@@ -35,8 +35,8 @@ list and the level, the profile, the reset and the backup file, the homestead,
 every screen opened by its own address, and an accessibility check by axe.
 
 The site under test is built for a sub-path (`/repka-light/`) and served the
-way GitHub Pages serves it: plain files, and `404.html` for any other address
-(`e2e/site.mjs`). The build, the traces and the report go to `.e2e/`, which is
+way GitHub Pages serves it: plain files, `name.html` for the address `name`,
+and `404.html` for any other address (`e2e/site.mjs`). The build, the traces and the report go to `.e2e/`, which is
 not committed. A failed test leaves a screenshot and a trace there:
 `npx playwright show-report .e2e/report`.
 
@@ -46,6 +46,7 @@ not committed. A failed test leaves a screenshot and a trace there:
 |---|---|
 | `courses/` | Course content, as packs (see below). |
 | `scripts/build-content.mjs` | Turns the packs into `public/content/` (generated, not committed). |
+| `scripts/route-pages.mjs` | Writes a copy of the built page for every address of the site. |
 | `src/screens/` | The six screens: index page, course list, course, lesson (question and summary), profile, homestead. |
 | `src/lesson/` | The rules of a lesson run: two tries per task, progress, the summary. No DOM. |
 | `src/store/` | What is saved in `localStorage`, the hook the screens read it with, and the rules of experience and levels. |
@@ -57,9 +58,14 @@ not committed. A failed test leaves a screenshot and a trace there:
 | `docs/style-guide.md` | Type scale, colours, components and how the copy is written. |
 
 Routes are plain paths under the path the site is
-served from. A static host has no file for most of them, so the build also
-writes `404.html`, a copy of the page: GitHub Pages serves it for any address
-it does not know, and the app shows the right screen.
+served from. A static host has a file only for the index, so the build writes
+a copy of the page for every address the site has: `courses.html`,
+`course/<course>.html`, `course/<course>/lesson/<lesson>.html` and so on
+(`scripts/route-pages.mjs`). GitHub Pages serves `name.html` for the address
+`name`, so each screen opens by its address with the status 200. The build
+also writes `404.html`, one more copy: the host serves it, with the status
+404, for any address it does not know, and the app shows «Такой страницы
+нет». A screen with a new fixed address is added to the list in that script.
 
 | Route | Screen |
 |---|---|
