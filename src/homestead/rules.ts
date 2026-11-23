@@ -96,7 +96,7 @@ export function cells(kind: Kind, x: number, y: number): Tile[] {
 export const tileKey = (x: number, y: number) => `${x},${y}`;
 
 /** Which thing covers each tile, leaving one thing out. */
-function occupancy(things: Thing[], ignore?: Thing): Map<string, Thing> {
+export function occupancy(things: Thing[], ignore?: Thing): Map<string, Thing> {
   const taken = new Map<string, Thing>();
   for (const thing of things) if (thing !== ignore) for (const [x, y] of cells(thing.kind, thing.x, thing.y)) taken.set(tileKey(x, y), thing);
   return taken;

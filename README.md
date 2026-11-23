@@ -287,6 +287,10 @@ amount shows under it, and a new level is named there.
 with `make test-e2e`. In the repository settings, set Pages' source to
 "GitHub Actions".
 
+The production build reports the gzipped size of the shared JavaScript and CSS.
+Homestead's lazy-loaded code, styles and imported assets have a combined
+38 KiB gzip budget, which the same build checks locally and in CI.
+
 The build has to know the path the site is served from, because page and
 picture addresses start with it. It reads `BASE_PATH` (`/` when unset); the
 workflow takes the value from the Pages settings. To try a build made for a

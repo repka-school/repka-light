@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { apply, GROUND, starter, type Action, type Homestead, type Tile } from "./rules";
-import { afterOutcome, firstTile, fitsHere, intentAt, marksOf, modeLasts, moveCursor, startTile, type Outcome } from "./screen";
+import { afterOutcome, firstTile, fitsHere, growAmounts, intentAt, marksOf, modeLasts, moveCursor, startTile, type Outcome } from "./screen";
 
 function after(home: Homestead, ...actions: Action[]): Homestead {
   return actions.reduce((current, action) => {
@@ -53,6 +53,26 @@ describe("modeLasts", () => {
     expect(modeLasts(starter(), { mode: "place", kind: "bed", rot: 0 }, 0)).toBe(true);
     expect(modeLasts(starter(), { mode: "place", kind: "tree", rot: 0 }, 0)).toBe(false);
     expect(modeLasts(starter(), { mode: "move", from: [5, 8], kind: "bush" }, 0)).toBe(false);
+  });
+
+  it("ends Grow after the last crop ripens and Seed after the last empty bed is planted", () => {
+    expect(modeLasts(ripe(), { mode: "grow" }, 50)).toBe(false);
+    const two = after(growing(), { action: "buy", seed: "common" }, { action: "plant", at: [3, 5], seed: "common" });
+    expect(modeLasts(after(two, { action: "grow", at: [2, 5], amount: 100 }), { mode: "grow" }, 50)).toBe(true);
+    const full = after(two, { action: "buy", seed: "common" }, { action: "buy", seed: "common" }, { action: "plant", at: [4, 5], seed: "common" });
+    expect(full.seeds.common).toBe(1);
+    expect(modeLasts(full, { mode: "seed", type: "common" }, 0)).toBe(false);
+  });
+});
+
+describe("growAmounts", () => {
+  it("offers each amount once, capped by the balance and the crop's remaining growth", () => {
+    expect(growAmounts(100, 100)).toEqual([10, 50]);
+    expect(growAmounts(100, 23)).toEqual([10, 23]);
+    expect(growAmounts(100, 3)).toEqual([3]);
+    expect(growAmounts(7, 100)).toEqual([7]);
+    expect(growAmounts(0, 100)).toEqual([]);
+    expect(growAmounts(100, 0)).toEqual([]);
   });
 });
 

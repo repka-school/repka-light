@@ -7,21 +7,23 @@
 // fence turned, and every item put back in stock. The close button or Escape
 // returns to the scene.
 import type { KeyboardEvent } from "react";
+import { Link } from "react-router";
 import { Button } from "@/ui/components/ui/button";
 import { w } from "./strings";
-import { Art } from "./IsoScene";
+import { Art, type Burst } from "./IsoScene";
 import { GROW_STEPS, growthOf, type Action, type Quality, type Thing, type Tile, type Turnip } from "./rules";
+import { growAmounts } from "./screen";
 import { turnipTitle } from "./words";
 
 export const CARD_TITLE_ID = "homestead-card-title";
 /** The card's controls, in the order focus looks for them. */
 export const GROW_ID = "homestead-grow";
+export const BIG_GROW_ID = `${GROW_ID}-${GROW_STEPS[1]}`;
 export const GATHER_ID = "homestead-gather";
 /** The button that plants the first quality of seed held. */
 export const PLANT_ID = "homestead-plant";
 /** An empty bed's way to the seed chooser, shown while no seed is held. */
 export const CARD_SEEDS_ID = "homestead-card-seeds";
-const DRY_ID = "homestead-card-dry";
 
 type Props = {
   thing: Thing;
@@ -29,8 +31,7 @@ type Props = {
   free: number;
   /** The qualities of seed held: an empty bed can be planted with any of them. */
   seeds: Quality[];
-  /** What the last press gave this thing's turnip, shown until the next change. */
-  given: number | null;
+  feedback: Burst | null;
   onAct: (action: Action) => void;
   onMove: (thing: Thing) => void;
   /** Opens the seed chooser from an empty bed there is no seed for. */
@@ -73,7 +74,6 @@ function TurnipFacts({ turnip }: { turnip: Turnip }) {
 function Actions({ thing, free, seeds, onAct, onMove, onSeeds }: Pick<Props, "thing" | "free" | "seeds" | "onAct" | "onMove" | "onSeeds">) {
   const at: Tile = [thing.x, thing.y];
   const growth = thing.turnip && growthOf(thing.turnip);
-  const dry = free <= 0;
   const emptyBed = thing.kind === "bed" && !thing.turnip;
   return (
     <div className="homestead-card-actions">
@@ -89,20 +89,22 @@ function Actions({ thing, free, seeds, onAct, onMove, onSeeds }: Pick<Props, "th
         </Button>
       )}
       {growth &&
-        !growth.ripe &&
-        GROW_STEPS.map((amount, i) => (
+        growAmounts(free, growth.left).map((amount, i) => (
           <Button
-            key={amount}
+            key={GROW_STEPS[i]}
             type="button"
-            id={i === 0 ? GROW_ID : `${GROW_ID}-${amount}`}
+            id={i === 0 ? GROW_ID : BIG_GROW_ID}
             variant={i === 0 ? "default" : "outline"}
-            disabled={dry}
-            aria-describedby={dry ? DRY_ID : undefined}
             onClick={() => onAct({ action: "grow", at, amount })}
           >
             {w.card.grow(amount)}
           </Button>
         ))}
+      {growth && !growth.ripe && free <= 0 && (
+        <Button asChild>
+          <Link to="/courses">{w.toTasks}</Link>
+        </Button>
+      )}
       {growth?.ripe && (
         <Button type="button" id={GATHER_ID} onClick={() => onAct({ action: "gather", at })}>
           {w.card.gather}
@@ -123,7 +125,7 @@ function Actions({ thing, free, seeds, onAct, onMove, onSeeds }: Pick<Props, "th
   );
 }
 
-export function ThingCard({ thing, free, seeds, given, onAct, onMove, onSeeds, onClose }: Props) {
+export function ThingCard({ thing, free, seeds, feedback, onAct, onMove, onSeeds, onClose }: Props) {
   const turnip = thing.turnip;
   const growth = turnip && growthOf(turnip);
   const escape = (event: KeyboardEvent) => {
@@ -147,11 +149,12 @@ export function ThingCard({ thing, free, seeds, given, onAct, onMove, onSeeds, o
       {turnip && <TurnipFacts turnip={turnip} />}
       {thing.kind === "bed" && !turnip && <p>{seeds.length ? w.card.emptyBed : w.card.emptyBedNoSeed}</p>}
       {growth && !growth.ripe && free <= 0 && (
-        <p className="homestead-note" id={DRY_ID}>
+        <p className="homestead-note">
           {w.reasons.no_xp}
         </p>
       )}
-      {growth && given !== null && <p className="homestead-card-given">{growth.ripe ? w.said.ripened(given) : w.said.grown(given, growth.stage)}</p>}
+      {feedback?.kind === "gather" && <p className="homestead-card-given">{w.said.gatheredShort}</p>}
+      {growth && feedback?.kind === "grow" && <p className="homestead-card-given">{growth.ripe ? w.said.ripened(feedback.amount) : w.said.grown(feedback.amount, growth.stage)}</p>}
       <Actions thing={thing} free={free} seeds={seeds} onAct={onAct} onMove={onMove} onSeeds={onSeeds} />
     </section>
   );

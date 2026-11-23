@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { apply, starter, type Action, type Homestead } from "./rules";
+import { apply, starter, thingAt, type Action, type Homestead, type Tile } from "./rules";
 import { cellName, modeLine, saidWords, turnipTitle } from "./words";
 
 function after(home: Homestead, ...actions: Action[]): Homestead {
@@ -12,23 +12,24 @@ function after(home: Homestead, ...actions: Action[]): Homestead {
 
 describe("a tile's name", () => {
   const home = after(starter(), { action: "plant", at: [2, 5], seed: "common" }, { action: "grow", at: [2, 5], amount: 50 });
+  const nameAt = (tile: Tile, fits: boolean | null = null) => cellName(tile, thingAt(home, ...tile), fits);
 
   it("says where the tile is, counting from one, and what stands on it", () => {
-    expect(cellName(home, [5, 8])).toBe("ряд 9, место 6: свободно");
-    expect(cellName(home, [3, 5])).toBe("ряд 6, место 4: грядка, пустая");
+    expect(nameAt([5, 8])).toBe("ряд 9, место 6: свободно");
+    expect(nameAt([3, 5])).toBe("ряд 6, место 4: грядка, пустая");
     // Any tile a thing covers names the thing.
-    expect(cellName(home, [2, 2])).toBe("ряд 3, место 3: Дом");
+    expect(nameAt([2, 2])).toBe("ряд 3, место 3: Дом");
   });
 
   it("says how far a turnip has grown", () => {
-    expect(cellName(home, [2, 5])).toBe("ряд 6, место 3: грядка, обычная репка, кустик, 50 из 100 опыта");
+    expect(nameAt([2, 5])).toBe("ряд 6, место 3: грядка, обычная репка, кустик, 50 из 100 опыта");
     expect(turnipTitle({ type: "rare", given: 0 })).toBe("редкая репка, посажено");
     expect(turnipTitle({ type: "rare", given: 200 })).toBe("редкая репка, созрела");
   });
 
   it("adds whether a thing being placed may go there", () => {
-    expect(cellName(home, [5, 8], true)).toBe("ряд 9, место 6: свободно. Сюда можно.");
-    expect(cellName(home, [2, 2], false)).toBe("ряд 3, место 3: Дом. Сюда нельзя.");
+    expect(nameAt([5, 8], true)).toBe("ряд 9, место 6: свободно. Сюда можно.");
+    expect(nameAt([2, 2], false)).toBe("ряд 3, место 3: Дом. Сюда нельзя.");
   });
 });
 

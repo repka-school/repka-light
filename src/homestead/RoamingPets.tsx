@@ -1,22 +1,25 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { memo, useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { doorway } from "./Critters";
+import { Livestock } from "./Livestock";
 import { PetArt } from "./PetArt";
-import { advance, blockedTiles, poseOf, startWalker, type Walker } from "./pets";
+import { advanceWalkers, blockedTiles, poseOf, residents, type Walker } from "./pets";
 import { tileKey, type Thing, type Tile } from "./rules";
 
-type Props = { things: Thing[]; rain: boolean; placing: boolean; onSelect: (tile: Tile) => void };
+type Props = {
+  things: Thing[];
+  rain: boolean;
+  placing: boolean;
+  onSelect: (tile: Tile) => void;
+  onHover: (tile: Tile) => void;
+  livestockClass: (tile: Tile) => string;
+};
+const MovingLivestock = memo(Livestock);
+const MovingPet = memo(PetArt);
 
-function residents(things: Thing[], rain: boolean, previous: Walker[]) {
-  return things.flatMap(({ kind, x, y }) => {
-    if (kind !== "cat" && kind !== "dog") return [];
-    return previous.find((p) => p.kind === kind && p.home[0] === x && p.home[1] === y) ?? startWalker(kind, [x, y], rain);
-  });
-}
-
-export function RoamingPets({ things, rain, placing, onSelect }: Props) {
+export function RoamingPets({ things, rain, placing, onSelect, onHover, livestockClass }: Props) {
   const doors = useId();
   const walkers = useRef<Walker[]>([]);
-  const [frame, setFrame] = useState(() => residents(things, rain, []).map(snapshot));
+  const [frame, setFrame] = useState(() => residents(things, rain, [], matchMedia("(prefers-reduced-motion: reduce)").matches).map(snapshot));
   useEffect(() => {
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     const occupied = blockedTiles(things);
@@ -26,17 +29,9 @@ export function RoamingPets({ things, rain, placing, onSelect }: Props) {
     function tick(now: number) {
       const seconds = previous ? Math.min(.25, (now-previous)/1000) : 0;
       previous = now;
-      let changed = false;
-      for (const pet of walkers.current) {
-        const blocked = new Set(occupied);
-        for (const other of walkers.current) {
-          if (other === pet) continue;
-          blocked.add(tileKey(...other.at.tile));
-          if (other.step) blocked.add(tileKey(...other.step.to.tile));
-        }
-        changed = advance(pet, seconds, rain, blocked) || changed;
-      }
+      const changed = advanceWalkers(walkers.current, seconds, rain, occupied);
       if (changed) setFrame(walkers.current.map(snapshot));
+      if (rain && walkers.current.every((pet) => pet.at.inside && !pet.step)) return;
       if (walkers.current.some((pet) => pet.step || pet.route.length)) frameId = requestAnimationFrame(tick);
       else restTimer = window.setTimeout(() => { frameId = requestAnimationFrame(tick); }, 180);
     }
@@ -44,7 +39,7 @@ export function RoamingPets({ things, rain, placing, onSelect }: Props) {
       cancelAnimationFrame(frameId);
       clearTimeout(restTimer);
       previous = 0;
-      walkers.current = residents(things, rain, motion.matches ? [] : walkers.current);
+      walkers.current = residents(things, rain, walkers.current, motion.matches);
       setFrame(walkers.current.map(snapshot));
       if (!motion.matches && !document.hidden && walkers.current.length) frameId = requestAnimationFrame(tick);
     }
@@ -58,23 +53,49 @@ export function RoamingPets({ things, rain, placing, onSelect }: Props) {
       motion.removeEventListener("change", resume);
     };
   }, [things, rain]);
-  return frame.map(({ kind, home, pose, inside, tile }) => (
-    <span key={kind} className="roaming-pet" data-pet={kind} data-tile={tile} data-sheltered={inside || undefined}
-      data-walking={pose.walking || undefined} data-placing={placing || undefined} aria-hidden="true"
-      style={{ transform: `translate(${pose.x}px,${pose.y}px)`, zIndex: pose.zIndex }}
-      onClick={() => onSelect(home)}>
-      <svg viewBox="-25 -38 53 44" focusable="false">
-        {inside && <defs><clipPath id={doors+kind}>
-          <path d={doorway[kind]} transform={kind === "cat" ? "translate(0 3)" : "translate(-1 -2)"} />
-        </clipPath></defs>}
-        <g clipPath={inside ? `url(#${doors+kind})` : undefined}>
-          <g transform={`scale(${pose.scale*(pose.left ? -1 : 1)} ${pose.scale})`}>
-            <PetArt kind={kind} walking={pose.walking} />
-          </g>
-        </g>
-      </svg>
-    </span>
-  ));
+  return frame.map(({ kind, home, pose, inside, tile }, i) => {
+    const livestock = kind === "cow" || kind === "chicken";
+    const style = {
+      transform: `translate(${pose.x}px,${pose.y}px)`, zIndex: pose.zIndex,
+      opacity: livestock && pose.shelter ? 1 - pose.shelter : undefined, "--i": i,
+    } as CSSProperties;
+    const facing = `scale(${pose.scale * (pose.left ? -1 : 1)} ${pose.scale})`;
+    return (
+      <span
+        key={kind + tileKey(...home)}
+        className={livestock ? `homestead-thing roaming-livestock${livestockClass(home)}` : "roaming-pet"}
+        data-thing={livestock ? kind : undefined}
+        data-pet={livestock ? undefined : kind}
+        data-tile={tile}
+        data-sheltered={inside || undefined}
+        data-walking={pose.walking || undefined}
+        data-placing={placing || undefined}
+        aria-hidden="true"
+        style={style}
+        onPointerEnter={(event) => { if (livestock && event.pointerType === "mouse") onHover(home); }}
+        onClick={() => onSelect(home)}
+      >
+        {livestock ? (
+          <svg viewBox="-40 -46 80 52" focusable="false">
+            <g transform={facing}><MovingLivestock kind={kind} /></g>
+          </svg>
+        ) : (
+          <svg viewBox="-25 -38 53 44" focusable="false">
+            {inside && (
+              <defs>
+                <clipPath id={doors + kind}>
+                  <path d={doorway[kind]} transform={kind === "cat" ? "translate(0 3)" : "translate(-1 -2)"} />
+                </clipPath>
+              </defs>
+            )}
+            <g clipPath={inside ? `url(#${doors + kind})` : undefined}>
+              <g transform={facing}><MovingPet kind={kind} walking={pose.walking} /></g>
+            </g>
+          </svg>
+        )}
+      </span>
+    );
+  });
 }
 
 function snapshot(pet: Walker) {

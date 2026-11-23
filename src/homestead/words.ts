@@ -1,7 +1,7 @@
 // The homestead's keys turned into words: every part of the screen and every
 // announcement that names a thing, a stage, a tool or a result reads them here.
 import { w } from "./strings";
-import { growthOf, thingAt, type Homestead, type Thing, type Tile, type Turnip } from "./rules";
+import { growthOf, type Thing, type Tile, type Turnip } from "./rules";
 import type { Mode, Said } from "./screen";
 
 const stageName = (stage: number) => w.stages[Math.min(w.stages.length, Math.max(1, stage)) - 1];
@@ -18,8 +18,8 @@ function contentOf(thing: Thing | undefined) {
 }
 
 /** A tile's name: where it is and what stands on it and, while a thing is being placed or moved, whether it may go there. */
-export function cellName(home: Homestead, [x, y]: Tile, fits: boolean | null = null) {
-  const name = w.scene.cell(w.scene.position(x, y), contentOf(thingAt(home, x, y)));
+export function cellName([x, y]: Tile, thing: Thing | undefined, fits: boolean | null = null) {
+  const name = w.scene.cell(w.scene.position(x, y), contentOf(thing));
   return fits === null ? name : `${name}. ${w.modes.here(fits)}`;
 }
 

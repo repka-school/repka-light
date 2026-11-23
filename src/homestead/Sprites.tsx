@@ -269,7 +269,7 @@ export function Sprite({ kind, rot = 0, placed = false }: { kind: Exclude<Kind, 
   return (
     <svg viewBox={viewBoxOf(kind)} aria-hidden="true" focusable="false" className="homestead-sprite" data-kind={kind}>
       {kind === "pond" && <Pond animate={placed} />}
-      {(kind === "chicken" || kind === "cow") && <Livestock kind={kind} />}
+      {(kind === "chicken" || kind === "cow") && <g transform="translate(0 26)"><Livestock kind={kind} /></g>}
       {(kind === "cat" || kind === "dog") && <PetSprite kind={kind} shelterOnly={placed} />}
       {kind === "house" && <House />}
       {kind === "barn" && <Barn />}
@@ -289,11 +289,8 @@ export function Shadow({ kind, rot = 0 }: { kind: Kind; rot?: number }) {
   if (kind === "barn") return <polygon points={shadowOf([...block(-0.1, 2.1, -0.15, 2.15, 46), ...flat(-0.1, 2.1, 0.3, 1.7, 80), [-0.1, 1, 96], [2.1, 1, 96]])} />;
   if (kind === "bed") return <polygon points={shadowOf(block(-0.05, 1.05, -0.05, 1.05, 11))} />;
   if (kind === "fence") return <polygon points={shadowOf(rot ? block(0.46, 0.54, 0, 1, 28) : block(0, 1, 0.46, 0.54, 28))} />;
-  if (kind === "pond") return null;
-  if (kind === "chicken" || kind === "cow" || kind === "cat" || kind === "dog") {
-    const size = kind === "chicken" ? 9 : 22;
-    return <ellipse cx="6" cy="28" rx={size} ry={size * .36} />;
-  }
+  if (kind === "pond" || kind === "chicken" || kind === "cow") return null;
+  if (kind === "cat" || kind === "dog") return <ellipse cx="6" cy="28" rx="22" ry={22 * .36} />;
   const [x, y] = pt(0.5, 0.5, 0);
   if (kind === "bush") {
     const [cx, cy] = shadowPt(0.5, 0.5, 14);

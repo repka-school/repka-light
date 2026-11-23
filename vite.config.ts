@@ -4,6 +4,7 @@ import { defineConfig } from "vitest/config";
 import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { homesteadBudget } from "./scripts/homestead-budget";
 import { writeRoutePages } from "./scripts/route-pages.mjs";
 
 const GTM_URL = "https://www.googletagmanager.com/gtm.js?id=GTM-PGV3K8LL";
@@ -103,7 +104,7 @@ export default defineConfig({
   base,
   // The footer names the analytics services only in a build that loads them.
   define: { __ANALYTICS__: JSON.stringify(withAnalytics) },
-  plugins: [react(), tailwindcss(), routePages(), thirdPartyNotices(), ...(withAnalytics ? [analytics()] : [])],
+  plugins: [react(), tailwindcss(), routePages(), thirdPartyNotices(), homesteadBudget(), ...(withAnalytics ? [analytics()] : [])],
   resolve: { alias: { "@": path.resolve(import.meta.dirname, "src") } },
   build: { outDir: "dist", emptyOutDir: true },
   // The browser tests build a site and write their traces under .e2e/; a dev server running beside them does not reload for those.

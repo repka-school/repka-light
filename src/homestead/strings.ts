@@ -34,7 +34,7 @@ export const w = {
     count: (n: number) => `×${n}`,
   },
   modes: {
-    grow: `Растим репки. Выбери репку: она получит ${GROW_STEPS[0]} опыта.`,
+    grow: `Выбери репку, чтобы дать ей до ${GROW_STEPS[0]} опыта.`,
     seed: (type: Quality) => `Сажаем ${seedQualities[type]} семечко. Выбери пустую грядку.`,
     place: (kind: Kind) => `Ставим ${kindObjects[kind]}. Выбери место.`,
     move: (kind: Kind) => `Переносим ${kindObjects[kind]}. Выбери новое место.`,
@@ -77,6 +77,7 @@ export const w = {
     ripened: (n: number) => `Репка подросла на ${n} и созрела`,
     planted: (type: Quality) => `Посажено: ${seedQualities[type]} семечко`,
     gathered: "Репка собрана в урожай",
+    gatheredShort: "Репка собрана",
     stocked: (kind: Kind) => `${kindNames[kind]} на складе`,
     placed: { house: "Дом поставлен", barn: "Сарай поставлен", fence: "Забор поставлен", tree: "Дерево поставлено", bush: "Куст поставлен", bed: "Грядка поставлена", cat: "Кот в огороде", dog: "Пёс в огороде", chicken: "Курица в огороде", cow: "Корова в огороде", pond: "Пруд с утками на месте" } satisfies Record<Kind, string>,
     rotated: "Забор повёрнут",
@@ -107,7 +108,8 @@ export const w = {
     line: "Семечки покупают за опыт, а опыт дают за решённые задания.",
     pick: "Выбрать семечко",
   },
-  noXp: "Свободного опыта нет. Решай новые задания — он появится.",
+  firstSeed: "Посадить первое семечко",
+  toTasks: "К заданиям",
   chooser: {
     title: "Семечки за опыт",
     close: "Закрыть",

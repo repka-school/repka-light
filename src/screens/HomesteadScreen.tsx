@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { announce } from "@/ui/components/Announcer";
 import { PageHeading } from "@/ui/components/PageHeading";
@@ -6,13 +6,13 @@ import { Button } from "@/ui/components/ui/button";
 import { useFocusAfter } from "@/ui/hooks/useFocusAfter";
 import { Page } from "@/components/Chrome";
 import { CHOOSER_CHIP_ID, HarvestShelf, Tray } from "@/homestead/Panels";
-import { apply, dayOf, heldSeeds, seedTotal, targetOf, thingAt, type Action, type Homestead, type Quality, type Thing, type Tile } from "@/homestead/rules";
+import { apply, dayOf, harvestTotal, heldSeeds, seedTotal, targetOf, thingAt, type Action, type Homestead, type Quality, type Thing, type Tile } from "@/homestead/rules";
 import type { Burst } from "@/homestead/IsoScene";
 import { Scene, SCENE_ID } from "@/homestead/Scene";
 import { afterOutcome, firstTile, fitsHere, intentAt, marksOf, modeLasts, startTile, type Mode } from "@/homestead/screen";
 import { CHOOSER_TITLE_ID, SeedChooser } from "@/homestead/SeedChooser";
 import { Paints } from "@/homestead/shapes";
-import { CARD_SEEDS_ID, PLANT_ID, ThingCard } from "@/homestead/ThingCard";
+import { BIG_GROW_ID, CARD_SEEDS_ID, GROW_ID, PLANT_ID, ThingCard } from "@/homestead/ThingCard";
 import { modeLine, saidWords } from "@/homestead/words";
 import { freeXpOf, getSaved, homesteadOf, saveHomestead, useSaved } from "@/store/store";
 import { totalXp } from "@/store/xp";
@@ -43,21 +43,20 @@ export default function HomesteadScreen() {
   );
 }
 
-/** The lines above the scene: nothing to plant and nothing growing, with the way to the seeds; and no experience left to spend. */
-function Lines({ home, free, onPick }: { home: Homestead; free: number; onPick: () => void }) {
-  const empty = !seedTotal(home) && !home.storedCrops?.length && !home.things.some((thing) => thing.turnip);
+/** A first visit starts with the free seed. Later, a garden with nothing left to plant leads to the chooser. */
+function PlantingPrompt({ home, sowing, onSow, onPick }: { home: Homestead; sowing: boolean; onSow: () => void; onPick: () => void }) {
+  if (home.storedCrops?.length || home.things.some((thing) => thing.turnip)) return null;
+  if (home.seeds.common && !harvestTotal(home) && home.things.some((thing) => thing.kind === "bed")) {
+    return <Button type="button" className="homestead-first-seed" aria-pressed={sowing} onClick={onSow}>{w.firstSeed}</Button>;
+  }
+  if (seedTotal(home)) return null;
   return (
-    <>
-      {empty && (
-        <div className="homestead-line">
-          <p>{w.empty.line}</p>
-          <Button type="button" variant="outline" size="sm" id={PICK_ID} onClick={onPick}>
-            {w.empty.pick}
-          </Button>
-        </div>
-      )}
-      {free <= 0 && <p className="homestead-line">{w.noXp}</p>}
-    </>
+    <div className="homestead-line">
+      <p>{w.empty.line}</p>
+      <Button type="button" variant="outline" size="sm" id={PICK_ID} onClick={onPick}>
+        {w.empty.pick}
+      </Button>
+    </div>
   );
 }
 
@@ -99,9 +98,13 @@ function Loaded({ home, free }: { home: Homestead; free: number }) {
   const [selected, setSelected] = useState<Tile | null>(null);
   const [mode, setMode] = useState<Mode | null>(null);
   const [chooser, setChooser] = useState(false);
-  // What the last press gave a turnip, and where that turnip stands; each press is told from the one before.
-  const [given, setGiven] = useState<Burst | null>(null);
+  const [feedback, setFeedback] = useState<Burst | null>(null);
   const presses = useRef(0);
+  useEffect(() => {
+    if (feedback?.kind !== "gather") return;
+    const timer = window.setTimeout(() => setFeedback(null), 3000);
+    return () => window.clearTimeout(timer);
+  }, [feedback]);
   // What opened the chooser: the tray's button, the line's «Выбрать семечко», or the card of an empty bed there is no seed for.
   const opener = useRef<Opener>("chip");
   const focusAfter = useFocusAfter();
@@ -117,15 +120,23 @@ function Loaded({ home, free }: { home: Homestead; free: number }) {
     const before = homesteadOf(saved);
     const tile = targetOf(action);
     const thing = tile ? thingAt(before, tile[0], tile[1]) : undefined;
+    const bigGrowFocused = document.activeElement?.id === BIG_GROW_ID;
     const result = apply(before, action, totalXp(saved.xp), dayOf(new Date()));
     if (result.ok) saveHomestead(result.home);
     const left = freeXpOf(getSaved());
-    const after = afterOutcome(result.ok ? { ...result, action, free: left, thing } : { ...result, action, free: left, thing });
-    setGiven(result.ok && action.action === "grow" ? { at: action.at, amount: result.given, n: ++presses.current } : null);
+    const after = afterOutcome({ ...result, action, free: left, thing });
+    if (result.ok && action.action === "grow") setFeedback({ kind: "grow", at: action.at, amount: result.given, n: ++presses.current });
+    else if (result.ok && action.action === "gather") setFeedback({ kind: "gather", at: action.at, n: ++presses.current });
+    else setFeedback(null);
     if (after.close) setSelected(null);
-    if (result.ok && mode && !modeLasts(result.home, mode, left)) setMode(null);
+    if (result.ok && mode && !modeLasts(result.home, mode, left)) {
+      setMode(null);
+      if (action.action === "plant" || action.action === "grow") setSelected(action.at);
+    }
     announce(saidWords(after.said));
     if (after.focus.to === "scene") toScene(after.focus.tile);
+    // The two grow buttons become one when both would give the same amount.
+    else if (action.action === "grow" && bigGrowFocused) focusAfter(BIG_GROW_ID, GROW_ID);
   };
 
   const openChooser = (from: Opener) => {
@@ -161,6 +172,7 @@ function Loaded({ home, free }: { home: Homestead; free: number }) {
       if (intent.action.action === "move") setSelected(tile);
       run(intent.action);
     } else if (intent.kind === "select") {
+      setMode(null);
       setSelected(tile);
       setChooser(false);
     } else if (intent.kind === "refuse") announce(w.reasons[intent.reason]);
@@ -190,10 +202,11 @@ function Loaded({ home, free }: { home: Homestead; free: number }) {
   const fits = fitsHere(home, mode, cursor);
   const moved = mode?.mode === "move" ? thingAt(home, mode.from[0], mode.from[1]) : undefined;
   const placing = mode?.mode === "place" ? { kind: mode.kind, rot: mode.rot, turnip: mode.kind === "bed" ? home.storedCrops?.[0] : undefined } : mode?.mode === "move" ? { kind: mode.kind, rot: moved?.rot ?? 0, from: mode.from, turnip: moved?.turnip } : null;
+  const sowing = mode?.mode === "seed" && mode.type === "common";
   return (
     <>
       <Paints />
-      <Lines home={home} free={free} onPick={() => openChooser("pick")} />
+      <PlantingPrompt home={home} sowing={sowing} onSow={() => startMode(sowing ? null : { mode: "seed", type: "common" })} onPick={() => openChooser("pick")} />
       <Scene
         home={home}
         cursor={cursor}
@@ -201,7 +214,7 @@ function Loaded({ home, free }: { home: Homestead; free: number }) {
         ghost={placing && { ...placing, x: cursor[0], y: cursor[1], ok: !!fits }}
         fits={fits}
         selected={thing ? selected : null}
-        burst={given}
+        burst={feedback}
         onCursor={setCursor}
         onActivate={activate}
         onCarry={move}
@@ -212,7 +225,7 @@ function Loaded({ home, free }: { home: Homestead; free: number }) {
         {mode && <ModeLine mode={mode} fits={fits} onRotate={rotate} onCancel={() => startMode(null)} />}
         {chooser && <SeedChooser home={home} free={free} onBuy={buy} onClose={closeChooser} />}
         {thing && !mode && !chooser && (
-          <ThingCard thing={thing} free={free} seeds={heldSeeds(home)} given={given && sameTile(given.at, [thing.x, thing.y]) ? given.amount : null} onAct={run} onMove={move} onSeeds={() => openChooser("card")} onClose={close} />
+          <ThingCard thing={thing} free={free} seeds={heldSeeds(home)} feedback={feedback && sameTile(feedback.at, [thing.x, thing.y]) ? feedback : null} onAct={run} onMove={move} onSeeds={() => openChooser("card")} onClose={close} />
         )}
       </Scene>
       <HarvestShelf home={home} />

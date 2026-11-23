@@ -9,26 +9,28 @@
 // everything, an outline round a footprint that does not fit and the keyboard
 // cursor on an empty tile. The grid itself, its Tab stop and its keys belong
 // to Scene.tsx.
-import type { CSSProperties, PointerEvent, ReactNode } from "react";
+import { memo, useMemo, type CSSProperties, type PointerEvent, type ReactNode } from "react";
 import { scatter, SCENE, scenePt, spriteBox, tileBox } from "./iso";
 import { RoamingPets } from "./RoamingPets";
 import { Critters } from "./Critters";
-import { cells, GROUND, growthOf, thingAt, tileKey, type Homestead, type Kind, type Thing, type Turnip, type Tile } from "./rules";
+import { footprint, GROUND, growthOf, tileKey, type Homestead, type Kind, type Thing, type Turnip, type Tile } from "./rules";
 import type { Mark } from "./screen";
 import { Shadow, Sprite } from "./Sprites";
 import { Bed } from "./Turnip";
 import { cellName } from "./words";
+import { w } from "./strings";
 
 /** A grid cell's id, which the grid names as its active descendant. */
 export const tileId = ([x, y]: Tile) => `homestead-tile-${x}-${y}`;
 
 /** A thing being placed or moved, drawn where it would stand; `from` is where a moved thing still stands. */
 export type Ghost = { kind: Kind; x: number; y: number; rot: number; ok: boolean; from?: Tile; turnip?: Turnip };
-/** Experience just given to the turnip on a tile; `n` tells one press from the next. */
-export type Burst = { at: Tile; amount: number; n: number };
+/** Feedback above the bed, keyed by the press that caused it. */
+export type Burst = { at: Tile; n: number } & ({ kind: "grow"; amount: number } | { kind: "gather" });
 
 type Props = {
   home: Homestead;
+  occupied: ReadonlyMap<string, Thing>;
   rain: boolean;
   cursor: Tile;
   marks: Map<string, Mark>;
@@ -116,14 +118,27 @@ function Land() {
   );
 }
 
-/** What grows on a free tile, in the tile's own space: nothing on most, else a tuft, flowers, pebbles or clover. */
-function Decor({ x, y }: { x: number; y: number }) {
+/** The grass grows thickest within one tile of the pond and the orchard trees. */
+function meadowEdges(things: Thing[]) {
+  const edges = new Set<string>();
+  for (const { kind, x, y } of things) {
+    if (kind !== "pond" && kind !== "tree") continue;
+    const n = footprint(kind);
+    for (let row = y - 1; row <= y + n; row++) {
+      for (let col = x - 1; col <= x + n; col++) edges.add(tileKey(col, row));
+    }
+  }
+  return edges;
+}
+
+/** A free tile's coordinates give its tuft, flowers or stones a stable shape. */
+function Decor({ x, y, lush }: { x: number; y: number; lush: boolean }) {
+  if (scatter(x + 31, y - 7) > (lush ? 0.88 : 0.16)) return null;
   const pick = scatter(x, y);
-  if (pick < 0.38) return null;
   const cx = 48 + (scatter(x + 17, y) - 0.5) * 34;
   const cy = 26 + (scatter(x, y + 23) - 0.5) * 12;
   const tuft = (tx: number, ty: number) => `M${tx - 4} ${ty}q-1 -5 -4 -8M${tx - 1.5} ${ty}q0 -6 -1 -10.5M${tx + 1.5} ${ty}q1 -5 3.4 -8.6M${tx + 4} ${ty}q2 -3 5 -5`;
-  if (pick < 0.68) {
+  if (pick < 0.46) {
     return (
       <g className="homestead-decor">
         <path d={tuft(cx, cy)} className="d-blade" />
@@ -131,8 +146,8 @@ function Decor({ x, y }: { x: number; y: number }) {
       </g>
     );
   }
-  if (pick < 0.84) {
-    const tone = pick < 0.74 ? "d-petal" : pick < 0.79 ? "d-petal is-yellow" : "d-petal is-pink";
+  if (pick < 0.78) {
+    const tone = pick < 0.58 ? "d-petal" : pick < 0.68 ? "d-petal is-yellow" : "d-petal is-pink";
     const at: [number, number][] = [[cx - 7, cy - 1], [cx + 3, cy - 5], [cx + 8, cy + 3]];
     return (
       <g className="homestead-decor">
@@ -163,13 +178,22 @@ function Decor({ x, y }: { x: number; y: number }) {
   );
 }
 
-/** One sheet over the tiles and under the things: the light across the ground, and every thing's shadow as one shade. */
+/** Light and shadows fall across the grass and the worn strip of soil around each bed. */
 function Sheet({ things }: { things: Thing[] }) {
   return (
     <svg className="homestead-sheet" viewBox={sceneBox} aria-hidden="true" focusable="false">
       <clipPath id="homestead-ground-clip">
         <polygon points={groundShape} />
       </clipPath>
+      <g className="homestead-bed-soil" clipPath="url(#homestead-ground-clip)">
+        {things.filter((thing) => thing.kind === "bed").map((bed) => (
+          <path
+            key={thingKey(bed)}
+            transform={`translate(${scenePt(bed.x, bed.y)})`}
+            d="M-65 26Q-68 20-53 14L-12-7Q-3-13 10-8L55 12Q76 20 65 28L17 54Q4 62-9 58L-48 38Q-60 35-65 26Z"
+          />
+        ))}
+      </g>
       <polygon points={groundShape} className="homestead-daylight" />
       <g className="homestead-shadows" clipPath="url(#homestead-ground-clip)">
         {things.map((thing) => {
@@ -266,20 +290,23 @@ function Float({ thing }: { thing: Thing }) {
   );
 }
 
-export function IsoScene({ home, rain, cursor, marks, ghost, fits, burst, onTile, onHover }: Props) {
-  const taken = new Set(home.things.flatMap((thing) => cells(thing.kind, thing.x, thing.y).map(([x, y]) => tileKey(x, y))));
+/** The camera transforms this drawing as a unit. Its tiles only re-render when the scene changes. */
+export const IsoScene = memo(function IsoScene({ home, occupied, rain, cursor, marks, ghost, fits, burst, onTile, onHover }: Props) {
+  const verge = useMemo(() => meadowEdges(home.things), [home.things]);
   const rows: ReactNode[] = [];
   for (let y = 0; y < GROUND; y++) {
     const tiles: ReactNode[] = [];
     for (let x = 0; x < GROUND; x++) {
-      const mark = marks.get(tileKey(x, y));
+      const key = tileKey(x, y);
+      const thing = occupied.get(key);
+      const mark = marks.get(key);
       const here = x === cursor[0] && y === cursor[1];
       tiles.push(
         <div
           role="gridcell"
           key={x}
           id={tileId([x, y])}
-          aria-label={cellName(home, [x, y], here ? fits : null)}
+          aria-label={cellName([x, y], thing, here ? fits : null)}
           aria-selected={mark === "selected"}
           className={`homestead-tile${(x + y) % 2 ? " is-odd" : ""}${mark ? ` is-${mark}` : ""}`}
           style={boxStyle(tileBox(x, y))}
@@ -289,7 +316,7 @@ export function IsoScene({ home, rain, cursor, marks, ghost, fits, burst, onTile
           <svg viewBox="0 0 96 48" aria-hidden="true" focusable="false">
             <path d={tileShape} />
             {mark && <path d={tileShape} className="homestead-tint-hatch" />}
-            {!taken.has(tileKey(x, y)) && <Decor x={x} y={y} />}
+            {!thing && <Decor x={x} y={y} lush={verge.has(key)} />}
           </svg>
         </div>,
       );
@@ -300,10 +327,11 @@ export function IsoScene({ home, rain, cursor, marks, ghost, fits, burst, onTile
       </div>,
     );
   }
-  const atCursor = thingAt(home, cursor[0], cursor[1]);
+  const atCursor = occupied.get(tileKey(...cursor));
   // A thing being moved is in the hand: where it stood it is faint and casts no shadow.
-  const lifted = ghost?.from && thingAt(home, ghost.from[0], ghost.from[1]);
-  const ringOf = (thing: Thing) => {
+  const lifted = ghost?.from && occupied.get(tileKey(...ghost.from));
+  const ringOf = (thing: Thing | undefined) => {
+    if (!thing) return "";
     const mark = marks.get(tileKey(thing.x, thing.y));
     return `${mark === "target" || mark === "selected" ? ` is-${mark}` : ""}${thing === atCursor ? " is-cursor" : ""}${thing === lifted ? " is-lifted" : ""}`;
   };
@@ -312,7 +340,7 @@ export function IsoScene({ home, rain, cursor, marks, ghost, fits, burst, onTile
       <Land />
       {rows}
       <Sheet things={lifted ? home.things.filter((thing) => thing !== lifted) : home.things} />
-      {home.things.map((thing, i) => (
+      {home.things.map((thing, i) => thing.kind === "chicken" || thing.kind === "cow" ? null : (
         <span
           key={thingKey(thing)}
           className={`homestead-thing${ringOf(thing)}`}
@@ -325,17 +353,20 @@ export function IsoScene({ home, rain, cursor, marks, ghost, fits, burst, onTile
           <Art thing={thing} placed />
         </span>
       ))}
-      <RoamingPets things={home.things} rain={rain} placing={!!ghost} onSelect={onTile} />
+      <RoamingPets things={home.things} rain={rain} placing={!!ghost} onSelect={onTile} onHover={onHover}
+        livestockClass={(tile) => ringOf(occupied.get(tileKey(...tile)))} />
       <Critters home={home} />
       {home.things.map((thing) => (
         <Float key={`float-${thingKey(thing)}`} thing={thing} />
       ))}
       {burst && (
         <span key={burst.n} className="homestead-strip-slot" style={slotStyle(burst.at, MARK_Z + 2000)} aria-hidden="true">
-          <span className="homestead-burst">+{burst.amount}</span>
+          <span className={burst.kind === "grow" ? "homestead-burst" : "homestead-burst homestead-burst-gather"}>
+            {burst.kind === "grow" ? `+${burst.amount}` : w.said.gatheredShort}
+          </span>
         </span>
       )}
-      <MarkLayer marks={marks} cursor={cursor} cursorOnThing={!!atCursor} onTile={onTile} onHover={onHover} />
+      <MarkLayer marks={marks} cursor={cursor} cursorOnThing={!!atCursor && atCursor.kind !== "cow" && atCursor.kind !== "chicken"} onTile={onTile} onHover={onHover} />
       {ghost && (
         <span className={`homestead-thing homestead-ghost ${ghost.ok ? "is-ok" : "is-bad"}`} style={{ ...boxStyle(spriteBox(ghost.kind, ghost.x, ghost.y)), zIndex: 9999 }} aria-hidden="true">
           <Art thing={{ kind: ghost.kind, rot: ghost.rot ? 1 : 0, turnip: ghost.turnip }} />
@@ -343,4 +374,4 @@ export function IsoScene({ home, rain, cursor, marks, ghost, fits, burst, onTile
       )}
     </div>
   );
-}
+});

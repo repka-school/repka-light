@@ -56,6 +56,23 @@ function DogHead() {
   );
 }
 
+/** The elbow points back, the stifle forward. All four legs end in the same tapered paw. */
+function DogLeg({ hind = false, far = false }: { hind?: boolean; far?: boolean }) {
+  const x = (hind ? -7 : 8.5) - (far ? 3 : 0);
+  return (
+    <g transform={`translate(${x} ${far ? -13 : -12})`} className={far ? "p-dog-dark" : "p-dog"}>
+      <g className={`p-leg p-dog-leg ${hind ? "p-hindleg" : "p-foreleg"} ${hind === far ? "p-leg-a" : "p-leg-b"}`}>
+        <path d={hind
+          ? "M-2.6-1Q0-2.3 2.35-.6L3.35 2.7Q3.8 3.85 2.95 4.8L.5 7Q-.9 8-2.25 6.95Q-3.05 6.15-2.1 4.9L-.85 3.5Q-2.9 2-2.6-1Z"
+          : "M-2.35-.7Q0-2.2 2.35-.6L.9 6.1Q.55 7.5-1 7.45Q-3.05 7.35-2.85 5.6Z"} />
+        <g transform="translate(-1 6)">
+          <path className="p-paw" d="M-1.75 0Q0-1.5 1.7 0L1.4 4.7Q1.4 5.15 2.05 5.4Q2.85 5.8 2.45 6.25Q2.1 6.6.2 6.6Q-1.6 6.6-1.65 5.45Z" />
+        </g>
+      </g>
+    </g>
+  );
+}
+
 function Dog({ sitting }: { sitting: boolean }) {
   if (sitting) {
     return (
@@ -75,12 +92,12 @@ function Dog({ sitting }: { sitting: boolean }) {
     <>
       <ellipse cx="0" cy="0.5" rx="15" ry="3.8" className="p-shadow" />
       <path d="M-13 -15q-5 -4 -3 -10" className="p-tail p-wag p-dog-line" />
-      <line x1="-9" y1="-8" x2="-9" y2="0" className="p-leg p-leg-a p-dog-line-far" />
-      <line x1="9" y1="-8" x2="9" y2="0" className="p-leg p-leg-b p-dog-line-far" />
-      <rect x="-14" y="-19" width="27" height="12" rx="6" className="p-dog" />
+      <DogLeg hind far />
+      <DogLeg far />
+      <path d="M-14-13Q-14-19-7-19H4Q8-19 10-23L16-20Q14-16 13-12Q11-7 6-7H-7Q-14-7-14-13Z" className="p-dog p-dog-torso" />
       <ellipse cx="2" cy="-8.4" rx="8" ry="1.8" className="p-dog-light" />
-      <line x1="-6" y1="-8" x2="-6" y2="0" className="p-leg p-leg-b p-dog-line" />
-      <line x1="12" y1="-8" x2="12" y2="0" className="p-leg p-leg-a p-dog-line" />
+      <DogLeg hind />
+      <DogLeg />
       <path d="M8 -18q4 4 8 3" className="p-collar" />
       <g transform="translate(15 -22)">
         <DogHead />

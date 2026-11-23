@@ -1,8 +1,11 @@
 /** Illustrated in the same side-on style as the homestead's cat and dog. */
 export function Livestock({ kind }: { kind: "cow" | "chicken" }) {
-  if (kind === "chicken") return <g transform="translate(0 26)">
+  if (kind === "chicken") return <g>
     <ellipse rx="10" ry="3" className="p-shadow" />
-    <path d="M-3-6v6l3 1m3-7v6l3 1" stroke="#b7833f" strokeWidth="1.7" fill="none" strokeLinecap="round" />
+    <g stroke="#b7833f" strokeWidth="1.7" fill="none" strokeLinecap="round">
+      <path className="livestock-step-a" d="M-3-6v6l3 1" />
+      <path className="livestock-step-b" d="M3-6v6l3 1" />
+    </g>
     <g className="hen-body">
       <path d="M-7-7q-6-2-8-11 4 0 7 4-1-4 0-6 4 3 5 7Z" fill="#956448" />
       <path d="M-10-11q2-5 8-4 5 1 7-5 2-4 6-2 5 3 1 8-1 10-10 11-10 1-12-8Z" fill="#f3d3a2" />
@@ -11,15 +14,20 @@ export function Livestock({ kind }: { kind: "cow" | "chicken" }) {
       <circle cx="9" cy="-19" r="1.1" className="p-ink" />
     </g>
   </g>;
-  return <g transform="translate(0 26)">
+  return <g>
     <ellipse cx="1" rx="27" ry="6" className="p-shadow" />
-    <path d="M-13-14v13m26-14v14" stroke="#ab9e8b" strokeWidth="4.5" strokeLinecap="round" />
+    <g stroke="#ab9e8b" strokeWidth="4.5" strokeLinecap="round">
+      <path className="livestock-step-a" d="M-13-14v13" />
+      <path className="livestock-step-b" d="M13-15v14" />
+    </g>
     <path d="M-20-25q-6 3-5 16l-2 4" fill="none" stroke="#85776b" strokeWidth="2" />
     <path d="M-26-8q-4 1-3 5 4 2 5-3Z" fill="#433f39" />
     <path d="M-20-22q-1-8 7-10 11-2 23 0 10-1 13 8 3 14-9 15-11 1-23-1-11 2-11-12Z" fill="#f7efdd" />
     <path d="M-17-30q5-4 14-3 1 5-2 8-2 3-6 2-6-1-6-7Zm25 3q6-3 10 2 4 5-2 9-4 2-8-1-4-5 0-10Z" fill="#4c4941" />
-    <path d="M-14-12v12m27-11v11" stroke="#e5d9c2" strokeWidth="5" strokeLinecap="round" />
-    <path d="M-16 0h4m23 0h4" stroke="#514940" strokeWidth="3" strokeLinecap="round" />
+    <g strokeLinecap="round">
+      <g className="livestock-step-b"><path d="M-14-12v12" stroke="#e5d9c2" strokeWidth="5" /><path d="M-16 0h4" stroke="#514940" strokeWidth="3" /></g>
+      <g className="livestock-step-a"><path d="M13-11v11" stroke="#e5d9c2" strokeWidth="5" /><path d="M11 0h4" stroke="#514940" strokeWidth="3" /></g>
+    </g>
     <g className="cow-head">
       <path d="M21-34q-4-3-3-7 4 1 5 6m4 1q4-3 4-6 2 4-1 7" fill="#d0b887" />
       <path d="M20-34q-7-5-10-1 3 6 10 5m6-4q5-4 10-2-1 6-9 6" fill="#555046" />

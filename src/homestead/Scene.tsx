@@ -15,7 +15,7 @@
 // card or the chooser over its bottom left on a wide page and, on a narrow
 // one, along the bottom of the screen, over the tray. The tray is laid out
 // with the scene, so nothing under the scene moves when one of them shows.
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { CloudRain, Sun, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Maximize, Minus, Plus, type LucideIcon } from "lucide-react";
 import { weatherAt } from "./weather";
@@ -23,7 +23,7 @@ import { Shower } from "./Shower";
 import { w } from "./strings";
 import { allInView, clampZoom, groundAt, held, SCENE, showing, TILE_W, tileCentre, ZOOM, zoomedAt, type View } from "./iso";
 import { IsoScene, tileId, type Burst, type Ghost } from "./IsoScene";
-import { footprint, GROUND, thingAt, type Homestead, type Thing, type Tile } from "./rules";
+import { footprint, GROUND, occupancy, tileKey, type Homestead, type Thing, type Tile } from "./rules";
 import { moveCursor, type Mark } from "./screen";
 
 export const SCENE_ID = "homestead-scene";
@@ -222,18 +222,27 @@ function useCamera({ viewport, current, show, zoomAt }: ReturnType<typeof useVie
   }, [viewport, zoomAt, show, current]);
 
   /** The ground point under a pointer. */
-  const groundUnder = (e: PointerEvent<HTMLDivElement>) => {
+  const groundUnder = (e: PointerEvent<HTMLDivElement>, clientX = e.clientX, clientY = e.clientY) => {
     const el = e.currentTarget;
     const r = el.getBoundingClientRect();
     const v = current.current;
-    return groundAt((e.clientX - r.left - el.clientLeft - v.x) / v.z, (e.clientY - r.top - el.clientTop - v.y) / v.z);
+    return groundAt((clientX - r.left - el.clientLeft - v.x) / v.z, (clientY - r.top - el.clientTop - v.y) / v.z);
   };
   /** The selected thing, when the press is on its drawing: taken hold of at the ground point under the pointer. */
   const grabbed = (e: PointerEvent<HTMLDivElement>): Carried | null => {
     const thing = carrying.thing;
-    if (!thing || !(e.target instanceof Element) || !e.target.closest(".homestead-thing.is-selected")) return null;
+    const drawing = e.target instanceof Element && e.target.closest(".homestead-thing.is-selected");
+    if (!thing || !drawing) return null;
     const [gx, gy] = groundUnder(e);
-    return { thing, dx: gx - thing.x, dy: gy - thing.y, tile: [thing.x, thing.y] };
+    // A walking hen can be picked up away from its saved tile. Its wrapper's origin is at its feet.
+    let { x, y } = thing;
+    if (drawing.classList.contains("roaming-livestock")) {
+      const feet = drawing.getBoundingClientRect();
+      const [fx, fy] = groundUnder(e, feet.left, feet.top);
+      x = fx - 0.5;
+      y = fy - 0.5;
+    }
+    return { thing, dx: gx - x, dy: gy - y, tile: [thing.x, thing.y] };
   };
 
   const down = (e: PointerEvent<HTMLDivElement>) => {
@@ -332,12 +341,13 @@ export function Scene({ home, cursor, marks, ghost, fits, selected, burst, onCur
     };
   }, [weather.next]);
   const cam = useView(cursor);
+  const occupied = useMemo(() => occupancy(home.things), [home.things]);
   const { viewport, overlay, view, glide, size, frame, zoomAt, pan, reveal } = cam;
   // Whether the cursor was last moved by a pointer: then the view stays where it was put.
   const pointed = useRef(false);
   const pointer = useCamera(cam, {
     // Only the thing whose card is open can be picked up: with a tool in hand a drag pans.
-    thing: selected && !ghost && marks.get(`${selected[0]},${selected[1]}`) === "selected" ? thingAt(home, selected[0], selected[1]) : undefined,
+    thing: selected && !ghost && marks.get(tileKey(...selected)) === "selected" ? occupied.get(tileKey(...selected)) : undefined,
     // At once, so the drag's next move already finds the thing in hand.
     start: (thing) => flushSync(() => onCarry(thing)),
     over: (tile) => {
@@ -389,15 +399,15 @@ export function Scene({ home, cursor, marks, ghost, fits, selected, burst, onCur
     else return;
     event.preventDefault();
   };
-  const hover = (tile: Tile) => {
+  const hover = useCallback((tile: Tile) => {
     pointed.current = true;
     if (tile[0] !== cursor[0] || tile[1] !== cursor[1]) onCursor(tile);
-  };
-  const tap = (tile: Tile) => {
+  }, [cursor, onCursor]);
+  const tap = useCallback((tile: Tile) => {
     pointed.current = true;
     onCursor(tile);
     onActivate(tile);
-  };
+  }, [onCursor, onActivate]);
   return (
     <div className="homestead-stage">
       {/* The stage measures the width; this inner box lays itself out by it. */}
@@ -428,7 +438,7 @@ export function Scene({ home, cursor, marks, ghost, fits, selected, burst, onCur
               <span />
             </div>
             <div className={`homestead-world${glide ? " is-gliding" : ""}`} style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.z})` }}>
-              <IsoScene rain={weather.rain} home={home} cursor={cursor} marks={marks} ghost={ghost} fits={fits} burst={burst} onTile={tap} onHover={hover} />
+              <IsoScene rain={weather.rain} home={home} occupied={occupied} cursor={cursor} marks={marks} ghost={ghost} fits={fits} burst={burst} onTile={tap} onHover={hover} />
             </div>
             {weather.rain && <Shower start={weather.start} end={weather.end} />}
           </div>

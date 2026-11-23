@@ -164,6 +164,7 @@ main.homestead-page {
 }
 .homestead-iso {
   position: relative;
+  --tile-seam: color-mix(in srgb, var(--homestead-seam) 30%, var(--homestead-grass));
 }
 .homestead-defs {
   position: absolute;
@@ -189,13 +190,16 @@ main.homestead-page {
 }
 .homestead-tile path {
   pointer-events: visiblePainted;
-  fill: var(--homestead-grass);
-  stroke: var(--homestead-seam);
+  fill: var(--tile-grass, var(--homestead-grass));
+  stroke: var(--tile-seam);
   stroke-width: 1;
 }
 /* The grid shows more plainly while a thing is being placed or moved. */
-.homestead-iso.is-placing .homestead-tile path {
-  stroke: var(--homestead-seam-strong);
+.homestead-iso.is-placing {
+  --tile-seam: var(--homestead-seam-strong);
+}
+.homestead-iso.is-placing .homestead-bed-soil {
+  display: none;
 }
 /* What grows on a free tile; a tap on it is a tap on its tile. */
 .homestead-tile .homestead-decor * {
@@ -301,6 +305,9 @@ main.homestead-page {
   stroke-width: 2;
   stroke-linejoin: round;
 }
+.homestead-bed-soil {
+  fill: color-mix(in srgb, var(--homestead-bed-top) 76%, var(--homestead-grass));
+}
 .homestead-daylight {
   fill: url(#homestead-sweep);
   opacity: calc(1 - var(--shower, 0) * .8);
@@ -330,12 +337,12 @@ main.homestead-page {
 .hs-glass-light {
   stop-color: var(--homestead-window-light);
 }
-.homestead-tile.is-odd path {
-  fill: color-mix(in srgb, var(--homestead-grass-light) 48%, var(--homestead-grass));
+.homestead-tile.is-odd {
+  --tile-grass: color-mix(in srgb, var(--homestead-grass-light) 15%, var(--homestead-grass));
 }
 @media (hover: hover) {
-  .homestead-tile:hover path {
-    fill: var(--homestead-grass-rim);
+  .homestead-tile:hover {
+    --tile-grass: var(--homestead-grass-rim);
   }
 }
 /* Tints under the drawings; a fine hatch tells a tile that fits from one that does not without colour. */
@@ -481,9 +488,10 @@ main.homestead-page {
 .homestead-ghost > svg {
   animation: none;
 }
-.homestead-ghost,
 .homestead-ghost svg * {
   pointer-events: none;
+}
+.homestead-ghost {
   opacity: 0.65;
 }
 .homestead-ghost.is-bad {
@@ -1736,6 +1744,7 @@ main.homestead-page {
   .l-under,
   .l-seam,
   .l-stone-lit,
+  .homestead-bed-soil,
   .homestead-daylight,
   .homestead-shadows,
   .homestead-decor,
@@ -1782,7 +1791,6 @@ main.homestead-page {
 .p-cat-line,
 .p-cat-line-far,
 .p-dog-line,
-.p-dog-line-far,
 .p-cat-mark,
 .p-collar {
   fill: none;
@@ -1803,10 +1811,6 @@ main.homestead-page {
   stroke: var(--homestead-dog);
   stroke-width: 3.6;
 }
-.p-dog-line-far {
-  stroke: var(--homestead-dog-dark);
-  stroke-width: 3.6;
-}
 .p-collar {
   stroke: var(--homestead-berry);
   stroke-width: 2;
@@ -1817,6 +1821,11 @@ main.homestead-page {
 }
 .p-leg {
   transform-origin: 50% 0;
+}
+.p-dog-leg,
+.p-paw {
+  transform-box: view-box;
+  transform-origin: 0 0;
 }
 .roaming-pet[data-walking] .p-leg-a {
   animation: homestead-stride 320ms ease-in-out infinite alternate;
@@ -1831,6 +1840,31 @@ main.homestead-page {
   to {
     transform: rotate(24deg);
   }
+}
+/* A planted leg reaches just far enough to keep the paw level under the moving body.
+   On its return the leg shortens and the lower joint folds toward the belly. */
+.roaming-pet[data-walking] .p-dog-leg {
+  animation: homestead-dog-step 640ms linear infinite;
+}
+.roaming-pet[data-walking] .p-paw {
+  animation: homestead-lift-paw 640ms ease-in-out infinite;
+}
+.p-hindleg {
+  --paw-fold: -21deg;
+}
+.roaming-pet[data-walking] .p-dog-leg.p-leg-b,
+.roaming-pet[data-walking] .p-leg-b .p-paw {
+  animation-delay: -320ms;
+}
+@keyframes homestead-dog-step {
+  0%, 100% { transform: rotate(-16deg) scaleY(1.04); }
+  25% { transform: rotate(0); }
+  50% { transform: rotate(16deg) scaleY(1.04); }
+  75% { transform: rotate(0) scaleY(.90); }
+}
+@keyframes homestead-lift-paw {
+  0%, 50%, 100% { transform: rotate(0); }
+  75% { transform: rotate(var(--paw-fold, 21deg)); }
 }
 .p-tail {
   transform-origin: 100% 100%;
@@ -2020,6 +2054,7 @@ main.homestead-page {
   .homestead-insect > span,
   .homestead-insect *,
   .roaming-pet[data-walking] .p-leg,
+  .roaming-pet[data-walking] .p-paw,
   .p-tail,
   .homestead-thing > svg,
   .homestead-ripe,
@@ -2040,7 +2075,7 @@ main.homestead-page {
 }
 
 /* Independent stacking lets a pet pass behind a building along its walk. */
-.roaming-pet {
+.roaming-pet, .roaming-livestock {
   position: absolute;
   top: 0;
   left: 0;
@@ -2058,12 +2093,46 @@ main.homestead-page {
   cursor: pointer;
   pointer-events: visiblePainted;
 }
+.roaming-livestock > svg {
+  position: absolute;
+  left: -40px;
+  top: -46px;
+  width: 80px;
+  height: 52px;
+  animation: none;
+}
+.roaming-livestock[data-sheltered] {
+  display: none;
+}
+.roaming-livestock[data-placing] svg * {
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .roaming-livestock[data-walking] :is(.livestock-step-a, .livestock-step-b) {
+    transform-box: fill-box;
+    transform-origin: top center;
+    animation: homestead-stride 300ms ease-in-out infinite alternate;
+  }
+  .roaming-livestock[data-walking] .livestock-step-b {
+    animation-direction: alternate-reverse;
+  }
+  .roaming-livestock[data-thing="cow"] :is(.livestock-step-a, .livestock-step-b) {
+    animation-duration: 460ms;
+  }
+}
 .homestead-thing svg .pond-swimmers, .homestead-thing svg .pond-swimmers * {
   pointer-events: none;
 }
 @media (prefers-reduced-motion: no-preference) {
-  .homestead-thing .hen-body { transform-origin: 1px -9px; animation: hen-peck 11s ease-in-out infinite; }
-  .homestead-thing .cow-head { transform-origin: 15px -28px; animation: cow-graze 17s ease-in-out infinite; }
+  .roaming-livestock:not([data-walking]) .hen-body {
+    transform-origin: 1px -9px;
+    animation: hen-peck 11s ease-in-out infinite;
+    animation-delay: calc(var(--i, 0) * -2.3s);
+  }
+  .roaming-livestock:not([data-walking]) .cow-head {
+    transform-origin: 15px -28px;
+    animation: cow-graze 17s ease-in-out infinite;
+  }
 }
 @keyframes hen-peck {
   0%, 65%, 76%, 88%, 100% { transform: rotate(0); }
@@ -2072,4 +2141,35 @@ main.homestead-page {
 @keyframes cow-graze {
   0%, 40%, 95%, 100% { transform: rotate(0); }
   53%, 79% { transform: rotate(22deg) translateY(1px); }
+}
+
+.homestead-first-seed {
+  justify-self: start;
+  min-height: 44px;
+}
+.homestead-first-seed[aria-pressed="true"] {
+  background: var(--selected);
+  color: var(--selected-foreground);
+}
+.homestead-card-actions a {
+  min-height: 44px;
+}
+.homestead-burst-gather {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  width: max-content;
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--primary);
+  -webkit-text-stroke: 0;
+  animation-duration: 2.5s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .homestead-burst-gather {
+    display: block;
+    opacity: 1;
+    animation: none;
+  }
 }

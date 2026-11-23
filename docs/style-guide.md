@@ -212,14 +212,22 @@ loads with the page.
 - **Light** comes from the left. A face turned to the light takes the lighter
   of a pair of tokens (`--homestead-wall`), the one turned away the darker
   (`--homestead-wall-side`). Soft light and shade are laid over a face with
-  `--homestead-lit` and `--homestead-dim`, never with a new colour. Every
-  thing casts a shadow to the right, all of them drawn as one sheet in
-  `--homestead-shadow`.
+  `--homestead-lit` and `--homestead-dim`, never with a new colour. Fixed
+  scenery casts shadows to the right on one sheet in `--homestead-shadow`.
+  A walking animal carries a small shadow under its feet.
+- **Terrain** leaves open grass around the beds, with a worn soil rim under
+  each bed and patches of flowers and grass near trees and the pond. Moving
+  these objects moves their accents. The grid becomes stronger during placement.
 - **Motion** is small and slow: smoke, a swaying crown, drifting clouds, the
   animals, a thing settling where it is put, the view gliding after a button
   or a key. All of it stops under `prefers-reduced-motion`, and nothing that
   moves by itself carries information.
-
+- **Animals** keep a saved place in the layout. Hens take short walks, the cat
+  rests between outings, and the cow grazes where it was placed. When it rains,
+  hens and the cow use a reachable barn door. Moving an occupied barn carries
+  the animals inside it. When the rain stops, they leave through an open door
+  and the cow returns to its grazing spot. Reduced motion shows the
+  corresponding resting positions.
 - **Quality** is never told by colour alone: a rare turnip or seed carries a
   diamond on a tag, an epic one a star, a legendary one a crown, a common one
   nothing.
@@ -246,6 +254,9 @@ loads with the page.
   of the screen, over the tray, so its buttons are in reach without scrolling.
 - **A thing's card** does everything its thing can have done to it: an empty
   bed is planted from its card, a turnip grown and gathered from it.
+- **The first seed** leads straight to a choice of empty beds. A planted bed
+  links to the courses when the learner needs experience. Growth buttons show
+  the XP the crop will receive, and a harvest is confirmed at the bed.
 - **The tray** says what is held: the free experience, the seeds, what is in
   stock. A tool is pressed (`--selected`) while it is in hand. A kind there is
   none of in stock is not shown: every one of it stands on the ground. The

@@ -30,13 +30,19 @@ export function intentAt(home: Homestead, mode: Mode | null, [x, y]: Tile): Inte
   return here ? { kind: "select" } : { kind: "none" };
 }
 
-/** Whether a tool can still be used: experience left to give, a seed of its quality, the kind in stock, the thing still there. */
+/** A crop can receive each distinct amount that fits its remaining growth and the learner's balance. */
+export function growAmounts(free: number, needed: number) {
+  const limit = Math.min(free, needed);
+  return limit > 0 ? [...new Set(GROW_STEPS.map((step) => Math.min(step, limit)))] : [];
+}
+
+/** A tool stays in hand while it has both a resource and somewhere to use it. */
 export function modeLasts(home: Homestead, mode: Mode, free: number): boolean {
   switch (mode.mode) {
     case "grow":
-      return free > 0;
+      return free > 0 && home.things.some(growing);
     case "seed":
-      return (home.seeds[mode.type] ?? 0) > 0;
+      return (home.seeds[mode.type] ?? 0) > 0 && home.things.some(emptyBed);
     case "place":
       return stockOf(home, mode.kind) > 0;
     case "move":
@@ -125,7 +131,7 @@ function afterDone(outcome: Extract<Outcome, { ok: true }>): After {
     case "grow": {
       const turnip = thingAt(home, action.at[0], action.at[1])?.turnip;
       const growth = turnip ? growthOf(turnip) : null;
-      // The grow buttons leave when the turnip ripens and switch off when the experience runs out: focus then goes to the scene.
+      // The grow buttons leave when the turnip ripens or the experience runs out.
       const gone = !!growth?.ripe || outcome.free <= 0;
       return { said: { key: "grown", given: outcome.given, stage: growth?.stage ?? 1, ripe: !!growth?.ripe }, focus: gone ? scene(tileOf(thing)) : { to: "stay" }, close: false };
     }
