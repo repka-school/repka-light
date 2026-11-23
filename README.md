@@ -252,7 +252,9 @@ The published build carries the Google Tag Manager and Cloudflare Web
 Analytics scripts; their ids are at the top of `vite.config.ts`. They are
 added only when `ANALYTICS=1` is set for the build, which the workflow does,
 so `npm run dev` and a plain `npm run build` have none. Google Analytics tags
-are configured inside Google Tag Manager.
+are configured inside Google Tag Manager. A build with the scripts also says
+so in the footer of every page (`footerAnalytics` in `src/strings.ts`); keep
+that line true when a service is added or removed.
 
 ## Licence
 

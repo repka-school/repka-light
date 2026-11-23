@@ -26,6 +26,8 @@ export const t = {
   brandLabel: "Репка — на главную",
   brandNote: "Растём с каждой задачей",
   footerNote: "Прогресс и профиль хранятся только в этом браузере.",
+  /** Shown only in a build that loads the analytics scripts. */
+  footerAnalytics: "Для статистики посещений сайт использует Google Analytics и Cloudflare Web Analytics.",
   footerContent: "Задания и иллюстрации",
   footerCode: "код",
   loading: "Загружаем…",

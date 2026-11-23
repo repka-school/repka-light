@@ -91,9 +91,13 @@ function notFoundPage(): Plugin {
 // served from: BASE_PATH, "/" when unset. The content build reads it too.
 const base = `/${(process.env.BASE_PATH ?? "").replace(/^\/+|\/+$/g, "")}/`.replace("//", "/");
 
+const withAnalytics = process.env.ANALYTICS === "1";
+
 export default defineConfig({
   base,
-  plugins: [react(), tailwindcss(), notFoundPage(), thirdPartyNotices(), ...(process.env.ANALYTICS === "1" ? [analytics()] : [])],
+  // The footer names the analytics services only in a build that loads them.
+  define: { __ANALYTICS__: JSON.stringify(withAnalytics) },
+  plugins: [react(), tailwindcss(), notFoundPage(), thirdPartyNotices(), ...(withAnalytics ? [analytics()] : [])],
   resolve: { alias: { "@": path.resolve(import.meta.dirname, "src") } },
   build: { outDir: "dist", emptyOutDir: true },
   // The browser tests build a site and write their traces under .e2e/; a dev server running beside them does not reload for those.

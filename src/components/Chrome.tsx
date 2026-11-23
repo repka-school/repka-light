@@ -54,6 +54,7 @@ export function SiteFooter() {
   return (
     <footer className="site-footer">
       <span>{t.footerNote}</span>
+      {__ANALYTICS__ && <span id="footer-analytics">{t.footerAnalytics}</span>}
       <span className="footer-license">
         {t.footerContent}:{" "}
         <a rel="license" href={CONTENT_LICENSE}>
