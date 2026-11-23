@@ -46,5 +46,3 @@ learning:
   subject: math
   prerequisites:
     - graph-theory:graph-types:paths-and-cycles
-note: >-
-  Русское изложение понятий из § 2.1. Примеры полных и двудольных графов и схема созданы для Repka.

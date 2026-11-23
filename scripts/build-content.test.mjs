@@ -46,6 +46,14 @@ function builtCard(options) {
   return JSON.parse(fs.readFileSync(path.join(out, "demo.json"), "utf8")).modules[0].lessons[0].cards[0];
 }
 
+describe("an editorial note", () => {
+  it("stops the build, whatever the task's status", () => {
+    const task = question([[1, "a"], [2, "b", true]], { more: "note: Вариант 1 считает лишнее ребро.\n" });
+    expect(() => builtCard({ task })).toThrow("demo/a/one: an editorial note");
+    expect(() => builtCard({ task: task.replace("status: active", "status: draft") })).toThrow("an editorial note");
+  });
+});
+
 describe("the bundled courses", () => {
   it("build into an index and one file per course, with nothing internal left in", () => {
     const out = temp();

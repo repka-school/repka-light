@@ -26,8 +26,9 @@ const accents = { accent: bool, accentunder: bool };
 const align = { columnalign: listOf("left", "center", "right"), rowalign: listOf("top", "bottom", "center", "baseline", "axis") };
 const lines = ["none", "solid", "dashed"];
 
-// Repka's content/item-schema, “Mathematics in a body”. Every emitted attribute
-// comes from this table or is computed by the renderer for a formula's layout.
+// The MathML a task may use: presentation elements and, for each, the
+// attributes kept. Every emitted attribute comes from this table or is
+// computed by the renderer for a formula's layout.
 const mathTags = new Map(Object.entries({
   math: { display: oneOf("block", "inline") },
   mrow: grouping, mstyle: grouping, mphantom: grouping,

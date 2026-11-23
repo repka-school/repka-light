@@ -49,5 +49,3 @@ learning:
   subject: math
   prerequisites:
     - graph-theory:basics:vertices-and-edges
-note: >-
-  Русское изложение определений из § 2.1. Пример и схема построения порождённого подграфа созданы для Repka.

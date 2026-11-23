@@ -50,8 +50,6 @@ explanation:
     Ответ: А. B, потому что эта вершина есть в обоих списках.
 
     Проверка: в строке B указаны и A, и C.
-note: >-
-  Авторское задание Repka по § 2.1. D соседствует только с C, E — только с A. Варианты A и C повторяют вершины из вопроса.
 source:
   name: 'Oscar Levin, Discrete Mathematics: An Open Introduction, 4th ed.'
   attribution: 'Оскар Левин, § 2.1 · CC BY-NC-SA 4.0 · адаптация Repka'

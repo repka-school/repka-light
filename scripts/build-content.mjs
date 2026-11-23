@@ -1,7 +1,9 @@
 // Turns the course packs under courses/ into the JSON and pictures the site
 // loads: public/content/index.json, one file per course, and media/.
 // Fails on anything a lesson could not show: a missing task or picture, a
-// question without a right answer, or MathML outside Repka's subset.
+// question without a right answer, or MathML outside the supported subset.
+// Fails also on a task that still carries an editorial note: the packs are
+// published as they are, and such notes are not written for readers.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -167,6 +169,7 @@ function readPack(root, packId, base) {
     if (!fs.existsSync(file)) throw new Error(`${packId}: missing task ${taskId}`);
     const task = readYaml(file);
     const where = `${packId}/${taskId}`;
+    if (task.note !== undefined) throw new Error(`${where}: an editorial note; remove the note field before publishing the task`);
     if (["draft", "voided", "retired"].includes(task.status)) return null;
     if (task.status !== "active") throw new Error(`${where}: status is ${task.status}, not active`);
     const id = where;

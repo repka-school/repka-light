@@ -50,5 +50,3 @@ learning:
   subject: math
   prerequisites:
     - graph-theory:basics:vertices-and-edges
-note: >-
-  Русское изложение определения степени и леммы о рукопожатиях из § 2.1. Используется авторская схема остановок урока.

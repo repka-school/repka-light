@@ -52,5 +52,3 @@ learning:
   subject: math
   prerequisites:
     - graph-theory:basics:vertices-and-edges
-note: >-
-  Русское изложение понятий из § 2.1. Примеры путей, цикла и связного графа на рисунке созданы для Repka.

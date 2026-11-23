@@ -55,4 +55,3 @@ learning:
   subject: math
   prerequisites:
     - graph-theory:basics:degrees-and-handshakes
-note: Русское изложение понятий из § 2.1. Пример и рисунок созданы для Repka.

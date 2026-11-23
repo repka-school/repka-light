@@ -49,8 +49,6 @@ explanation:
     Ответ: Г. A→2, B→4, C→5, D→3, E→1.
 
     Проверка: рёбра AB, AC, BC, BD и DE переходят в 2–4, 2–5, 4–5, 4–3 и 3–1. Это все рёбра правого графа.
-note: >-
-  Авторское задание и рисунок Repka по понятиям § 2.1. Перестановка образов A и C даёт второй изоморфизм. Среди вариантов записан только один из двух.
 source:
   name: 'Oscar Levin, Discrete Mathematics: An Open Introduction, 4th ed.'
   attribution: 'Оскар Левин, § 2.1 · CC BY-NC-SA 4.0 · адаптация Repka'

@@ -94,7 +94,7 @@ with the corresponding section links.
 A question has `single` or `multi` choice options, one or more marked
 `correct`, and optionally a hint and a worked solution. `answer.hide: true`
 keeps options hidden until the learner asks for them when the tiles carry
-the full answers. Repka's `answer.options[].label` keeps a written label with
+the full answers. `answer.options[].label` keeps a written label with
 its option ID when the options are reordered.
 
 To format an answer, keep its plain text in `answer.options[].text` and
@@ -105,7 +105,7 @@ For a single image showing all options, use `answer.picture.file` and
 omit each option's `text`. The image appears in the question and the
 learner selects by label.
 
-The build accepts Repka courses with modules, top-level lessons, or a flat
+The build accepts courses with modules, top-level lessons, or a flat
 `tasks` list. A flat list becomes one lesson. A member such as
 `other-pack:group:task` resolves to a question in another pack listed in
 the bundle. Draft, voided, and retired tasks are skipped.
@@ -140,10 +140,12 @@ drawings in `src/ui/pictures/TheoryPicture.tsx` and in the content build's
 The build writes only what a lesson shows: task text, options, the right
 answer, hint and solution. Other fields of a task file are not published. It
 fails on a missing task or picture, a question without a right answer, a
-theory block it does not know or one that names an unknown drawing, and
-MathML outside Repka's presentation subset. Questions, theory, hints,
+theory block it does not know or one that names an unknown drawing,
+MathML outside the supported presentation subset, and a task that still has
+an editorial `note` field: the packs are public as they are, so a note is
+removed before its task is added. Questions, theory, hints,
 solutions and formatted answer lines can use native MathML. The build
-keeps Repka's HTML tags, including `div`, `span`, `u`, `s`, `hr` and
+keeps the HTML tags a task may use, including `div`, `span`, `u`, `s`, `hr` and
 `tfoot`, and filters out unsupported markup and attributes.
 
 An inline `<img>` can reference a pack file or the `original_url` of a
