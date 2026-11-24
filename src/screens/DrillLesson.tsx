@@ -5,7 +5,7 @@ import { TheoryCardView } from "@/components/TheoryCardView";
 import type { Course, DrillCard, Lesson, TheoryCard } from "@/content/types";
 import { lessonsOf } from "@/content/types";
 import { DRILL_ROUNDS, DRILL_SECONDS, drillQuestions, type DrillQuestion } from "@/lesson/drill";
-import { lessonPath } from "@/screens/CourseScreen";
+import { lessonPath } from "@/content/paths";
 import { saveDrillResult, type DrillSaved } from "@/store/store";
 import { bodyLabels, t } from "@/strings";
 import { PageHeading } from "@/ui/components/PageHeading";

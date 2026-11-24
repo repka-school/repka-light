@@ -8,6 +8,7 @@ import { TheoryPicture } from "@/ui/pictures/TheoryPicture";
 import { Eyebrow, Page } from "@/components/Chrome";
 import { LoadError, Loading, NotFound } from "@/components/LoadState";
 import { ContentNotFound, loadCourse, useLoaded } from "@/content/load";
+import { lessonPath } from "@/content/paths";
 import { lessonsOf, type Course, type CourseSource, type LessonSummary } from "@/content/types";
 import { courseProgress } from "@/content/progress";
 import { DRILL_ROUNDS } from "@/lesson/drill";
@@ -30,10 +31,8 @@ function standing(course: string, lesson: LessonSummary, saved: Saved): LessonSt
 
 const startWords: Record<LessonState, string> = { new: t.startLesson, partial: t.continueLesson, finished: t.repeatLesson };
 
-export const lessonPath = (course: string, lesson: string) => `/course/${encodeURIComponent(course)}/lesson/${encodeURIComponent(lesson)}`;
-
 /** A course's page: a cover with the course's progress, then its lessons as a numbered path under their modules. */
-export function CourseScreen() {
+export default function CourseScreen() {
   const { slug = "" } = useParams();
   const course = useLoaded(`course:${slug}`, () => loadCourse(slug));
   // The heading comes with the course: the key changes when it has loaded, so focus moves to it then.

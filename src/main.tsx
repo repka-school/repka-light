@@ -5,15 +5,17 @@ import { Announcer } from "@/ui/components/Announcer";
 import { IllustrationDialogProvider } from "@/ui/components/IllustrationDialog";
 import { Page } from "@/components/Chrome";
 import { Loading, NotFound } from "@/components/LoadState";
-import { CatalogScreen } from "@/screens/CatalogScreen";
-import { CourseScreen } from "@/screens/CourseScreen";
+import { SecondaryScreen } from "@/components/SecondaryScreen";
 import { LandingScreen } from "@/screens/LandingScreen";
-import { LessonScreen } from "@/screens/LessonScreen";
-import { ProfileScreen } from "@/screens/ProfileScreen";
-import { ProgramScreen } from "@/screens/ProgramScreen";
-import { ProgramsScreen } from "@/screens/ProgramsScreen";
 import { illustrationDialogLabels } from "@/strings";
 import "./index.css";
+
+const CatalogScreen = lazy(() => import("@/screens/CatalogScreen"));
+const CourseScreen = lazy(() => import("@/screens/CourseScreen"));
+const LessonScreen = lazy(() => import("@/screens/LessonScreen"));
+const ProfileScreen = lazy(() => import("@/screens/ProfileScreen"));
+const ProgramScreen = lazy(() => import("@/screens/ProgramScreen"));
+const ProgramsScreen = lazy(() => import("@/screens/ProgramsScreen"));
 
 // The homestead's scene and drawings are loaded when it is first opened.
 const HomesteadScreen = lazy(() => import("@/screens/HomesteadScreen"));
@@ -37,12 +39,14 @@ createRoot(document.getElementById("root")!).render(
         <NavigationScroll />
         <Routes>
           <Route path="/" element={<LandingScreen />} />
-          <Route path="/courses" element={<CatalogScreen />} />
-          <Route path="/course/:slug" element={<CourseScreen />} />
-          <Route path="/course/:slug/lesson/:lesson" element={<LessonScreen />} />
-          <Route path="/programs" element={<ProgramsScreen />} />
-          <Route path="/program/:slug" element={<ProgramScreen />} />
-          <Route path="/profile" element={<ProfileScreen />} />
+          <Route element={<SecondaryScreen />}>
+            <Route path="/courses" element={<CatalogScreen />} />
+            <Route path="/course/:slug" element={<CourseScreen />} />
+            <Route path="/course/:slug/lesson/:lesson" element={<LessonScreen />} />
+            <Route path="/programs" element={<ProgramsScreen />} />
+            <Route path="/program/:slug" element={<ProgramScreen />} />
+            <Route path="/profile" element={<ProfileScreen />} />
+          </Route>
           <Route
             path="/homestead"
             element={

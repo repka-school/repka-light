@@ -5,6 +5,12 @@ import { stored } from "./support";
 const timesTwo = "course/multiplication/lesson/times-2";
 const prompt = (page: Page) => page.locator(".drill-prompt");
 
+// Let route loading finish before freezing time for the drill itself.
+async function pauseGameClock(page: Page) {
+  const now = await page.evaluate(() => Date.now());
+  await page.clock.pauseAt(now + 60_000);
+}
+
 async function options(page: Page) {
   const [, a, operation, b] = (await prompt(page).innerText()).match(/^(\d+) ([×÷+−]) (\d+) = \?$/)!;
   const left = Number(a);
@@ -36,9 +42,9 @@ test("the multiplication course opens with theory and ends with squares through 
 
 test("correct answers cap the wait at two seconds and a repeat game on the same day adds only what it scores above the first", async ({ page, hasTouch }) => {
   await page.clock.install({ time: new Date("2026-01-01T00:00:00Z") });
-  await page.clock.pauseAt(new Date("2026-01-01T00:01:00Z"));
   await page.goto(timesTwo);
   await page.getByRole("button", { name: "К игре" }).click();
+  await pauseGameClock(page);
   await expect(page.getByText("Карточка 2 из 2")).toBeVisible();
   await page.clock.runFor(5000);
   await expect(prompt(page)).toHaveCount(0);
@@ -130,6 +136,7 @@ test("correct answers cap the wait at two seconds and a repeat game on the same 
     drills: { "times-2/game": 10 }, bestAnswerTimeTenths: { "times-2/game": 14 }, xp: { "times-2/game": 10 },
   });
 
+  await page.clock.resume();
   await page.reload();
   await page.locator("#to-course").click();
   await expect(page.getByText("Лучший результат — 10 из 10 (1,4 с)", { exact: true })).toBeVisible();
@@ -138,9 +145,9 @@ test("correct answers cap the wait at two seconds and a repeat game on the same 
 
 test("a wrong answer just before the deadline still shows the right one for two seconds", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-01-01T00:00:00Z") });
-  await page.clock.pauseAt(new Date("2026-01-01T00:01:00Z"));
   await page.goto(timesTwo);
   await page.getByRole("button", { name: "К игре" }).click();
+  await pauseGameClock(page);
   await page.getByRole("button", { name: "Начать игру" }).click();
   const before = await prompt(page).innerText();
   const choice = await options(page);
@@ -170,17 +177,18 @@ test("the theory and the game pass axe", async ({ page }) => {
 
 test("the new arithmetic courses open from the catalog and the mixed game awards XP", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-01-01T00:00:00Z") });
-  await page.clock.pauseAt(new Date("2026-01-01T00:01:00Z"));
   for (const [title, sample] of [["Сложение", "1 + 0"], ["Вычитание", "1 − 1"], ["Деление", "20 ÷ 2"], ["Сложение и вычитание", "1 + 0"]]) {
     await page.goto("courses");
     await page.getByRole("link", { name: title, exact: true }).click();
     await page.locator("#course-primary-start").click();
     await expect(page.getByRole("rowheader", { name: sample, exact: true })).toBeVisible();
     await page.getByRole("button", { name: "К игре" }).click();
+    await pauseGameClock(page);
     await page.getByRole("button", { name: "Начать игру" }).click();
     if (title !== "Сложение и вычитание") {
       await (await options(page)).right.click();
       await expect(page.getByRole("status").filter({ hasText: "Верно!" })).toBeVisible();
+      await page.clock.resume();
     }
   }
 
@@ -200,7 +208,6 @@ test("the new arithmetic courses open from the catalog and the mixed game awards
 
 test("algebra drills show simplified expressions and solutions to equations", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-01-01T00:00:00Z") });
-  await page.clock.pauseAt(new Date("2026-01-01T00:01:00Z"));
   await page.goto("courses");
   await page.getByRole("link", { name: "Выражения, корни и уравнения в уме", exact: true }).click();
   await expect(page.locator(".lesson-item")).toHaveCount(6);
@@ -212,6 +219,7 @@ test("algebra drills show simplified expressions and solutions to equations", as
   await expect(shadedFormula).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await expect(shadedFormula).toHaveCSS("overflow-y", "visible");
   await page.getByRole("button", { name: "К игре" }).click();
+  await pauseGameClock(page);
   await page.getByRole("button", { name: "Начать игру" }).click();
   const fraction = prompt(page).locator("mfrac");
   await expect(fraction.locator("mrow > mo").first()).toHaveText("·");
@@ -224,9 +232,11 @@ test("algebra drills show simplified expressions and solutions to equations", as
   await choices.getByRole("button", { name: simplified, exact: true }).click();
   await expect(page.getByRole("status").filter({ hasText: "Верно!" })).toBeVisible();
 
+  await page.clock.resume();
   await page.goto("course/mental-algebra/lesson/root-quotients");
   await expect(page.locator(".theory-card p mfrac > msqrt").first()).toBeVisible();
   await page.getByRole("button", { name: "К игре" }).click();
+  await pauseGameClock(page);
   await page.getByRole("button", { name: "Начать игру" }).click();
   const operands = await fraction.locator(":scope > *").evaluateAll((nodes) =>
     nodes.map((node) => node.localName === "msqrt" ? Math.sqrt(Number(node.textContent)) : Number(node.textContent)));
@@ -234,8 +244,10 @@ test("algebra drills show simplified expressions and solutions to equations", as
   await choices.getByRole("button", { name: String(quotient), exact: true }).click();
   await expect(page.getByRole("status").filter({ hasText: "Верно!" })).toBeVisible();
 
+  await page.clock.resume();
   await page.goto("course/mental-algebra/lesson/one-step");
   await page.getByRole("button", { name: "К игре" }).click();
+  await pauseGameClock(page);
   await page.getByRole("button", { name: "Начать игру" }).click();
   const equation = (await prompt(page).innerText()).replaceAll("−", "-");
   const [a, b] = equation.match(/-?\d+/g)!.map(Number);

@@ -11,7 +11,7 @@ import type { Program, ProgramSection, ProgramTopic } from "@/content/types";
 import { t } from "@/strings";
 
 /** A program's page: its ring of topics, then the topics as a numbered path. A topic opens to show the points it covers. */
-export function ProgramScreen() {
+export default function ProgramScreen() {
   const { slug = "" } = useParams();
   const program = useLoaded(`program:${slug}`, () => loadProgram(slug));
   // The heading comes with the program: the key changes when it has loaded, so focus moves to it then.

@@ -17,7 +17,7 @@ import { t } from "@/strings";
  * The course list: every course. The courses the learner has answered
  * anything in come first, in their own section, each with its progress.
  */
-export function CatalogScreen() {
+export default function CatalogScreen() {
   const index = useLoaded("index", loadIndex);
   const saved = useSaved();
   const { started, others } = splitCourses(index.data?.courses ?? [], saved);

@@ -20,7 +20,7 @@ const dayOf = (iso: string) => {
 };
 
 /** The learner's profile: a nickname, a picture and its frame, saved as they change; the backup file; and the reset of saved results. */
-export function ProfileScreen() {
+export default function ProfileScreen() {
   const all = useSaved();
   const { profile, results, drills } = all;
   // The field holds what is typed; the saved nickname is its trimmed form.

@@ -61,6 +61,26 @@ test("links lead from the index to a lesson and back, all inside the sub-path", 
   await expect(heading(page)).toHaveText("Мой профиль");
 });
 
+for (const chunkName of ["ProfileScreen", "dialog"]) {
+  test(`secondary screen code loads on demand and a failed ${chunkName} download can be retried`, async ({ page }) => {
+    const chunk = new RegExp(`/assets/${chunkName}-[^/]+\\.js$`);
+    const requests: string[] = [];
+    page.on("request", (request) => requests.push(request.url()));
+    await page.goto("");
+    await expect(heading(page)).toContainText("тренажёр для школьников");
+    expect(requests.some((url) => chunk.test(url))).toBe(false);
+
+    let unavailable = true;
+    await page.route(chunk, (route) => unavailable ? route.fulfill({ status: 503, body: "" }) : route.continue());
+    await page.locator("#nav-profile").click();
+    await expect(heading(page)).toHaveText("Не удалось загрузить страницу.");
+    await expect(heading(page)).toBeFocused();
+    unavailable = false;
+    await page.getByRole("button", { name: "Попробовать снова" }).click();
+    await expect(heading(page)).toHaveText("Мой профиль");
+  });
+}
+
 test("opening a course starts at the top and Back restores the catalog position", async ({ page }) => {
   await page.goto("courses");
   const link = page.locator(".catalog-card .course-title").last();

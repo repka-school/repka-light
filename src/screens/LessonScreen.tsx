@@ -8,7 +8,7 @@ import { ContentNotFound, loadCourseLesson, useLoaded } from "@/content/load";
 import { drillOf, isQuestion, lessonsOf, type Course, type Lesson } from "@/content/types";
 import { hasMistakes, lessonPick, lessonStep, open, outcomeOf, picked, reduce, type Action } from "@/lesson/session";
 import { spokenVerdict } from "@/lesson/words";
-import { lessonPath } from "@/screens/CourseScreen";
+import { lessonPath } from "@/content/paths";
 import { QuestionView } from "@/screens/QuestionView";
 import { SummaryView } from "@/screens/SummaryView";
 import { DrillLesson } from "@/screens/DrillLesson";
@@ -16,7 +16,7 @@ import { getSaved, grantXp, saveResult, saveRun } from "@/store/store";
 import { t } from "@/strings";
 
 /** A lesson of a course: its cards one at a time, then the summary. */
-export function LessonScreen() {
+export default function LessonScreen() {
   const { slug = "", lesson: lessonSlug = "" } = useParams();
   const key = `${slug}/${lessonSlug}`;
   const resource = useLoaded(key, () => loadCourseLesson(slug, lessonSlug));

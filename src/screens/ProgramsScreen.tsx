@@ -13,7 +13,7 @@ import { t } from "@/strings";
 export const programPath = (slug: string) => `/program/${encodeURIComponent(slug)}`;
 
 /** The program list: every program, each as a card with its ring of topics. */
-export function ProgramsScreen() {
+export default function ProgramsScreen() {
   const index = useLoaded("index", loadIndex);
   const programs = index.data?.programs;
   return (
