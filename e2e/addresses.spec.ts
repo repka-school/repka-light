@@ -59,6 +59,25 @@ test("links lead from the index to a lesson and back, all inside the sub-path", 
   await expect(heading(page)).toHaveText("Мой профиль");
 });
 
+test("opening a course starts at the top and Back restores the catalog position", async ({ page }) => {
+  await page.goto("courses");
+  const link = page.locator(".catalog-card .course-title").last();
+  await link.scrollIntoViewIfNeeded();
+  const title = await link.innerText();
+  const scrollY = () => page.evaluate(() => window.scrollY);
+  const catalogPosition = await scrollY();
+  expect(catalogPosition).toBeGreaterThan(0);
+
+  await link.click();
+  await expect(heading(page)).toHaveText(title);
+  await expect(heading(page)).toBeInViewport();
+  await expect.poll(scrollY).toBe(0);
+
+  await page.goBack();
+  await expect(heading(page)).toHaveText("Все курсы");
+  await expect.poll(scrollY).toBeCloseTo(catalogPosition, 0);
+});
+
 test("moving to another screen puts focus on its heading, also when the screen has to load first", async ({ page, site }) => {
   await page.goto("");
   await page.locator("#nav-courses").click();

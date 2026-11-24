@@ -1,6 +1,6 @@
-import { lazy, StrictMode, Suspense } from "react";
+import { lazy, StrictMode, Suspense, useLayoutEffect } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Route, Routes } from "react-router";
+import { BrowserRouter, Route, Routes, useLocation, useNavigationType } from "react-router";
 import { Announcer } from "@/ui/components/Announcer";
 import { IllustrationDialogProvider } from "@/ui/components/IllustrationDialog";
 import { Page } from "@/components/Chrome";
@@ -18,6 +18,15 @@ import "./index.css";
 // The homestead's scene and drawings are loaded when it is first opened.
 const HomesteadScreen = lazy(() => import("@/screens/HomesteadScreen"));
 
+function NavigationScroll() {
+  const { key, hash } = useLocation();
+  const navigation = useNavigationType();
+  useLayoutEffect(() => {
+    if (navigation !== "POP" && !hash) window.scrollTo(0, 0);
+  }, [key, hash, navigation]);
+  return null;
+}
+
 // Routes are plain paths under the site's base path. The host serves the
 // same page for every one of them (see the 404.html copy in vite.config.ts).
 createRoot(document.getElementById("root")!).render(
@@ -25,6 +34,7 @@ createRoot(document.getElementById("root")!).render(
     <Announcer />
     <IllustrationDialogProvider labels={illustrationDialogLabels}>
       <BrowserRouter basename={import.meta.env.BASE_URL}>
+        <NavigationScroll />
         <Routes>
           <Route path="/" element={<LandingScreen />} />
           <Route path="/courses" element={<CatalogScreen />} />
