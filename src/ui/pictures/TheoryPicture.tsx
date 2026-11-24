@@ -952,7 +952,7 @@ export const theoryPictureIds: readonly string[] = Object.keys(sketches);
 
 /** One drawing by name; an unknown name draws an empty tile. The drawings are decoration: the words beside them say the same. */
 export function TheoryPicture({ name, size, className }: { name: string; size: number; className?: string }) {
-  const sketch = sketches[name];
+  const sketch = Object.hasOwn(sketches, name) ? sketches[name] : undefined;
   const clip = useId();
   return (
     <svg className={cn("theory-picture", className)} viewBox="0 0 64 64" width={size} height={size} data-picture={sketch ? name : "none"} aria-hidden="true" focusable="false">

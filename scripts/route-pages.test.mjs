@@ -46,7 +46,8 @@ describe("the pages of the addresses", () => {
     const content = temp();
     const lesson = (slug) => ({ slug, title: "L", cards: [] });
     fs.writeFileSync(path.join(content, "index.json"), JSON.stringify({ courses: [{ slug: "maths" }, { slug: "../up" }], programs: [{ slug: "year-8" }, { slug: "a/b" }] }));
-    fs.writeFileSync(path.join(content, "maths.json"), JSON.stringify({ modules: [{ lessons: [lesson("one"), lesson("a/b"), lesson("два")] }] }));
+    fs.mkdirSync(path.join(content, "courses"));
+    fs.writeFileSync(path.join(content, "courses", "maths.json"), JSON.stringify({ modules: [{ lessons: [lesson("one"), lesson("a/b"), lesson("два")] }] }));
     expect(routesOf(content)).toEqual(["courses", "programs", "profile", "homestead", "program/year-8", "course/maths", "course/maths/lesson/one"]);
   });
 });

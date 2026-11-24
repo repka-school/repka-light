@@ -16,9 +16,13 @@ export const test = base.extend<object, { site: Site }>({
     async ({ playwright }, use, info) => {
       const api = await playwright.request.newContext({ baseURL: info.project.use.baseURL });
       const index: CourseIndex = await (await api.get("content/index.json")).json();
-      const course: Course = await (await api.get(`content/${index.courses[0].slug}.json`)).json();
+      const course: Course = await (await api.get(`content/courses/${index.courses[0].slug}.json`)).json();
+      const outlines = course.modules.flatMap((module) => module.lessons);
+      const lessons = await Promise.all(outlines.map(async (lesson): Promise<Lesson> =>
+        (await api.get(`content/lessons/${course.slug}/${lesson.slug}.json`)).json(),
+      ));
       await api.dispose();
-      await use({ index, course, lessons: course.modules.flatMap((module) => module.lessons) });
+      await use({ index, course, lessons });
     },
     { scope: "worker" },
   ],

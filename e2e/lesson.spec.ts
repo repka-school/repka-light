@@ -207,9 +207,7 @@ test("theory HTML distinguishes warnings, rules and definitions and shows list m
     ].join(""),
     blocks: [],
   } : card);
-  const [module, ...rest] = site.course.modules;
-  const course = { ...site.course, modules: [{ ...module, lessons: [{ ...lesson, cards }, ...module.lessons.slice(1)] }, ...rest] };
-  await page.route(`**/content/${site.course.slug}.json`, (route) => route.fulfill({ json: course }));
+  await page.route(`**/content/lessons/${site.course.slug}/${lesson.slug}.json`, (route) => route.fulfill({ json: { ...lesson, cards } }));
   await openLesson(page, site, lesson);
 
   const warning = page.getByRole("group", { name: "Предупреждение" });
@@ -249,10 +247,7 @@ test("unchecked choices survive navigation, reload and an explicitly cleared sec
     { ...question, id: "draft/multi", answerKind: "multi", correct: [1, 3] },
   ];
   const lesson = { ...site.lessons[0], cards };
-  const [module] = site.course.modules;
-  await context.route(`**/content/${site.course.slug}.json`, (route) => route.fulfill({
-    json: { ...site.course, modules: [{ ...module, lessons: [lesson] }] },
-  }));
+  await context.route(`**/content/lessons/${site.course.slug}/${lesson.slug}.json`, (route) => route.fulfill({ json: lesson }));
   await openLesson(page, site, lesson);
   await tile(page, "А").click();
   await expect(primary(page)).toBeEnabled();
@@ -330,10 +325,7 @@ test("Repka formulas and picture options work through answering and review", asy
       correct: [4, 2], hint: null, explanation: null,
     },
   ];
-  const [module] = site.course.modules;
-  await page.route(`**/content/${site.course.slug}.json`, (route) => route.fulfill({
-    json: { ...site.course, modules: [{ ...module, lessons: [{ ...lesson, cards }] }] },
-  }));
+  await page.route(`**/content/lessons/${site.course.slug}/${lesson.slug}.json`, (route) => route.fulfill({ json: { ...lesson, cards } }));
   await openLesson(page, site, lesson);
 
   const formula = page.locator(".question-body .formula-display");

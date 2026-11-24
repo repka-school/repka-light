@@ -65,8 +65,7 @@ export const questionNumber = (lesson: Lesson, index: number) => lesson.cards.sl
 /** Where a lesson stands for the learner: not started, started, or every question solved on the first try. */
 export type LessonState = "new" | "partial" | "finished";
 
-export function lessonState(lesson: Lesson, results: Saved["results"]): LessonState {
-  const questions = lesson.cards.filter(isQuestion);
+export function lessonState(questions: { id: string }[], results: Saved["results"]): LessonState {
   if (questions.every((q) => results[q.id]?.outcome === "first")) return "finished";
   return questions.some((q) => results[q.id]) ? "partial" : "new";
 }
@@ -140,7 +139,7 @@ export function restore(lesson: Lesson, run: SavedRun): State | null {
 export function open(lesson: Lesson, saved: Pick<Saved, "results">, run: SavedRun | undefined): State {
   const kept = run ? restore(lesson, run) : null;
   if (kept) return kept;
-  return start(lesson, saved.results, lessonState(lesson, saved.results) === "finished" ? "fresh" : "continue");
+  return start(lesson, saved.results, lessonState(lesson.cards.filter(isQuestion), saved.results) === "finished" ? "fresh" : "continue");
 }
 
 /** Reopen the latest valid pass under the store lock, including changes from other tabs. */

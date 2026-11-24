@@ -7,8 +7,8 @@ import { Button } from "@/ui/components/ui/button";
 import { TheoryPicture } from "@/ui/pictures/TheoryPicture";
 import { Eyebrow, Page } from "@/components/Chrome";
 import { LoadError, Loading, NotFound } from "@/components/LoadState";
-import { loadCourse, useLoaded } from "@/content/load";
-import { drillOf, lessonsOf, questionsOf, type Course, type CourseSource, type Lesson } from "@/content/types";
+import { ContentNotFound, loadCourse, useLoaded } from "@/content/load";
+import { lessonsOf, type Course, type CourseSource, type LessonSummary } from "@/content/types";
 import { courseProgress } from "@/content/progress";
 import { DRILL_ROUNDS } from "@/lesson/drill";
 import { hasAnswers, lessonState, type LessonState } from "@/lesson/session";
@@ -17,14 +17,14 @@ import { grantXp, useSaved } from "@/store/store";
 import { t } from "@/strings";
 
 /** Where a lesson stands, counting a pass with answers but no settled task yet as started. */
-function standing(course: string, lesson: Lesson, saved: Saved): LessonState {
-  const drill = drillOf(lesson);
+function standing(course: string, lesson: LessonSummary, saved: Saved): LessonState {
+  const drill = lesson.drill;
   if (drill) {
-    const score = saved.drills?.[drill.id];
+    const score = saved.drills?.[drill];
     if (score === undefined) return "new";
     return score === DRILL_ROUNDS ? "finished" : "partial";
   }
-  const state = lessonState(lesson, saved.results);
+  const state = lessonState(lesson.questions, saved.results);
   return state === "new" && hasAnswers(saved.runs[`${course}/${lesson.slug}`]) ? "partial" : state;
 }
 
@@ -40,7 +40,7 @@ export function CourseScreen() {
   return (
     <Page focusKey={`course:${slug}:${course.loading ? "loading" : "shown"}`} busy={course.loading}>
       {course.loading && <Loading />}
-      {course.error && (/404/.test(course.error.message) ? <NotFound /> : <LoadError onRetry={course.retry} />)}
+      {course.error && (course.error instanceof ContentNotFound ? <NotFound /> : <LoadError onRetry={course.retry} />)}
       {course.data && <CourseOutline course={course.data} />}
     </Page>
   );
@@ -51,12 +51,12 @@ function CourseOutline({ course }: { course: Course }) {
   const lessons = lessonsOf(course);
   // Results saved before experience was counted earn theirs now.
   useEffect(() => {
-    void grantXp(lessonsOf(course).flatMap(questionsOf));
+    void grantXp(lessonsOf(course).flatMap((lesson) => lesson.questions));
   }, [course]);
   // The first lesson not finished carries the filled button.
   const primary = lessons.find((l) => standing(course.slug, l, saved) !== "finished");
-  const questionIds = lessons.flatMap((l) => questionsOf(l).map((q) => q.id));
-  const drillIds = lessons.flatMap((l) => l.cards.filter((c) => c.kind === "drill").map((c) => c.id));
+  const questionIds = lessons.flatMap((l) => l.questions.map((q) => q.id));
+  const drillIds = lessons.flatMap((l) => l.drill ? [l.drill] : []);
   const drillCourse = !questionIds.length && drillIds.length > 0;
   const coverPicture = course.coverPicture ?? (drillCourse ? "table" : null);
   const { done, answered, total } = courseProgress({ slug: course.slug, questions: questionIds, drills: drillIds }, saved);
@@ -164,12 +164,11 @@ function ProgressRing({ value, strong, max, label, text }: { value: number; stro
   );
 }
 
-function LessonRow({ number, course, lesson, saved, primary }: { number: number; course: string; lesson: Lesson; saved: Saved; primary: boolean }) {
-  const questions = questionsOf(lesson);
-  const drill = drillOf(lesson);
-  const best = drill && saved.drills?.[drill.id];
-  const bestTime = drill && saved.bestAnswerTimeTenths?.[drill.id];
-  const theory = lesson.cards.length - questions.length;
+function LessonRow({ number, course, lesson, saved, primary }: { number: number; course: string; lesson: LessonSummary; saved: Saved; primary: boolean }) {
+  const questions = lesson.questions;
+  const drill = lesson.drill;
+  const best = drill ? saved.drills?.[drill] : undefined;
+  const bestTime = drill ? saved.bestAnswerTimeTenths?.[drill] : undefined;
   const state = standing(course, lesson, saved);
   const done = solvedCount(
     saved.results,
@@ -187,7 +186,7 @@ function LessonRow({ number, course, lesson, saved, primary }: { number: number;
             {lesson.title}
             {state === "finished" && <span className="sr-only"> · {t.lessonFinished}</span>}
           </span>
-          <span className="lesson-meta">{drill ? t.drill.lessonMeta : t.lessonCounts(theory, questions.length)}</span>
+          <span className="lesson-meta">{drill ? t.drill.lessonMeta : t.lessonCounts(lesson.theoryCount, questions.length)}</span>
           {drill ? best !== undefined && <Progress className="lesson-progress" value={best} max={DRILL_ROUNDS} label={lesson.title} text={t.drill.best(best, DRILL_ROUNDS, bestTime)} /> : (
             <Progress className="lesson-progress" value={answered} strong={done} max={questions.length} label={lesson.title} text={t.lessonProgress(answered, questions.length)} />
           )}

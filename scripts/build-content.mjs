@@ -1,6 +1,6 @@
 // Turns the course packs under courses/ into the JSON and pictures the site
-// loads: public/content/index.json, one file per course, one per program,
-// and media/.
+// loads: public/content/index.json, course outlines, individual lessons,
+// programs and media/.
 // Fails on anything a lesson could not show: a missing task or picture, a
 // question without a right answer, or MathML outside the supported subset.
 // Fails also on a task that still carries an editorial note: the packs are
@@ -15,6 +15,7 @@ import { escapeHtml, parseMarkup, renderMarkup } from "./content-markup.mjs";
 import { presentOptions } from "./content-options.mjs";
 import { drillCards } from "./drill-content.mjs";
 
+const courseSlug = (slug) => typeof slug === "string" && /^[a-z0-9][a-z0-9-]*$/i.test(slug);
 const LETTERS = ["А", "Б", "В", "Г", "Д", "Е"];
 const IMAGE_ALT = "Иллюстрация к заданию";
 /** The drawings a theory block may name; the site draws each one (src/ui/pictures/TheoryPicture.tsx). */
@@ -256,6 +257,7 @@ function coursesOf(packId, { packDir, image, body }, cardFor) {
   const courseFiles = fs.existsSync(coursesDir) ? fs.readdirSync(coursesDir) : [];
   return courseFiles.filter((f) => f.endsWith(".yaml")).sort().map((name) => {
     const slug = name.replace(/\.yaml$/, "");
+    if (!courseSlug(slug)) throw new Error(`${slug}: invalid course slug`);
     const source = readYaml(path.join(coursesDir, name));
     const coverPicture = source.cover?.picture;
     if (coverPicture !== undefined && (source.cover.file || !THEORY_PICTURES.includes(coverPicture))) {
@@ -265,8 +267,9 @@ function coursesOf(packId, { packDir, image, body }, cardFor) {
     const lessons = source.lessons ?? (source.tasks ? [{ slug, title: source.title, tasks: source.tasks }] : []);
     const modules = (source.modules ?? [{ slug, title: "", lessons }]).map((module) => ({
       slug: module.slug,
-      title: module.title,
+      title: module.title ?? "",
       lessons: (module.lessons ?? []).map((lesson) => {
+        if (!courseSlug(lesson.slug)) throw new Error(`${slug}: invalid lesson slug ${lesson.slug}`);
         if (lessonSlugs.has(lesson.slug)) throw new Error(`${slug}: repeated lesson ${lesson.slug}`);
         lessonSlugs.add(lesson.slug);
         if (lesson.drill !== undefined) {
@@ -408,7 +411,17 @@ export function buildContent({ root, out, base = "/" }) {
   }
   for (const course of courses) {
     const source = sources.get(course.slug);
-    put(`${course.slug}.json`, JSON.stringify(source ? { ...course, source } : course));
+    const modules = course.modules.map((module) => ({
+      ...module,
+      lessons: module.lessons.map((lesson) => {
+        put(path.join("lessons", course.slug, `${lesson.slug}.json`), JSON.stringify(lesson));
+        const questions = lesson.cards.filter((card) => card.kind === "question").map(({ id, points }) => ({ id, points }));
+        const drill = lesson.cards.find((card) => card.kind === "drill");
+        const theoryCount = lesson.cards.filter((card) => card.kind === "theory").length;
+        return { slug: lesson.slug, title: lesson.title, questions, theoryCount, ...(drill ? { drill: drill.id } : {}) };
+      }),
+    }));
+    put(path.join("courses", `${course.slug}.json`), JSON.stringify({ ...course, modules, ...(source ? { source } : {}) }));
   }
   // In a folder of their own, so a program and a course may share a slug.
   for (const program of programs) put(path.join("programs", `${program.slug}.json`), JSON.stringify(program));

@@ -43,7 +43,15 @@ export type DrillCard = {
 
 export type Card = TheoryCard | QuestionCard | DrillCard;
 export type Lesson = { slug: string; title: string; cards: Card[] };
-export type Module = { slug: string; title: string; lessons: Lesson[] };
+/** Course outlines carry only the fields needed for navigation, progress and legacy XP. */
+export type LessonSummary = {
+  slug: string;
+  title: string;
+  questions: Pick<QuestionCard, "id" | "points">[];
+  theoryCount: number;
+  drill?: string;
+};
+export type Module = { slug: string; title: string; lessons: LessonSummary[] };
 
 type ReferenceLink = { title: string; url: string };
 
@@ -103,4 +111,4 @@ export type CourseIndex = { courses: CourseSummary[]; programs: ProgramSummary[]
 export const isQuestion = (card: Card): card is QuestionCard => card.kind === "question";
 export const questionsOf = (lesson: Lesson): QuestionCard[] => lesson.cards.filter(isQuestion);
 export const drillOf = (lesson: Lesson) => lesson.cards.find((card) => card.kind === "drill");
-export const lessonsOf = (course: Course): Lesson[] => course.modules.flatMap((m) => m.lessons);
+export const lessonsOf = (course: Course): LessonSummary[] => course.modules.flatMap((m) => m.lessons);

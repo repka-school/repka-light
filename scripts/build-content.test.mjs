@@ -7,7 +7,13 @@ import { Transformer } from "@napi-rs/image";
 import { basePath, buildContent, textToHtml, THEORY_PICTURES } from "./build-content.mjs";
 import { parseMarkup, renderMarkup } from "./content-markup.mjs";
 import { theoryPictureIds } from "../src/ui/pictures/TheoryPicture.tsx";
+import { isCourse, isIndex, isLesson, isProgram } from "../src/content/validate";
 import { DRILL_ROUNDS, drillQuestions } from "../src/lesson/drill";
+
+const readJson = (out, ...parts) => JSON.parse(fs.readFileSync(path.join(out, ...parts), "utf8"));
+const readOutline = (out, slug) => readJson(out, "courses", `${slug}.json`);
+const readLesson = (out, course, lesson) => readJson(out, "lessons", course, `${lesson}.json`);
+const readLessons = (out, slug) => readOutline(out, slug).modules.flatMap((module) => module.lessons.map((lesson) => readLesson(out, slug, lesson.slug)));
 
 const courses = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "courses");
 const pixel = Transformer.fromRgbaPixels(Buffer.from([32, 64, 128, 255]), 1, 1);
@@ -46,7 +52,7 @@ const lessonOf = (slug) => `      - slug: ${slug}\n        title: L\n        tas
 function builtCard(options) {
   const out = temp();
   buildContent({ root: fixture(options), out });
-  return JSON.parse(fs.readFileSync(path.join(out, "demo.json"), "utf8")).modules[0].lessons[0].cards[0];
+  return readLesson(out, "demo", "l").cards[0];
 }
 
 describe("an editorial note", () => {
@@ -58,14 +64,25 @@ describe("an editorial note", () => {
 });
 
 describe("the bundled courses", () => {
-  it("build into an index and one file per course, with nothing internal left in", () => {
+  it("publish matching course outlines and lesson files, with card bodies only in lessons", () => {
     const out = temp();
     const index = buildContent({ root: courses, out });
+    expect(isIndex(index)).toBe(true);
     expect(index.courses.length).toBeGreaterThan(0);
     for (const summary of index.courses) {
-      const text = fs.readFileSync(path.join(out, `${summary.slug}.json`), "utf8");
-      const course = JSON.parse(text);
-      const questions = course.modules.flatMap((m) => m.lessons).flatMap((l) => l.cards).filter((c) => c.kind === "question");
+      const course = readOutline(out, summary.slug);
+      expect(isCourse(course), summary.slug).toBe(true);
+      const outlines = course.modules.flatMap((module) => module.lessons);
+      const lessons = readLessons(out, summary.slug);
+      expect(JSON.stringify(course)).not.toMatch(/"cards"|"body"|"facts"/);
+      for (const [index, lesson] of lessons.entries()) {
+        expect(isLesson(lesson), lesson.slug).toBe(true);
+        const questions = lesson.cards.filter((c) => c.kind === "question").map(({ id, points }) => ({ id, points }));
+        expect(outlines[index]).toMatchObject({ slug: lesson.slug, title: lesson.title, questions, theoryCount: lesson.cards.filter((c) => c.kind === "theory").length });
+        expect(outlines[index].drill).toBe(lesson.cards.find((c) => c.kind === "drill")?.id);
+      }
+      const text = JSON.stringify([course, ...lessons]);
+      const questions = lessons.flatMap((l) => l.cards).filter((c) => c.kind === "question");
       expect(questions.map((q) => q.id)).toEqual(summary.questions);
       expect(text).not.toMatch(/"note"|"classification"|"origin"/);
       for (const src of text.matchAll(/src=\\"([^"\\]+)\\"/g)) expect(fs.existsSync(path.join(out, src[1].replace(/^\/content\//, "")))).toBe(true);
@@ -78,6 +95,7 @@ describe("the bundled courses", () => {
     const index = buildContent({ root: courses, out });
     for (const summary of index.programs) {
       const program = JSON.parse(fs.readFileSync(path.join(out, "programs", `${summary.slug}.json`), "utf8"));
+      expect(isProgram(program), summary.slug).toBe(true);
       expect(program.topics).toHaveLength(summary.topics);
       expect(program).toMatchObject({ slug: summary.slug, title: summary.title, grades: summary.grades });
     }
@@ -86,8 +104,8 @@ describe("the bundled courses", () => {
   it("publishes replayable algebra lessons with symbolic answers and exact roots", () => {
     const out = temp();
     const index = buildContent({ root: courses, out });
-    const course = JSON.parse(fs.readFileSync(path.join(out, "mental-algebra.json"), "utf8"));
-    const lessons = course.modules.flatMap((module) => module.lessons);
+    const course = readOutline(out, "mental-algebra");
+    const lessons = readLessons(out, course.slug);
     const summary = index.courses.find(({ slug }) => slug === course.slug);
     expect(summary.grades).toEqual(["7", "8"]);
     expect(summary.drills).toEqual(lessons.map(({ cards }) => cards[1].id));
@@ -143,8 +161,7 @@ describe("the bundled courses", () => {
     const out = temp();
     const index = buildContent({ root: courses, out });
     for (const [slug, lessonCount] of [["addition", 4], ["subtraction", 4], ["division", 9], ["addition-subtraction", 4]]) {
-      const course = JSON.parse(fs.readFileSync(path.join(out, `${slug}.json`), "utf8"));
-      const lessons = course.modules.flatMap((module) => module.lessons);
+      const lessons = readLessons(out, slug);
       expect(lessons).toHaveLength(lessonCount);
       const gameIds = [];
       for (const [lessonIndex, { cards }] of lessons.entries()) {
@@ -217,7 +234,7 @@ describe("a pack", () => {
   it("builds a question with lettered options and its right answer", () => {
     const out = temp();
     buildContent({ root: fixture(), out });
-    const [card] = JSON.parse(fs.readFileSync(path.join(out, "demo.json"), "utf8")).modules[0].lessons[0].cards;
+    const [card] = readLesson(out, "demo", "l").cards;
     expect(card).toMatchObject({ id: "demo/a/one", kind: "question", answerKind: "single", correct: [2], body: "<p>Сколько?</p>" });
     expect(card.choices.map((c) => c.label)).toEqual(["А", "Б"]);
   });
@@ -248,7 +265,7 @@ describe("a pack", () => {
     for (const file of ["graph.png", "extra.png"]) fs.writeFileSync(path.join(images, file), png);
     const out = temp();
     buildContent({ root, out, base: "/site/" });
-    const [card] = JSON.parse(fs.readFileSync(path.join(out, "demo.json"), "utf8")).modules[0].lessons[0].cards;
+    const [card] = readLesson(out, "demo", "l").cards;
     expect(card.explanation).toBe(
       '<p>Before</p><p><img src="/site/content/media/demo/images/graph.png" alt="Vertices &quot;A&quot; &amp; B" loading="lazy"></p><p>After</p>' +
       '<img src="/site/content/media/demo/images/extra.png" alt="Extra graph" loading="lazy">',
@@ -337,7 +354,7 @@ describe("a pack", () => {
     const out = temp();
     const root = fixture({ task: JSON.stringify(task), files: { "options.png": png } });
     buildContent({ root, out, base: "/site/" });
-    const [card] = JSON.parse(fs.readFileSync(path.join(out, "demo.json"), "utf8")).modules[0].lessons[0].cards;
+    const [card] = readLesson(out, "demo", "l").cards;
     expect(card).toMatchObject({
       body: '<p>Выбери рисунок.</p><img src="/site/content/media/demo/options.png" alt="А — круг, Б — квадрат." loading="lazy"><p>Продолжение.</p>',
       answerKind: "multi", correct: [5], hideOptions: false, explanation: null,
@@ -358,8 +375,35 @@ describe("a pack", () => {
     const out = temp();
     const root = fixture({ course, files: { "tasks/a/voided.yaml": "status: voided" } });
     expect(buildContent({ root, out }).courses[0]).toMatchObject({ lessons: 1, questions: ["demo/a/one"] });
-    const [{ lessons }] = JSON.parse(fs.readFileSync(path.join(out, "demo.json"), "utf8")).modules;
+    const [{ lessons }] = readOutline(out, "demo").modules;
     expect(lessons[0]).toMatchObject({ slug: "exam", title: "Exam" });
+  });
+
+  it("accepts an untitled module and a zero-point question", () => {
+    const root = fixture({
+      course: `title: Demo\nmodules:\n  - slug: m\n    lessons:\n${lessonOf("l")}`,
+      task: question([[1, "a", true], [2, "b"]], { more: "points: 0\n" }),
+    });
+    const out = temp();
+    buildContent({ root, out });
+    const course = readOutline(out, "demo");
+    expect(isCourse(course)).toBe(true);
+    expect(course.modules[0].title).toBe("");
+    expect(course.modules[0].lessons[0]).toMatchObject({ theoryCount: 0, questions: [{ id: "demo/a/one", points: 0 }] });
+    expect(isLesson(readLesson(out, "demo", "l"))).toBe(true);
+  });
+
+  it("preserves a course named index alongside the catalog", () => {
+    const root = fixture();
+    const dir = path.join(root, "packs", "demo", "courses");
+    fs.renameSync(path.join(dir, "demo.yaml"), path.join(dir, "index.yaml"));
+    const out = temp();
+    const catalog = buildContent({ root, out });
+    expect(readJson(out, "index.json")).toEqual(catalog);
+    const outline = readOutline(out, "index");
+    expect(isCourse(outline)).toBe(true);
+    expect(outline.slug).toBe("index");
+    expect(readLesson(out, "index", "l").cards[0].kind).toBe("question");
   });
 
   it("builds the course index with each course's lessons and questions", () => {
@@ -426,7 +470,7 @@ describe("a program", () => {
   it("may share its slug with a course", () => {
     const out = temp();
     buildContent({ root: withPrograms({ demo: plan }), out });
-    expect(JSON.parse(fs.readFileSync(path.join(out, "demo.json"), "utf8")).modules).toHaveLength(1);
+    expect(readOutline(out, "demo").modules).toHaveLength(1);
     expect(JSON.parse(fs.readFileSync(path.join(out, "programs", "demo.json"), "utf8")).topics).toHaveLength(2);
   });
 
@@ -434,7 +478,7 @@ describe("a program", () => {
     const out = temp();
     buildContent({ root: withPrograms({ plan }), out });
     buildContent({ root: fixture(), out });
-    expect(fs.readdirSync(out).sort()).toEqual(["demo.json", "index.json"]);
+    expect(fs.readdirSync(out).sort()).toEqual(["courses", "index.json", "lessons"]);
   });
 
   it.each([
@@ -494,7 +538,7 @@ describe("two packs", () => {
     fs.writeFileSync(path.join(root, "packs", "more", "graph.png"), png);
     const out = temp();
     expect(buildContent({ root, out }).courses[0]).toMatchObject({ lessons: 1, questions: ["more/a/one"] });
-    const [lesson] = JSON.parse(fs.readFileSync(path.join(out, "demo.json"), "utf8")).modules[0].lessons;
+    const [lesson] = readLessons(out, "demo");
     expect(lesson.cards[0].explanation).toContain('src="/content/media/more/graph.png"');
   });
 });
@@ -505,7 +549,7 @@ describe("a theory card", () => {
   const built = (theory) => {
     const out = temp();
     buildContent({ root: fixture({ lessonTasks: ["a/theory", "a/one"], files: { "tasks/a/theory.yaml": theory } }), out });
-    return JSON.parse(fs.readFileSync(path.join(out, "demo.json"), "utf8")).modules[0].lessons[0].cards[0];
+    return readLesson(out, "demo", "l").cards[0];
   };
 
   it("keeps a plain body and has no blocks", () => {
@@ -565,7 +609,7 @@ describe("rebuilding into the same directory", () => {
   it("leaves unchanged files untouched and removes only what is no longer built", () => {
     const out = temp();
     buildContent({ root: fixture(), out });
-    const kept = path.join(out, "demo.json");
+    const kept = path.join(out, "courses", "demo.json");
     const stale = path.join(out, "media", "old", "gone.png");
     fs.mkdirSync(path.dirname(stale), { recursive: true });
     fs.writeFileSync(stale, "x");
@@ -576,7 +620,7 @@ describe("rebuilding into the same directory", () => {
     expect(fs.statSync(kept).mtime).toEqual(long);
     expect(fs.existsSync(stale)).toBe(false);
     expect(fs.existsSync(path.join(out, "media"))).toBe(false);
-    expect(fs.readdirSync(out).sort()).toEqual(["demo.json", "index.json"]);
+    expect(fs.readdirSync(out).sort()).toEqual(["courses", "index.json", "lessons"]);
   });
 
   it("rewrites a file whose content changed", () => {
@@ -584,7 +628,7 @@ describe("rebuilding into the same directory", () => {
     buildContent({ root: fixture(), out });
     const changed = "status: active\nquestion:\n  text: Иначе?\nanswer:\n  kind: single\n  options:\n    - id: 1\n      text: один\n      correct: true\n    - id: 2\n      text: два\n";
     buildContent({ root: fixture({ task: changed }), out });
-    expect(fs.readFileSync(path.join(out, "demo.json"), "utf8")).toContain("Иначе?");
+    expect(fs.readFileSync(path.join(out, "lessons", "demo", "l.json"), "utf8")).toContain("Иначе?");
   });
 });
 
@@ -654,7 +698,7 @@ describe("the base path", () => {
     expect(covers.length).toBeGreaterThan(0);
     for (const cover of covers) expect(cover.startsWith("/site/content/media/")).toBe(true);
     for (const { slug } of index.courses) {
-      const text = fs.readFileSync(path.join(out, `${slug}.json`), "utf8");
+      const text = JSON.stringify(readLessons(out, slug));
       for (const [, src] of text.matchAll(/src=\\"([^"\\]+)/g)) expect(src.startsWith("/site/content/media/")).toBe(true);
     }
   });

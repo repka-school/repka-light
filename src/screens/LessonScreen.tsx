@@ -4,8 +4,8 @@ import { Announcer, announce } from "@/ui/components/Announcer";
 import { Button } from "@/ui/components/ui/button";
 import { Page, SiteFooter, SiteHeader } from "@/components/Chrome";
 import { LoadError, Loading, NotFound } from "@/components/LoadState";
-import { loadCourse, useLoaded } from "@/content/load";
-import { drillOf, isQuestion, lessonsOf, questionsOf, type Course, type Lesson } from "@/content/types";
+import { ContentNotFound, loadCourseLesson, useLoaded } from "@/content/load";
+import { drillOf, isQuestion, lessonsOf, type Course, type Lesson } from "@/content/types";
 import { hasMistakes, lessonPick, lessonStep, open, outcomeOf, picked, reduce, type Action } from "@/lesson/session";
 import { spokenVerdict } from "@/lesson/words";
 import { lessonPath } from "@/screens/CourseScreen";
@@ -18,20 +18,19 @@ import { t } from "@/strings";
 /** A lesson of a course: its cards one at a time, then the summary. */
 export function LessonScreen() {
   const { slug = "", lesson: lessonSlug = "" } = useParams();
-  const course = useLoaded(`course:${slug}`, () => loadCourse(slug));
-  const lesson = course.data && lessonsOf(course.data).find((l) => l.slug === lessonSlug);
-  if (course.data && lesson) {
-    const key = `${slug}/${lessonSlug}`;
+  const key = `${slug}/${lessonSlug}`;
+  const resource = useLoaded(key, () => loadCourseLesson(slug, lessonSlug));
+  if (resource.data) {
+    const { course, lesson } = resource.data;
     const drill = drillOf(lesson);
     const theory = lesson.cards.find((card) => card.kind === "theory");
-    if (drill && theory) return <DrillLesson key={key} course={course.data} lesson={lesson} theory={theory} drill={drill} />;
-    return <LessonRun key={key} course={course.data} lesson={lesson} />;
+    if (drill && theory) return <DrillLesson key={key} course={course} lesson={lesson} theory={theory} drill={drill} />;
+    return <LessonRun key={key} course={course} lesson={lesson} />;
   }
   return (
-    <Page focusKey={`lesson:${slug}/${lessonSlug}:${course.loading ? "loading" : "shown"}`} busy={course.loading}>
-      {course.loading && <Loading />}
-      {course.error && !/404/.test(course.error.message) && <LoadError onRetry={course.retry} />}
-      {(course.data || (course.error && /404/.test(course.error.message))) && <NotFound />}
+    <Page focusKey={`lesson:${key}:${resource.loading ? "loading" : "shown"}`} busy={resource.loading}>
+      {resource.loading && <Loading />}
+      {resource.error && (resource.error instanceof ContentNotFound ? <NotFound /> : <LoadError onRetry={resource.retry} />)}
     </Page>
   );
 }
@@ -46,7 +45,7 @@ function LessonRun({ course, lesson }: { course: Course; lesson: Lesson }) {
   const [reward, setReward] = useState(noReward);
   // Results saved before experience was counted earn theirs now.
   useEffect(() => {
-    void grantXp(lessonsOf(course).flatMap(questionsOf));
+    void grantXp(lessonsOf(course).flatMap((item) => item.questions));
   }, [course]);
   const readRun = () => {
     const saved = getSaved();
@@ -111,7 +110,7 @@ function LessonRun({ course, lesson }: { course: Course; lesson: Lesson }) {
   const coursePath = `/course/${encodeURIComponent(course.slug)}`;
   if (summary) {
     const lessons = lessonsOf(course);
-    const next = lessons[lessons.indexOf(lesson) + 1];
+    const next = lessons[lessons.findIndex((item) => item.slug === lesson.slug) + 1];
     return (
       <>
         <SiteHeader />

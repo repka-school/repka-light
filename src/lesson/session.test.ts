@@ -353,10 +353,11 @@ describe("open", () => {
 
 describe("lessonState", () => {
   it("is new, then partial, then finished when every question is solved on the first try", () => {
-    expect(lessonState(lesson, {})).toBe("new");
-    expect(lessonState(lesson, { q1: saved("wrong") })).toBe("partial");
-    expect(lessonState(lesson, { q1: saved("first"), q2: saved("second") })).toBe("partial");
-    expect(lessonState(lesson, { q1: saved("first"), q2: saved("first") })).toBe("finished");
+    const questions = lesson.cards.filter((card) => card.kind === "question");
+    expect(lessonState(questions, {})).toBe("new");
+    expect(lessonState(questions, { q1: saved("wrong") })).toBe("partial");
+    expect(lessonState(questions, { q1: saved("first"), q2: saved("second") })).toBe("partial");
+    expect(lessonState(questions, { q1: saved("first"), q2: saved("first") })).toBe("finished");
   });
 });
 

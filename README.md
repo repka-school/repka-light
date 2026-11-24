@@ -147,7 +147,12 @@ Block text is plain. A `picture` names a built-in drawing. Register new
 drawings in `src/ui/pictures/TheoryPicture.tsx` and in the content build's
 `THEORY_PICTURES` list. A test checks that the lists match.
 
-The build writes only what a lesson shows: task text, options, the right
+The catalog is published at `content/index.json`. Each course has an outline at
+`content/courses/<course>.json` with lesson titles, question IDs and points,
+theory counts and drill IDs. Course progress and legacy XP use the outline.
+Opening a lesson also loads `content/lessons/<course>/<lesson>.json`.
+
+The lesson file contains what a lesson shows: task text, options, the right
 answer, hint and solution. Other fields of a task file are not published. It
 fails on a missing task or picture, a question without a right answer, a
 theory block it does not know or one that names an unknown drawing,

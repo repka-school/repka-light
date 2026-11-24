@@ -46,7 +46,7 @@ export function DrillLesson({ course, lesson, theory, drill }: { course: Course;
   const phase = showGame ? finished ? "result" : run ? "playing" : "ready" : "theory";
   const coursePath = `/course/${encodeURIComponent(course.slug)}`;
   const lessons = lessonsOf(course);
-  const next = lessons[lessons.indexOf(lesson) + 1];
+  const next = lessons[lessons.findIndex((item) => item.slug === lesson.slug) + 1];
 
   useEffect(() => {
     window.scrollTo(0, 0);

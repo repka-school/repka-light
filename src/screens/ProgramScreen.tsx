@@ -5,7 +5,7 @@ import { Button } from "@/ui/components/ui/button";
 import { Eyebrow, Page } from "@/components/Chrome";
 import { LoadError, Loading, NotFound } from "@/components/LoadState";
 import { TopicRing } from "@/components/TopicRing";
-import { loadProgram, useLoaded } from "@/content/load";
+import { ContentNotFound, loadProgram, useLoaded } from "@/content/load";
 import { TheoryPicture } from "@/ui/pictures/TheoryPicture";
 import type { Program, ProgramSection, ProgramTopic } from "@/content/types";
 import { t } from "@/strings";
@@ -18,7 +18,7 @@ export function ProgramScreen() {
   return (
     <Page focusKey={`program:${slug}:${program.loading ? "loading" : "shown"}`} busy={program.loading}>
       {program.loading && <Loading />}
-      {program.error && (/404/.test(program.error.message) ? <NotFound /> : <LoadError onRetry={program.retry} />)}
+      {program.error && (program.error instanceof ContentNotFound ? <NotFound /> : <LoadError onRetry={program.retry} />)}
       {program.data && <ProgramOutline program={program.data} />}
     </Page>
   );

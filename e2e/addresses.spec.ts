@@ -27,8 +27,10 @@ test("every screen opens by its address, and again after a reload", async ({ pag
 });
 
 test("an address the site does not have says so and leads to the courses", async ({ page, site, baseURL }) => {
+  const unusedCourses = ["course/no-such-course"];
+  if (!site.index.courses.some((course) => course.slug === "index")) unusedCourses.push("course/index");
   // The last three are folders of the built site with no page of their own.
-  for (const address of ["no/such/page", "course/no-such-course", "program/no-such-program", `${coursePath(site)}/lesson/no-such-lesson`, "course/no-such-course/lesson/none", "course", `${coursePath(site)}/lesson`, "program"]) {
+  for (const address of ["no/such/page", ...unusedCourses, "program/no-such-program", `${coursePath(site)}/lesson/no-such-lesson`, "course/no-such-course/lesson/none", "course", `${coursePath(site)}/lesson`, "program"]) {
     const response = await page.goto(address);
     // The host answers with its «not found» page, which is the site.
     expect(response?.status(), address).toBe(404);
@@ -123,4 +125,34 @@ test("a course's cover is shown in the course list", async ({ page, site }) => {
   await page.goto("courses");
   const cover = page.locator(`[data-course="${site.course.slug}"] .course-cover img`);
   await expect.poll(() => cover.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+});
+
+test("the course outline loads without card bodies and opening a lesson loads only that lesson", async ({ page, site }) => {
+  const requested: string[] = [];
+  page.on("request", (request) => {
+    const pathname = new URL(request.url()).pathname;
+    if (pathname.includes("/content/lessons/")) requested.push(pathname);
+  });
+  await page.goto(coursePath(site));
+  await expect(heading(page)).toHaveText(site.course.title);
+  expect(requested).toEqual([]);
+  const lesson = site.lessons[0];
+  await page.locator("#course-primary-start").click();
+  await expect(page.locator(".lesson-title-line")).toHaveText(lesson.title);
+  expect(requested).toEqual([expect.stringContaining(`/content/lessons/${site.course.slug}/${lesson.slug}.json`)]);
+});
+
+test("missing or malformed data for a listed lesson can be repaired and retried", async ({ page, site }) => {
+  const lesson = site.lessons[0];
+  const file = `**/content/lessons/${site.course.slug}/${lesson.slug}.json`;
+  await page.route(file, (route) => route.fulfill({ json: { ...lesson, cards: [null] } }), { times: 1 });
+  await page.route(file, (route) => route.fulfill({ status: 404, body: "" }), { times: 1 });
+  await page.goto(lessonPath(site, lesson));
+  await expect(heading(page)).toHaveText("Не удалось загрузить страницу.");
+  const malformed = page.waitForResponse((response) => response.url().endsWith(`/${lesson.slug}.json`) && response.ok());
+  await page.getByRole("button", { name: "Попробовать снова" }).click();
+  await malformed;
+  await expect(heading(page)).toHaveText("Не удалось загрузить страницу.");
+  await page.getByRole("button", { name: "Попробовать снова" }).click();
+  await expect(page.locator(".lesson-title-line")).toHaveText(lesson.title);
 });

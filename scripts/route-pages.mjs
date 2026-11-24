@@ -24,7 +24,7 @@ export function routesOf(contentDir) {
   for (const { slug } of index.courses) {
     if (!plain(slug)) continue;
     routes.push(`course/${slug}`);
-    const course = JSON.parse(fs.readFileSync(path.join(contentDir, `${slug}.json`), "utf8"));
+    const course = JSON.parse(fs.readFileSync(path.join(contentDir, "courses", `${slug}.json`), "utf8"));
     for (const lesson of course.modules.flatMap((module) => module.lessons)) {
       if (plain(lesson.slug)) routes.push(`course/${slug}/lesson/${lesson.slug}`);
     }
