@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BACKUP_FORMAT, BACKUP_VERSION, backupFileName, fromBackup, toBackup } from "./backup";
+import { BACKUP_FORMAT, BACKUP_VERSION, backupFileName, fromBackup, readBackup, toBackup } from "./backup";
 import { apply, starter } from "@/homestead/rules";
 import { pack } from "@/homestead/saved";
 import { cardsKey, empty, withDrillResult, withoutResults, withPractice, withProfile, withResult, withRun, withXp, type Saved } from "./storage";
@@ -38,6 +38,34 @@ describe("toBackup", () => {
 });
 
 describe("fromBackup", () => {
+  it("accepts an intentionally empty export from each format", () => {
+    for (let version = 1; version <= BACKUP_VERSION; version++) {
+      const body = version < 4 ? { results: {}, runs: {}, ...(version > 1 && { xp: {} }) } : { courses: {} };
+      const read = fromBackup(JSON.stringify({ format: BACKUP_FORMAT, version, profile: empty().profile, ...body }));
+      expect(read.ok && read.saved).toEqual(empty());
+    }
+  });
+
+  it("rejects incomplete replacements before the storage reader can discard their records", () => {
+    const header = { format: BACKUP_FORMAT, version: BACKUP_VERSION };
+    const bodies = [
+      header, { ...header, courses: {} }, { ...header, profile: {} }, { ...header, profile: [], courses: {} },
+      ...[[], null, { c: [] }, { c: { results: [] } }, { c: { xp: { x: -5 } } }, { c: { results: { x: ["w", "bad"] } } },
+        { c: { runs: { l: ["k", 0, 0, [0, {}]] } } }, { c: { drillDays: { x: ["2026-01-01", 99] } } }]
+        .map((courses) => ({ ...header, profile: {}, courses })),
+      { ...header, version: 1, profile: {}, results: {} },
+      { ...header, version: 3, profile: {}, results: {}, runs: {} },
+      { ...version3, results: { task: { outcome: "first", choices: "bad", at: "" } } },
+      { ...version3, runs: { lesson: { ...version3.runs["c/l1"], entries: [null, null] } } },
+    ];
+    for (const body of bodies) expect(fromBackup(JSON.stringify(body))).toEqual({ ok: false, error: "notBackup" });
+  });
+
+  it("reports a file that the browser cannot read", async () => {
+    const file = { size: 100, text: async () => { throw new Error("File disappeared"); } };
+    expect(await readBackup(file)).toEqual({ ok: false, error: "unreadable" });
+  });
+
   it("round-trips profile, results, lesson passes and experience", () => {
     const saved = filled();
     expect(saved.xp).toEqual({ "c/t1": 20 });
@@ -56,19 +84,19 @@ describe("fromBackup", () => {
 
   it("imports a file written before a game's day was kept", () => {
     const course = { drills: { game: 8 }, bestAnswerTimeTenths: { game: 350 }, xp: { game: 16 } };
-    const read = fromBackup(JSON.stringify({ format: BACKUP_FORMAT, version: 7, courses: { c: course } }));
+    const read = fromBackup(JSON.stringify({ format: BACKUP_FORMAT, version: 7, profile: empty().profile, courses: { c: course } }));
     expect(read).toEqual({ ok: true, exportedAt: "", saved: { ...empty(), drills: { "c/game": 8 }, bestAnswerTimeTenths: { "c/game": 350 }, xp: { "c/game": 16 } } });
   });
 
   it("imports an older drill score without inventing a time record", () => {
-    const read = fromBackup(JSON.stringify({ format: BACKUP_FORMAT, version: 5, courses: { c: { drills: { game: 8 } } } }));
+    const read = fromBackup(JSON.stringify({ format: BACKUP_FORMAT, version: 5, profile: empty().profile, courses: { c: { drills: { game: 8 } } } }));
     expect(read.ok && read.saved.drills).toEqual({ "c/game": 8 });
     expect(read.ok && read.saved.bestAnswerTimeTenths).toBeUndefined();
   });
 
   it("imports a wall-clock record's score and XP without treating it as answer time", () => {
     const course = { drills: { game: 8 }, xp: { game: 16 }, drillBestTenths: { game: 350 } };
-    const read = fromBackup(JSON.stringify({ format: BACKUP_FORMAT, version: 6, courses: { c: course } }));
+    const read = fromBackup(JSON.stringify({ format: BACKUP_FORMAT, version: 6, profile: empty().profile, courses: { c: course } }));
     expect(read).toEqual({ ok: true, exportedAt: "", saved: { ...empty(), drills: { "c/game": 8 }, xp: { "c/game": 16 } } });
   });
 
@@ -88,7 +116,7 @@ describe("fromBackup", () => {
   });
 
   it("loads a file with a course named __proto__ as any other", () => {
-    const read = fromBackup('{"format":"repka-light-backup","version":4,"courses":{"__proto__":{"results":{"x":["f",1]},"xp":{"x":10}}}}');
+    const read = fromBackup('{"format":"repka-light-backup","version":4,"profile":{},"courses":{"__proto__":{"results":{"x":["f",1]},"xp":{"x":10}}}}');
     expect(read.ok && read.saved.results["__proto__/x"]).toEqual({ outcome: "first", choices: [1] });
     expect(read.ok && toBackup(read.saved, now).courses["__proto__"]).toEqual({ results: { x: ["f", 1] }, xp: { x: 10 } });
     expect(({} as Record<string, unknown>).results).toBeUndefined();
@@ -157,8 +185,8 @@ describe("fromBackup", () => {
     expect(fromBackup(" ".repeat(5 * 1024 * 1024 + 1))).toEqual({ ok: false, error: "tooLarge" });
   });
 
-  it("cleans what it loads like anything stored", () => {
-    const read = fromBackup(JSON.stringify({ format: BACKUP_FORMAT, version: 1, profile: { name: "  Петя ", avatar: "dragon" }, results: { x: { outcome: "great" } } }));
+  it("normalizes a nickname and an unknown avatar from an older profile", () => {
+    const read = fromBackup(JSON.stringify({ format: BACKUP_FORMAT, version: 1, profile: { name: "  Петя ", avatar: "dragon" }, results: {}, runs: {} }));
     expect(read.ok && read.saved).toEqual({ ...empty(), profile: { name: "Петя", avatar: null, frame: "none" } });
   });
 });

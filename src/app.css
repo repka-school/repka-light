@@ -47,6 +47,18 @@ p {
   font-size: var(--type-label);
   color: var(--muted-foreground);
 }
+.storage-notice {
+  flex: none;
+  margin: 0;
+  padding: 6px 16px;
+  background: var(--muted);
+  text-align: center;
+  font-size: var(--type-sm);
+}
+.storage-notice button {
+  cursor: pointer;
+  text-decoration: underline;
+}
 main {
   max-width: 1280px;
   margin: 0 auto;

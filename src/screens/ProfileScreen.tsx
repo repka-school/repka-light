@@ -1,4 +1,5 @@
 import { useRef, useState, type ChangeEvent } from "react";
+import { downloadBackup } from "@/ui/lib/downloadBackup";
 import { announce } from "@/ui/components/Announcer";
 import { PageHeading } from "@/ui/components/PageHeading";
 import { Button } from "@/ui/components/ui/button";
@@ -8,20 +9,10 @@ import { FramePicker } from "@/ui/pictures/FramePicker";
 import { Picture } from "@/ui/pictures/Picture";
 import { Eyebrow, Page } from "@/components/Chrome";
 import { NAME_MAX } from "@/store/storage";
-import { BACKUP_MAX_BYTES, backupFileName, fromBackup, toBackup, type ImportError } from "@/store/backup";
-import { getSaved, replaceSaved, resetProgress, saveProfile, useSaved } from "@/store/store";
+import { readBackup, type ImportError } from "@/store/backup";
+import { replaceSaved, resetProgress, saveProfile, useSaved } from "@/store/store";
 import type { Saved } from "@/store/storage";
 import { avatarNames, frameNames, silhouetteName, t } from "@/strings";
-
-/** Hands the browser a file to save. */
-function download(name: string, text: string) {
-  const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = name;
-  link.click();
-  URL.revokeObjectURL(url);
-}
 
 const dayOf = (iso: string) => {
   const date = new Date(iso);
@@ -38,34 +29,47 @@ export function ProfileScreen() {
   const saved = Object.keys(results).length;
   const played = Object.keys(drills ?? {}).length;
   const fileInput = useRef<HTMLInputElement>(null);
+  const fileRequest = useRef(0);
   const [incoming, setIncoming] = useState<{ saved: Saved; exportedAt: string } | null>(null);
   const [importError, setImportError] = useState<ImportError | null>(null);
-  const exportBackup = () => {
-    download(backupFileName(), JSON.stringify(toBackup(getSaved()), null, 2));
-    announce(t.backupDone);
-  };
+  const [saving, setSaving] = useState(false);
+  const [writeError, setWriteError] = useState("");
   const pickFile = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     // The same file can be picked again after a refusal.
     event.target.value = "";
     if (!file) return;
+    const request = ++fileRequest.current;
     setImportError(null);
-    const read = file.size > BACKUP_MAX_BYTES ? ({ ok: false, error: "tooLarge" } as const) : fromBackup(await file.text());
+    setWriteError("");
+    const read = await readBackup(file);
+    if (request !== fileRequest.current) return;
     if (read.ok) setIncoming({ saved: read.saved, exportedAt: read.exportedAt });
     else setImportError(read.error);
   };
   const confirmImport = async () => {
-    if (!incoming) return;
-    const complete = replaceSaved(incoming.saved);
+    if (!incoming || saving) return;
+    setSaving(true);
+    const persisted = await replaceSaved(incoming.saved);
+    setSaving(false);
+    if (!persisted) {
+      setWriteError(t.importFailed);
+      return;
+    }
     setName(incoming.saved.profile.name);
     setIncoming(null);
-    await complete;
     announce(t.importDone);
   };
   const reset = async () => {
-    const complete = resetProgress();
+    if (saving) return;
+    setSaving(true);
+    const persisted = await resetProgress();
+    setSaving(false);
+    if (!persisted) {
+      setWriteError(t.resetFailed);
+      return;
+    }
     setConfirming(false);
-    await complete;
     announce(t.resetDone);
   };
   return (
@@ -108,7 +112,11 @@ export function ProfileScreen() {
           <div className="settings-list">
             <div className="settings-row">
               <span className="settings-row-text">{played ? t.drill.saved(played) + (saved ? ` ${t.solvedTotal(saved)}` : "") : t.solvedTotal(saved)}</span>
-              <Dialog open={confirming} onOpenChange={setConfirming}>
+              <Dialog open={confirming} onOpenChange={(open) => {
+                if (saving) return;
+                setWriteError("");
+                setConfirming(open);
+              }}>
                 <DialogTrigger asChild>
                   <Button type="button" variant="outline" className="secondary" id="reset-progress" disabled={saved + played === 0}>
                     {t.resetProgress}
@@ -119,8 +127,9 @@ export function ProfileScreen() {
                     <DialogTitle>{t.resetTitle}</DialogTitle>
                     <DialogDescription>{t.resetText}</DialogDescription>
                   </DialogHeader>
-                  <DialogFooter closeLabel={t.resetCancel}>
-                    <Button type="button" variant="destructive" id="reset-confirm" onClick={reset}>
+                  {writeError && <p className="inline-error" role="alert">{writeError}</p>}
+                  <DialogFooter closeLabel={saving ? undefined : t.resetCancel}>
+                    <Button type="button" variant="destructive" id="reset-confirm" disabled={saving} onClick={reset}>
                       {t.resetConfirm}
                     </Button>
                   </DialogFooter>
@@ -130,7 +139,7 @@ export function ProfileScreen() {
             <div className="settings-row">
               <span className="settings-row-text">{t.backupText}</span>
               <span className="settings-row-actions">
-                <Button type="button" variant="outline" className="secondary" id="backup-export" onClick={exportBackup}>
+                <Button type="button" variant="outline" className="secondary" id="backup-export" onClick={downloadBackup}>
                   {t.backupExport}
                 </Button>
                 <Button type="button" variant="outline" className="secondary" id="backup-import" aria-describedby={importError ? "backup-error" : undefined} onClick={() => fileInput.current?.click()}>
@@ -143,7 +152,7 @@ export function ProfileScreen() {
                   {t.importErrors[importError]}
                 </p>
               )}
-              <Dialog open={incoming !== null} onOpenChange={(open) => !open && setIncoming(null)}>
+              <Dialog open={incoming !== null} onOpenChange={(open) => !open && !saving && setIncoming(null)}>
                 <DialogContent className="reset-dialog">
                   <DialogHeader>
                     <DialogTitle>{t.importTitle}</DialogTitle>
@@ -155,8 +164,9 @@ export function ProfileScreen() {
                       )}
                     </DialogDescription>
                   </DialogHeader>
-                  <DialogFooter closeLabel={t.resetCancel}>
-                    <Button type="button" variant="destructive" id="import-confirm" onClick={confirmImport}>
+                  {writeError && <p className="inline-error" role="alert">{writeError}</p>}
+                  <DialogFooter closeLabel={saving ? undefined : t.resetCancel}>
+                    <Button type="button" variant="destructive" id="import-confirm" disabled={saving} onClick={confirmImport}>
                       {t.importConfirm}
                     </Button>
                   </DialogFooter>

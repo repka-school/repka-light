@@ -81,7 +81,7 @@ export const empty = (): Saved => ({ profile: { ...emptyProfile }, results: {}, 
 const OUTCOMES: Outcome[] = ["first", "second", "wrong"];
 const RANK: Record<Outcome, number> = { wrong: 0, second: 1, first: 2 };
 const isOutcome = (value: unknown): value is Outcome => OUTCOMES.includes(value as Outcome);
-const isRecord = (value: unknown): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value);
+export const isRecord = (value: unknown): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value);
 const entriesOf = (value: unknown): [string, unknown][] => (isRecord(value) ? Object.entries(value) : []);
 /**
  * An empty record to fill by keys read from storage or a backup file. It has
@@ -147,9 +147,9 @@ export type StoredCourse = {
   drillDays?: Record<string, [day: string, score: number]>;
 };
 
-const isDrillScore = (value: unknown): value is number => typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= DRILL_ROUNDS;
-const isDrillTime = (value: unknown): value is number => typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
-const isDay = (value: unknown): value is string => typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
+export const isDrillScore = (value: unknown): value is number => typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= DRILL_ROUNDS;
+export const isDrillTime = (value: unknown): value is number => typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+export const isDay = (value: unknown): value is string => typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
 
 /** The saved state as it is written. */
 export type Stored = { version: typeof STORED_VERSION; profile: Profile; courses: Record<string, StoredCourse>; homestead?: PackedHomestead };

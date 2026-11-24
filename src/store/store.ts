@@ -19,41 +19,56 @@ function readRaw(): string | null | undefined {
 let raw = readRaw();
 let state = parse(raw ?? null);
 let visible = state;
+let memoryOnly = raw === undefined;
 const listeners = new Set<() => void>();
 type Change = (saved: Saved) => Saved;
-const pending = new Set<{ change: Change; immediate: boolean }>();
+const pending = new Set<{ change: Change; immediate: boolean; durableOnly: boolean }>();
+// Reapply unsaved practice to a newer snapshot if another tab writes before
+// this one recovers. Clear the changes only after a successful durable write.
+const unsaved: Change[] = [];
 
-function notify() {
+function reconcile(stored: string | null | undefined) {
+  if (stored === undefined || stored === raw) return state;
+  raw = stored;
+  return unsaved.reduce((saved, change) => change(saved), parse(stored));
+}
+
+function notify(statusChanged = false) {
   let next = state;
   for (const action of pending) if (action.immediate) next = action.change(next);
-  if (next === visible) return;
+  if (next === visible && !statusChanged) return;
   visible = next;
   listeners.forEach((listener) => listener());
 }
 
-function commit(change: Change, immediate = false) {
-  const action = { change, immediate };
+function commit(change: Change, { immediate = false, durableOnly = false } = {}) {
+  const action = { change, immediate, durableOnly };
   pending.add(action);
   const write = withWriteLock((persistent) => {
     pending.delete(action);
     const stored = persistent ? readRaw() : undefined;
-    const before = stored === undefined || stored === raw ? state : parse(stored);
+    const before = reconcile(stored);
     const after = change(before);
-    if (stored !== undefined) {
-      raw = stored;
-      if (after !== before) {
-        try {
-          const text = JSON.stringify(toStored(after));
-          window.localStorage.setItem(STORAGE_KEY, text);
-          raw = text;
-        } catch {
-          // Keep this visit's changes in memory when storage is full or denied.
-        }
+    const previousStatus = memoryOnly;
+    let persisted = stored !== undefined;
+    if (persisted && (after !== before || unsaved.length || (durableOnly && memoryOnly))) {
+      try {
+        const text = JSON.stringify(toStored(after));
+        window.localStorage.setItem(STORAGE_KEY, text);
+        raw = text;
+        unsaved.length = 0;
+        memoryOnly = false;
+      } catch {
+        persisted = false;
       }
     }
-    state = after;
-    notify();
-    return { before, after };
+    if (!persisted) {
+      memoryOnly = true;
+      if (!durableOnly && after !== before) unsaved.push(change);
+    }
+    state = persisted || !durableOnly ? after : before;
+    notify(previousStatus !== memoryOnly);
+    return { before, after: state, persisted };
   });
   if (immediate) notify();
   return write;
@@ -64,8 +79,7 @@ window.addEventListener("storage", (event) => {
   if (event.key !== null && event.key !== STORAGE_KEY) return;
   const stored = readRaw();
   if (stored === undefined || stored === raw) return;
-  raw = stored;
-  state = parse(stored);
+  state = reconcile(stored);
   notify();
 });
 
@@ -79,10 +93,12 @@ function subscribe(listener: () => void) {
 // An event handler can read its own queued changes before the lock is granted.
 export const getSaved = () => {
   let snapshot = state;
-  for (const { change } of pending) snapshot = change(snapshot);
+  for (const { change, durableOnly } of pending) if (!durableOnly) snapshot = change(snapshot);
   return snapshot;
 };
 export const useSaved = () => useSyncExternalStore(subscribe, () => visible);
+export const isMemoryOnly = () => memoryOnly;
+export const useMemoryOnly = () => useSyncExternalStore(subscribe, isMemoryOnly);
 
 /** Settle the answer, update the pass, and award its XP in the same write. */
 export async function saveResult(task: Scored, outcome: Outcome, choices: number[], step?: Change) {
@@ -122,11 +138,11 @@ export async function saveRun(step: Change) {
   await commit(step);
 }
 export async function resetProgress() {
-  await commit((saved) => withoutResults(saved));
+  return (await commit(withoutResults, { durableOnly: true })).persisted;
 }
 /** An imported backup: it takes the place of everything saved in this browser. */
 export async function replaceSaved(next: Saved) {
-  await commit(() => next);
+  return (await commit(() => next, { durableOnly: true })).persisted;
 }
 
 const STARTER = starter();
@@ -136,5 +152,5 @@ export const homesteadOf = (saved: Saved): Homestead => saved.homestead ?? START
 export const freeXpOf = (saved: Saved): number => freeXp(homesteadOf(saved), totalXp(saved.xp));
 export async function saveHomestead(homestead: Homestead) {
   // The scene uses its updated inventory during the same input event.
-  await commit((saved) => ({ ...saved, homestead }), true);
+  await commit((saved) => ({ ...saved, homestead }), { immediate: true });
 }

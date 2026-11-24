@@ -118,6 +118,8 @@ test("a file that is not a backup is refused with its reason, and nothing saved 
   const refused: [text: string, reason: RegExp][] = [
     ["{oops", /Этот файл не удалось прочитать/],
     ['{"profile":{"name":"Чужой"}}', /Это не файл с прогрессом/],
+    ['{"format":"repka-light-backup","version":8}', /Это не файл с прогрессом/],
+    ['{"format":"repka-light-backup","version":8,"profile":{},"courses":{"course":{"results":[]}}}', /Это не файл с прогрессом/],
     [JSON.stringify(before), /Это не файл с прогрессом/],
     ['{"format":"repka-light-backup","version":99,"profile":{"name":"Чужой"}}', /Файл сделан в более новой версии сайта/],
   ];
@@ -127,6 +129,38 @@ test("a file that is not a backup is refused with its reason, and nothing saved 
     await expect(page.getByRole("dialog")).toHaveCount(0);
   }
   expect(await stored(page)).toEqual(before);
+});
+
+test("a failed write keeps practice available to download and leaves failed imports and resets unapplied", async ({ page, site }) => {
+  await solveOne(page, site);
+  await expect.poll(async () => Object.keys((await stored(page))?.courses[site.course.slug]?.results ?? {}).length).toBe(1);
+  const durable = await stored(page);
+  await page.evaluate(() => {
+    Storage.prototype.setItem = () => { throw new DOMException("Storage full", "QuotaExceededError"); };
+  });
+  await page.locator("#nav-profile").click();
+  await page.locator("#nickname").fill("Петя");
+  await expect(page.locator(".storage-notice")).toBeVisible();
+  await page.locator("#nav-courses").click();
+  const [backup] = await Promise.all([page.waitForEvent("download"), page.locator(".storage-notice button").click()]);
+  await page.locator("#nav-profile").click();
+  const fileText = fs.readFileSync(await backup.path(), "utf8");
+  const exported = JSON.parse(fileText);
+  expect(exported.profile.name).toBe("Петя");
+  expect(exported.courses[site.course.slug].xp).toEqual(durable.courses[site.course.slug].xp);
+
+  await page.locator('input[type="file"]').setInputFiles(file(JSON.stringify({ ...exported, profile: { ...exported.profile, name: "Маша" }, courses: {} })));
+  const dialog = page.getByRole("dialog");
+  await page.locator("#import-confirm").click();
+  await expect(dialog.getByRole("alert")).toContainText("Не удалось сохранить данные из файла");
+  await dialog.getByRole("button", { name: "Отмена" }).click();
+  await expect(page.locator("#nickname")).toHaveValue("Петя");
+  await page.locator("#reset-progress").click();
+  await page.locator("#reset-confirm").click();
+  await expect(dialog.getByRole("alert")).toContainText("Не удалось сохранить сброс");
+  await dialog.getByRole("button", { name: "Отмена" }).click();
+  await expect(page.locator(".settings-row-text").first()).toHaveText("Сохранено результатов: 1.");
+  expect(await stored(page)).toEqual(durable);
 });
 
 test("a loaded file can be declined", async ({ page, site }) => {

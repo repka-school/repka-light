@@ -99,6 +99,7 @@ describe("the saved state", () => {
     expect(store.getSaved().results).toEqual({});
     expect(await store.saveResult(task, "first", [2])).toEqual({ gained: 30, level: null });
     expect(store.getSaved().results["c/l/t"].outcome).toBe("first");
+    expect(store.isMemoryOnly()).toBe(true);
   });
 
   it("keeps successive actions in memory when the browser has no shared locking API", async () => {
@@ -110,6 +111,36 @@ describe("the saved state", () => {
       profile: { name: "Петя" }, results: { "c/l/t": { outcome: "first", choices: [1] } }, xp: { "c/l/t": 30 },
     });
     expect(writes).not.toHaveBeenCalled();
+  });
+
+  it("keeps unsaved practice when another tab writes and persists both after recovery", async () => {
+    const { store, otherTab, written } = await load();
+    const write = vi.spyOn(window.localStorage, "setItem").mockImplementationOnce(() => { throw new Error("Quota exceeded"); });
+    await store.saveResult(task, "first", [1]);
+    expect(store.isMemoryOnly()).toBe(true);
+    otherTab(KEY, '{"version":2,"profile":{"name":"Аня"},"courses":{"other":{"xp":{"drill":4}}}}');
+    expect(store.getSaved().xp).toEqual({ "other/drill": 4, "c/l/t": 30 });
+    expect(store.getSaved().profile.name).toBe("Аня");
+
+    await store.grantXp([]);
+    expect(write).toHaveBeenCalledTimes(2);
+    expect(store.isMemoryOnly()).toBe(false);
+    expect(written().courses).toMatchObject({ c: { results: { "l/t": ["f", 1] } }, other: { xp: { drill: 4 } } });
+  });
+
+  it("leaves the current profile and practice intact when a replacement fails", async () => {
+    const { store, written } = await load();
+    await store.saveResult(task, "first", [1]);
+    const durable = written();
+    vi.spyOn(window.localStorage, "setItem").mockImplementation(() => { throw new Error("Quota exceeded"); });
+    await store.saveProfile({ name: "Петя" });
+    const before = store.getSaved();
+    const incoming = { ...before, profile: { ...before.profile, name: "Маша" }, results: {}, xp: {} };
+    expect(await store.replaceSaved(incoming)).toBe(false);
+    expect(store.getSaved()).toEqual(before);
+    expect(await store.resetProgress()).toBe(false);
+    expect(store.getSaved()).toEqual(before);
+    expect(written()).toEqual(durable);
   });
 });
 
