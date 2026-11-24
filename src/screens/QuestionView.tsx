@@ -11,7 +11,7 @@ import { QuestionNavigator } from "@/components/QuestionNavigator";
 import { XpTag } from "@/components/XpTag";
 import { TheoryCardView } from "@/components/TheoryCardView";
 import type { Lesson, QuestionCard } from "@/content/types";
-import { cardState, checkable, doneCount, marksOf, primaryAction, questionNumber, sameAsFirst, type Entry, type State } from "@/lesson/session";
+import { cardState, checkable, doneCount, marksOf, picked, primaryAction, questionNumber, sameAsFirst, type Entry, type State } from "@/lesson/session";
 import { useLessonLayout } from "@/lesson/useLessonLayout";
 import { actionWords, answersPhrase, correctPhrase, verdictWords } from "@/lesson/words";
 import { bodyLabels, t } from "@/strings";
@@ -84,7 +84,7 @@ export function QuestionView({ lesson, state, coursePath, courseTitle, gained, o
               </article>
             )}
             <div ref={layout.action} className="solving-action" data-stuck={layout.stuck || undefined}>
-              <Button type="button" className="primary" id="primary-action" disabled={checks && !checkable(state)} onClick={checks ? onCheck : onNext}>
+              <Button type="button" className="primary" id="primary-action" disabled={checks && !checkable(card, state)} onClick={checks ? onCheck : onNext}>
                 {actionWords(action)}
                 <span aria-hidden="true">→</span>
               </Button>
@@ -129,7 +129,7 @@ function Answer({ card, entry, state, gained, onSelect, onOpenOptions }: { card:
             text: c.html ? <OptionText html={c.html} {...bodyLabels} /> : undefined,
             name: c.text ? `${c.label}: ${c.text}` : c.label,
           }))}
-          selected={labels(state.selected)}
+          selected={labels(picked(card, entry))}
           onSelect={(label) => {
             const choice = card.choices.find((c) => c.label === label);
             if (choice) onSelect(choice.id);

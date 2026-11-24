@@ -220,8 +220,8 @@ the first try stays solved. Progress bars count every answered task, with the
 `first`. A course with any result is listed as started.
 
 `runs` is the latest pass through each lesson, saved at every step, so a
-reload shows the lesson exactly as it was left: wrong answers, a pending
-second try and the summary included. A pass is dropped if the lesson's cards
+reload restores each card’s unchecked picks, wrong answers, a pending
+second try and the summary. A pass is dropped if the lesson's cards
 or options have changed since. Opening a lesson always brings its pass back:
 an unfinished one where it was left, a finished one as its summary. From the
 summary, «Решить ошибки заново» starts a pass that keeps the tasks solved on
@@ -253,13 +253,13 @@ saved with one, after asking. The file has its own version, apart from the
 key's:
 
 ```json
-{ "format": "repka-light-backup", "version": 8, "exportedAt": "…", "profile": {}, "courses": {}, "homestead": {} }
+{ "format": "repka-light-backup", "version": 9, "exportedAt": "…", "profile": {}, "courses": {}, "homestead": {} }
 ```
 
 A change to its shape bumps `BACKUP_VERSION` in `src/store/backup.ts` and adds
 a step to `upgrades` there, so every file ever written still loads. A file
 from a newer version is refused. Version 1 had no `xp`, version 2 no
-`homestead`.
+`homestead`. Version 9 adds unchecked choices per card.
 
 ## Experience and levels
 

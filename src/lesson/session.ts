@@ -1,7 +1,7 @@
 // The state of one run through a lesson, and the rules of answering: two
 // tries per question, never a third. Pure logic: no DOM, no strings, no storage.
 import { isQuestion, type Card, type Lesson, type QuestionCard } from "@/content/types";
-import { cardsKey, mergeRun, withRun, type Outcome, type Saved, type SavedRun } from "@/store/storage";
+import { cardsKey, isDraft, mergeRun, withRun, type Outcome, type Saved, type SavedRun } from "@/store/storage";
 
 /** A settled answer: the set that settled it and whether it was right. */
 export type Final = { choices: number[]; correct: boolean };
@@ -14,12 +14,11 @@ export type Entry = {
   seen: boolean;
   /** Options revealed on a question that hides them until asked. */
   opened: boolean;
+  draft?: number[];
 };
 
 export type State = {
   index: number;
-  /** The options picked on the current card, not yet checked. */
-  selected: number[];
   entries: Entry[];
   phase: "solving" | "summary";
 };
@@ -87,12 +86,12 @@ export function start(lesson: Lesson, results: Saved["results"], intent: Intent)
   const started = entries.some((e) => e.final);
   if (started) lesson.cards.forEach((card, i) => (entries[i].seen = !isQuestion(card)));
   const open = lesson.cards.findIndex((card, i) => !done(card, entries[i]));
-  return { index: Math.max(open, 0), selected: [], entries, phase: "solving" };
+  return { index: Math.max(open, 0), entries, phase: "solving" };
 }
 
 /** A pass as it is saved: every card's answers, the card on screen and whether the summary is showing. */
 export function snapshot(lesson: Lesson, state: State): SavedRun {
-  const entries = state.entries.map(({ first, final, seen, opened }) => ({ first, final: final?.choices ?? null, seen, opened }));
+  const entries = state.entries.map(({ first, final, seen, opened, draft }) => ({ first, final: final?.choices ?? null, seen, opened, ...(draft && { draft }) }));
   return { cards: cardsKey(lesson.cards.map((c) => c.id)), index: state.index, phase: state.phase, entries };
 }
 
@@ -111,21 +110,24 @@ export function restore(lesson: Lesson, run: SavedRun): State | null {
       entries.push({ ...blank(), seen: saved.seen });
       continue;
     }
-    const known = (ids: number[]) => ids.length > 0 && ids.every((id) => card.choices.some((c) => c.id === id));
-    if ((saved.first && !known(saved.first)) || (saved.final && !known(saved.final))) return null;
+    const known = (ids: number[]) => ids.every((id) => card.choices.some((c) => c.id === id));
+    if ([saved.first, saved.final].some((ids) => ids && (!ids.length || !known(ids)))) return null;
     // A first try the lesson now counts as right was never a wrong one: the question is asked again, with nothing locked.
     if (saved.first && sameSet(card.correct, saved.first)) {
       entries.push({ ...blank(), opened: saved.opened });
       continue;
     }
-    entries.push({ first: saved.first, final: saved.final ? { choices: saved.final, correct: sameSet(card.correct, saved.final) } : null, seen: false, opened: saved.opened });
+    const entry: Entry = { first: saved.first, final: saved.final ? { choices: saved.final, correct: sameSet(card.correct, saved.final) } : null, seen: false, opened: saved.opened };
+    const draft = saved.draft;
+    if (!entry.final && isDraft(draft) && known(draft)) {
+      const selectableRadio = draft.length === 1 && !saved.first?.includes(draft[0]);
+      if (card.answerKind === "multi" || selectableRadio) entry.draft = draft;
+    }
+    entries.push(entry);
   }
-  const state: State = { index: run.index, selected: [], entries, phase: "solving" };
+  const state: State = { index: run.index, entries, phase: "solving" };
   if (run.phase === "summary" && allAnswered(lesson, state)) return { ...state, phase: "summary" };
-  // A `multi` card between its tries comes back with its first set ticked, ready to change.
-  const card = lesson.cards[run.index];
-  const entry = entries[run.index];
-  return isQuestion(card) && card.answerKind === "multi" && entry.first && !entry.final ? { ...state, selected: entry.first } : state;
+  return state;
 }
 
 /**
@@ -167,23 +169,41 @@ export function retryMistakes(lesson: Lesson, state: State): State {
     return cardState(entry) === "first" ? { ...blank(), final: entry.final, opened: entry.opened } : blank();
   });
   const open = lesson.cards.findIndex((card, i) => !done(card, entries[i]));
-  return { index: Math.max(open, 0), selected: [], entries, phase: "solving" };
+  return { index: Math.max(open, 0), entries, phase: "solving" };
+}
+
+/** Apply one tile's intended checked state to the latest pass, including other tabs' picks. */
+export function lessonPick(lesson: Lesson, key: string, index: number, id: number, checked: boolean) {
+  return (saved: Saved) => {
+    const run = open(lesson, saved, saved.runs[key]);
+    const entry = run.entries[index];
+    if (entry.final || picked(lesson.cards[index], entry).includes(id) === checked) return saved;
+    const current: State = { ...run, index, phase: "solving" };
+    const next = reduce(lesson, current, { type: "select", id });
+    return next === current ? saved : withRun(saved, key, snapshot(lesson, next));
+  };
 }
 
 /** Whether a saved pass holds any answer, checked or settled. */
 export const hasAnswers = (run: SavedRun | undefined): boolean => !!run && run.entries.some((e) => e.first || e.final);
 
-/** Whether the picked set may be checked: something is picked, and a second `multi` set differs from the first. */
-export function checkable(state: State): boolean {
+/** Without an edited draft, a multi question starts its second attempt with the first set checked. */
+export function picked(card: Card, entry: Entry): number[] {
+  if (entry.final || !isQuestion(card)) return [];
+  return entry.draft ?? (card.answerKind === "multi" ? entry.first : null) ?? [];
+}
+
+/** Whether the picked set may be checked: something is picked, and a second set differs from the first. */
+export function checkable(card: Card, state: State): boolean {
   const entry = state.entries[state.index];
-  if (entry.final || state.selected.length === 0) return false;
-  return !(entry.first && sameSet(entry.first, state.selected));
+  const selected = picked(card, entry);
+  return selected.length > 0 && !(entry.first && sameSet(entry.first, selected));
 }
 
 /** A `multi` card's second set equals its first: «Такой ответ уже был». */
 export function sameAsFirst(card: QuestionCard, state: State): boolean {
   const entry = state.entries[state.index];
-  return card.answerKind === "multi" && !entry.final && !!entry.first && sameSet(entry.first, state.selected);
+  return card.answerKind === "multi" && !entry.final && !!entry.first && sameSet(entry.first, picked(card, entry));
 }
 
 function at(state: State, patch: Partial<Entry>): Entry[] {
@@ -196,32 +216,29 @@ export function reduce(lesson: Lesson, state: State, action: Action): State {
   switch (action.type) {
     case "goTo": {
       if (action.index < 0 || action.index >= lesson.cards.length || action.index === state.index) return state;
-      const target = state.entries[action.index];
-      // A `multi` card between its tries keeps its first set ticked, ready to change.
-      const kept = lesson.cards[action.index].kind === "question" && !target.final && target.first && (lesson.cards[action.index] as QuestionCard).answerKind === "multi" ? target.first : [];
-      return { ...state, index: action.index, selected: kept, phase: "solving" };
+      return { ...state, index: action.index, phase: "solving" };
     }
     case "select": {
       if (!isQuestion(card) || entry.final || !card.choices.some((c) => c.id === action.id)) return state;
+      const selected = picked(card, entry);
+      let draft = [action.id];
       if (card.answerKind === "multi") {
-        const selected = state.selected.includes(action.id) ? state.selected.filter((id) => id !== action.id) : [...state.selected, action.id];
-        return { ...state, selected };
-      }
-      // The letter of a wrong first try cannot be picked again.
-      if (entry.first?.includes(action.id)) return state;
-      return { ...state, selected: [action.id] };
+        draft = selected.includes(action.id) ? selected.filter((id) => id !== action.id) : [...selected, action.id];
+      } else if (entry.first?.includes(action.id) || selected.includes(action.id)) return state;
+      return { ...state, entries: at(state, { draft }) };
     }
     case "openOptions":
-      return { ...state, entries: at(state, { opened: true }) };
+      return entry.opened ? state : { ...state, entries: at(state, { opened: true }) };
     case "check": {
-      if (!isQuestion(card) || !checkable(state)) return state;
-      const correct = sameSet(card.correct, state.selected);
-      if (correct || entry.first) return { ...state, selected: [], entries: at(state, { final: { choices: state.selected, correct } }) };
-      return { ...state, selected: card.answerKind === "multi" ? state.selected : [], entries: at(state, { first: state.selected }) };
+      if (!isQuestion(card) || !checkable(card, state)) return state;
+      const choices = picked(card, entry);
+      const correct = sameSet(card.correct, choices);
+      if (correct || entry.first) return { ...state, entries: at(state, { final: { choices, correct }, draft: undefined }) };
+      return { ...state, entries: at(state, { first: choices, draft: undefined }) };
     }
     case "next": {
       const entries = isQuestion(card) ? state.entries : at(state, { seen: true });
-      const moved = { ...state, entries, selected: [] };
+      const moved = { ...state, entries };
       if (allAnswered(lesson, moved)) return { ...moved, phase: "summary" };
       // The next card in order, else the first question still unanswered.
       const following = state.index + 1 < lesson.cards.length ? state.index + 1 : lesson.cards.findIndex((c, i) => isQuestion(c) && !entries[i].final);

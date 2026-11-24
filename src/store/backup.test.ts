@@ -61,6 +61,23 @@ describe("fromBackup", () => {
     for (const body of bodies) expect(fromBackup(JSON.stringify(body))).toEqual({ ok: false, error: "notBackup" });
   });
 
+  it("accepts draft tuples only in the new format and rejects malformed or settled drafts", () => {
+    const read = (version: number, entry: unknown) => fromBackup(JSON.stringify({
+      format: BACKUP_FORMAT, version, profile: {}, courses: { c: { runs: { l: ["k", 0, 0, entry] } } },
+    }));
+    for (const draft of [[], [2, 3]]) {
+      const tuple = [2, [1], 0, draft];
+      const restored = read(9, tuple);
+      expect(restored.ok && restored.saved.runs["c/l"].entries[0].draft).toEqual(draft);
+      expect(read(8, tuple)).toEqual({ ok: false, error: "notBackup" });
+      if (restored.ok) expect(fromBackup(JSON.stringify(toBackup(restored.saved, now)))).toMatchObject({ saved: restored.saved });
+    }
+    for (const entry of [[0, 0, 0, [1, 1]], [0, 0, 0, [-1]], [0, 0, 0, null], [0, 0, [1], []]]) {
+      expect(read(9, entry)).toEqual({ ok: false, error: "notBackup" });
+    }
+    expect(read(8, [2, [1]])).toMatchObject({ ok: true });
+  });
+
   it("reports a file that the browser cannot read", async () => {
     const file = { size: 100, text: async () => { throw new Error("File disappeared"); } };
     expect(await readBackup(file)).toEqual({ ok: false, error: "unreadable" });

@@ -40,6 +40,8 @@ export type SavedEntry = {
   final: number[] | null;
   seen: boolean;
   opened: boolean;
+  /** Unchecked choices. An empty list records a learner clearing a pending second try. */
+  draft?: number[];
 };
 
 /**
@@ -90,6 +92,9 @@ const entriesOf = (value: unknown): [string, unknown][] => (isRecord(value) ? Ob
 const record = <T>(): Record<string, T> => Object.create(null);
 const idList = (value: unknown): number[] | null => (Array.isArray(value) && value.every((c) => Number.isInteger(c)) ? (value as number[]) : null);
 
+export const isDraft = (value: unknown): value is number[] =>
+  Array.isArray(value) && value.every((id) => Number.isSafeInteger(id) && id > 0) && new Set(value).size === value.length;
+
 /** A task id or a `<course>/<lesson>` key, split into its course and the rest. */
 function split(id: string): [course: string, rest: string] {
   const slash = id.indexOf("/");
@@ -131,8 +136,8 @@ export const STORED_VERSION = 2;
 
 /** A result: the outcome's first letter, then the ids of the chosen options. */
 export type PackedResult = [outcome: string, ...choices: number[]];
-/** A card of a pass: 1 for seen plus 2 for opened, then the first try (0 when none) and the settling set; trailing blanks left out. */
-export type PackedEntry = [flags: number, first?: number[] | 0, final?: number[]];
+/** A card of a pass: 1 for seen plus 2 for opened, then first try, settling set and optional unchecked choices. Missing earlier sets use 0. */
+export type PackedEntry = [flags: number, first?: number[] | 0, final?: number[] | 0, draft?: number[]];
 /** A pass: `cardsKey` of its cards, the card on screen, 1 when the summary shows, then one entry per card. */
 export type PackedRun = [cards: string, index: number, summary: 0 | 1, ...entries: PackedEntry[]];
 /** One course's part of the saved state; ids inside are without the `<course>/` in front. */
@@ -154,9 +159,10 @@ export const isDay = (value: unknown): value is string => typeof value === "stri
 /** The saved state as it is written. */
 export type Stored = { version: typeof STORED_VERSION; profile: Profile; courses: Record<string, StoredCourse>; homestead?: PackedHomestead };
 
-function packEntry({ first, final, seen, opened }: SavedEntry): PackedEntry {
+function packEntry({ first, final, seen, opened, draft }: SavedEntry): PackedEntry {
   const flags = (seen ? 1 : 0) | (opened ? 2 : 0);
   if (final) return [flags, first ?? 0, final];
+  if (draft) return [flags, first ?? 0, 0, draft];
   return first ? [flags, first] : [flags];
 }
 
@@ -207,7 +213,9 @@ function unpackEntry(raw: unknown): SavedEntry | null {
   const first = entrySet(raw[1]);
   const final = entrySet(raw[2]);
   if (first === false || final === false) return null;
-  return { first, final, seen: (raw[0] & 1) !== 0, opened: (raw[0] & 2) !== 0 };
+  const draft = raw[3];
+  const entry = { first, final, seen: (raw[0] & 1) !== 0, opened: (raw[0] & 2) !== 0 };
+  return !final && isDraft(draft) ? { ...entry, draft } : entry;
 }
 
 /** A stored lesson pass, or null when its shape is not one this site wrote. */
@@ -328,6 +336,7 @@ export function mergeRun(current: SavedRun, previous: SavedRun, next: SavedRun):
     return {
       first: settled || tried ? entry.first : latest.first,
       final: settled ? entry.final : latest.final,
+      ...(!settled && !tried && latest.draft && { draft: latest.draft }),
       seen: latest.seen || (entry.seen && !before.seen),
       opened: latest.opened || (entry.opened && !before.opened),
     };

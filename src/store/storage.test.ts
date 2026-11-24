@@ -28,6 +28,19 @@ describe("parse", () => {
     expect(parse(written(saved))).toEqual(saved);
   });
 
+  it("round-trips unchecked and intentionally cleared choices, ignoring malformed drafts", () => {
+    const entry = { first: null, final: null, seen: false, opened: true };
+    const run: SavedRun = { cards: "k", index: 0, phase: "solving", entries: [{ ...entry, draft: [2] }, { ...entry, first: [1], draft: [] }] };
+    const saved = withRun(empty(), "c/l", run);
+    const stored = toStored(saved);
+    expect(stored.courses.c.runs!.l).toEqual(["k", 0, 0, [2, 0, 0, [2]], [2, [1], 0, []]]);
+    expect(parse(written(saved))).toEqual(saved);
+    for (const malformed of [[2, 2], [-2], "2", [null]]) {
+      const courses = { c: { runs: { l: ["k", 0, 0, [2, [1], 0, malformed], [2, 0, [2], [1]]] } } };
+      expect(sanitize({ ...stored, courses }).runs["c/l"].entries).toEqual([{ ...entry, first: [1] }, { ...entry, final: [2] }]);
+    }
+  });
+
   it("keeps a key named __proto__ as one more key, in either shape", () => {
     const short = parse('{"version":2,"courses":{"__proto__":{"last":"2026-01-01T00:00:00.000Z","results":{"x":["f",1]},"xp":{"x":10}},"":{"results":{"__proto__":["s",2],"__proto__/y":["w",3]}}}}');
     expect(Object.keys(short.results).sort()).toEqual(["__proto__", "__proto__/x", "__proto__/y"]);

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Lesson, QuestionCard } from "@/content/types";
 import { empty } from "@/store/storage";
-import { allAnswered, cardState, checkable, countOf, doneCount, hasAnswers, hasMistakes, lessonState, lessonStep, marksOf, open, outcomeOf, primaryAction, questionNumber, reduce, restore, sameAsFirst, setsOf, snapshot, start, type Action, type State } from "./session";
+import { allAnswered, cardState, checkable, countOf, doneCount, hasAnswers, hasMistakes, lessonPick, lessonState, lessonStep, marksOf, open, outcomeOf, picked, primaryAction, questionNumber, reduce, restore, sameAsFirst, setsOf, snapshot, start, type Action, type State } from "./session";
 
 const question = (id: string, correct: number[], answerKind: QuestionCard["answerKind"] = "single"): QuestionCard => ({
   id,
@@ -23,6 +23,7 @@ const lesson: Lesson = {
 };
 
 const run = (state: State, ...actions: Action[]) => actions.reduce((s, a) => reduce(lesson, s, a), state);
+const selected = (state: State) => picked(lesson.cards[state.index], state.entries[state.index]);
 const fresh = () => start(lesson, {}, "fresh");
 const saved = (outcome: "first" | "second" | "wrong") => ({ outcome, choices: [2] });
 
@@ -42,6 +43,58 @@ describe("saving an open lesson", () => {
     const result = reveal(existing);
     expect(result.runs["c/l"].entries[1].final).toEqual([2]);
     expect(result.runs["c/l"].entries[2].opened).toBe(true);
+  });
+});
+
+describe("unchecked choices", () => {
+  const go = (index: number): Action => ({ type: "goTo", index });
+  const pick = (id: number): Action => ({ type: "select", id });
+  const check: Action = { type: "check" };
+  const reload = (state: State) => restore(lesson, snapshot(lesson, state))!;
+
+  it("keeps each card's draft until that attempt is checked", () => {
+    const multi = run(fresh(), go(1), pick(1), go(2), pick(1), pick(2));
+    expect(selected(reload(multi))).toEqual([1, 2]);
+    const single = run(reload(multi), go(1));
+    expect(selected(single)).toEqual([1]);
+    expect(run(single, pick(1))).toBe(single);
+    const retry = run(single, check, pick(2));
+    expect(selected(reload(retry))).toEqual([2]);
+    expect(run(retry, check).entries[1].draft).toBeUndefined();
+    expect(selected(run(retry, go(2)))).toEqual([1, 2]);
+  });
+
+  it("distinguishes an intentionally empty retry from a legacy multi attempt", () => {
+    const waiting = run(fresh(), go(2), pick(1), pick(2), check);
+    expect(waiting.entries[2].draft).toBeUndefined();
+    expect(selected(reload(waiting))).toEqual([1, 2]);
+    const cleared = run(waiting, pick(1), pick(2));
+    expect(snapshot(lesson, cleared).entries[2].draft).toEqual([]);
+    expect(selected(run(reload(cleared), go(1), go(2)))).toEqual([]);
+  });
+
+  it("discards obsolete or malformed radio drafts while keeping the checked attempt", () => {
+    const pass = snapshot(lesson, run(fresh(), go(1), pick(1), check));
+    for (const draft of [[99], [2, 3], [2, 2], [1]]) {
+      const entries = pass.entries.map((entry, index) => index === 1 ? { ...entry, draft } : entry);
+      const state = restore(lesson, { ...pass, entries })!;
+      expect(selected(state)).toEqual([]);
+      expect(state.entries[1].first).toEqual([1]);
+    }
+  });
+
+  it("merges individual picks from different tabs and keeps drafts through adjacent checks", () => {
+    const key = "c/l";
+    const edit = (index: number, id: number, checked = true) => lessonPick(lesson, key, index, id, checked);
+    const first = edit(2, 1)(empty());
+    expect(edit(2, 1)(first)).toBe(first);
+    const both = edit(2, 2)(edit(1, 2)(first));
+    expect(both.runs[key].entries.map((entry) => entry.draft)).toEqual([undefined, [2], [1, 2]]);
+    const before = run(fresh(), go(1), pick(2));
+    const settled = lessonStep(lesson, key, before, run(before, check), false)(both);
+    expect(settled.runs[key].entries.map((entry) => entry.draft)).toEqual([undefined, undefined, [1, 2]]);
+    expect(edit(1, 3)(settled)).toBe(settled);
+    expect(edit(2, 1, false)(settled).runs[key].entries[2].draft).toEqual([2]);
   });
 });
 
@@ -82,9 +135,9 @@ describe("a single answer", () => {
     const wrong = run(fresh(), { type: "next" }, { type: "select", id: 1 }, { type: "check" });
     expect(cardState(wrong.entries[1])).toBe("waiting");
     expect(outcomeOf(wrong.entries[1])).toBeNull();
-    expect(wrong.selected).toEqual([]);
-    expect(checkable(wrong)).toBe(false);
-    expect(run(wrong, { type: "select", id: 1 }).selected).toEqual([]);
+    expect(selected(wrong)).toEqual([]);
+    expect(checkable(lesson.cards[wrong.index], wrong)).toBe(false);
+    expect(selected(run(wrong, { type: "select", id: 1 }))).toEqual([]);
     expect(primaryAction(lesson, wrong)).toBe("checkAgain");
 
     const second = run(wrong, { type: "select", id: 2 }, { type: "check" });
@@ -127,16 +180,16 @@ describe("a multi answer", () => {
   it("toggles a tile and refuses the same set twice", () => {
     const wrong = run(atMulti(), { type: "select", id: 1 }, { type: "select", id: 2 }, { type: "select", id: 2 }, { type: "select", id: 4 }, { type: "check" });
     expect(cardState(wrong.entries[2])).toBe("waiting");
-    expect(wrong.selected).toEqual([1, 4]);
+    expect(selected(wrong)).toEqual([1, 4]);
     expect(sameAsFirst(lesson.cards[2] as QuestionCard, wrong)).toBe(true);
-    expect(checkable(wrong)).toBe(false);
+    expect(checkable(lesson.cards[wrong.index], wrong)).toBe(false);
     const second = run(wrong, { type: "select", id: 4 }, { type: "select", id: 3 }, { type: "check" });
     expect(cardState(second.entries[2])).toBe("second");
   });
 
   it("keeps its first set ticked when the learner comes back to it", () => {
     const wrong = run(atMulti(), { type: "select", id: 2 }, { type: "check" });
-    expect(run(wrong, { type: "goTo", index: 1 }, { type: "goTo", index: 2 }).selected).toEqual([2]);
+    expect(selected(run(wrong, { type: "goTo", index: 1 }, { type: "goTo", index: 2 }))).toEqual([2]);
   });
 
   it("marks nothing wrong between its tries, then the wrong tiles of the last set only", () => {
@@ -195,7 +248,7 @@ describe("a pass saved and brought back", () => {
     const back = reload(waiting)!;
     expect(back).toEqual(waiting);
     expect(cardState(back.entries[1])).toBe("waiting");
-    expect(run(back, { type: "select", id: 1 }).selected).toEqual([]);
+    expect(selected(run(back, { type: "select", id: 1 }))).toEqual([]);
     expect(cardState(run(back, { type: "select", id: 2 }, { type: "check" }).entries[1])).toBe("second");
   });
 
@@ -208,7 +261,7 @@ describe("a pass saved and brought back", () => {
 
   it("brings a multi card between its tries back with its first set ticked", () => {
     const waiting = run(fresh(), { type: "goTo", index: 2 }, { type: "select", id: 2 }, { type: "check" });
-    expect(reload(waiting)!.selected).toEqual([2]);
+    expect(selected(reload(waiting)!)).toEqual([2]);
   });
 
   it("keeps the summary", () => {
@@ -251,7 +304,7 @@ describe("a pass saved and brought back", () => {
     const fixed = { ...lesson, cards: [lesson.cards[0], lesson.cards[1], question("q2", [2, 4], "multi")] };
     const back = restore(fixed, saved)!;
     expect(cardState(back.entries[2])).toBe("unanswered");
-    expect(back.selected).toEqual([]);
+    expect(selected(back)).toEqual([]);
   });
 
   it("is dropped when the lesson's cards or options are no longer the same", () => {

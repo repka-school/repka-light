@@ -240,6 +240,69 @@ test("an illustration opens in a window of its own and closes back to the card",
   await expect(picture).toBeFocused();
 });
 
+test("unchecked choices survive navigation, reload and an explicitly cleared second attempt", async ({ page, site, context }) => {
+  const template = questionsOf(site.lessons[0])[0];
+  const choices = ["А", "Б", "В"].map((label, index) => ({ id: index + 1, label, text: label, html: label }));
+  const question = { ...template, hideOptions: false, choices };
+  const cards: QuestionCard[] = [
+    { ...question, id: "draft/single", answerKind: "single", correct: [3] },
+    { ...question, id: "draft/multi", answerKind: "multi", correct: [1, 3] },
+  ];
+  const lesson = { ...site.lessons[0], cards };
+  const [module] = site.course.modules;
+  await context.route(`**/content/${site.course.slug}.json`, (route) => route.fulfill({
+    json: { ...site.course, modules: [{ ...module, lessons: [lesson] }] },
+  }));
+  await openLesson(page, site, lesson);
+  await tile(page, "А").click();
+  await expect(primary(page)).toBeEnabled();
+  await page.reload();
+  await expect(option(page, "А")).toBeChecked();
+  await goToCard(page, lesson, 1);
+  // Dispatch both option events before the first asynchronous save can finish.
+  const toggleBoth = () => page.locator(".choice input").evaluateAll((inputs) => {
+    for (const input of inputs.slice(0, 2)) (input as HTMLInputElement).click();
+  });
+  await toggleBoth();
+  await expect(option(page, "А")).toBeChecked();
+  await expect(option(page, "Б")).toBeChecked();
+  await page.reload();
+  await expect(option(page, "А")).toBeChecked();
+  await expect(option(page, "Б")).toBeChecked();
+
+  // A stale tab can remove one option while keeping another tab's new selection.
+  const other = await context.newPage();
+  await openLesson(other, site, lesson);
+  await tile(page, "В").click();
+  await expect(option(page, "В")).toBeChecked();
+  await tile(other, "Б").click();
+  await expect(option(other, "В")).toBeChecked();
+  await expect(option(other, "Б")).not.toBeChecked();
+  await other.close();
+  await page.reload();
+  await tile(page, "В").click();
+  await expect(option(page, "В")).not.toBeChecked();
+  await tile(page, "Б").click();
+  await expect(option(page, "Б")).toBeChecked();
+  await primary(page).click();
+  await expect(primary(page)).toBeDisabled();
+  await toggleBoth();
+  await expect(page.locator(".choice input:checked")).toHaveCount(0);
+  await expect(page.locator("#app")).toHaveAttribute("aria-busy", "false");
+  await page.reload();
+  await onCard(page, lesson, 1);
+  await expect(page.locator(".choice input:checked")).toHaveCount(0);
+
+  await goToCard(page, lesson, 0);
+  await expect(option(page, "А")).toBeChecked();
+  await primary(page).click();
+  await tile(page, "Б").click();
+  await expect(primary(page)).toBeEnabled();
+  await page.reload();
+  await expect(option(page, "А")).toBeDisabled();
+  await expect(option(page, "Б")).toBeChecked();
+});
+
 test("Repka formulas and picture options work through answering and review", async ({ page, site }) => {
   const lesson = site.lessons[0];
   const image = site.course.cover;

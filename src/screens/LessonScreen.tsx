@@ -6,7 +6,7 @@ import { Page, SiteFooter, SiteHeader } from "@/components/Chrome";
 import { LoadError, Loading, NotFound } from "@/components/LoadState";
 import { loadCourse, useLoaded } from "@/content/load";
 import { drillOf, isQuestion, lessonsOf, questionsOf, type Course, type Lesson } from "@/content/types";
-import { hasMistakes, lessonStep, open, outcomeOf, reduce, type Action } from "@/lesson/session";
+import { hasMistakes, lessonPick, lessonStep, open, outcomeOf, picked, reduce, type Action } from "@/lesson/session";
 import { spokenVerdict } from "@/lesson/words";
 import { lessonPath } from "@/screens/CourseScreen";
 import { QuestionView } from "@/screens/QuestionView";
@@ -54,33 +54,30 @@ function LessonRun({ course, lesson }: { course: Course; lesson: Lesson }) {
   };
   const [state, setState] = useState(readRun);
   const current = useRef(state);
-  const pending = useRef<Promise<unknown> | null>(null);
+  const pending = useRef<Promise<void> | null>(null);
+  const mounted = useRef(true);
   const [saving, setSaving] = useState(false);
-  const apply = async (action: Action) => {
-    if (pending.current) return;
-    const before = current.current;
-    const next = reduce(lesson, before, action);
-    if (next === before) return;
-    if (action.type === "select") {
-      current.current = next;
-      setState(next);
-      return;
-    }
-
-    const restart = action.type === "restart" || action.type === "retryMistakes";
-    const change = lessonStep(lesson, runKey, before, next, restart);
-    const card = lesson.cards[next.index];
-    const question = action.type === "check" && isQuestion(card) ? card : null;
-    const entry = next.entries[next.index];
-    const outcome = question && outcomeOf(entry);
-    const write = question && outcome && entry.final ? saveResult(question, outcome, entry.final.choices, change) : saveRun(change);
-    pending.current = write;
-    setSaving(true);
-    try {
-      const award = await write;
-      if (pending.current !== write) return;
+  const apply = (action: Action) => {
+    const perform = async () => {
+      const before = current.current;
+      // A second click on an old card must not advance or answer the following one.
+      if (before.index !== state.index || before.phase !== state.phase) return;
+      const next = reduce(lesson, before, action);
+      if (next === before) return;
+      const restart = action.type === "restart" || action.type === "retryMistakes";
+      const card = lesson.cards[next.index];
+      const entry = next.entries[next.index];
+      const change = action.type === "select"
+        ? lessonPick(lesson, runKey, next.index, action.id, picked(card, entry).includes(action.id))
+        : lessonStep(lesson, runKey, before, next, restart);
+      const question = action.type === "check" && isQuestion(card) ? card : null;
+      const outcome = question && outcomeOf(entry);
+      const award = question && outcome && entry.final
+        ? await saveResult(question, outcome, entry.final.choices, change)
+        : await saveRun(change);
       const committed = readRun();
       current.current = committed;
+      if (!mounted.current) return;
       setState(committed);
       if (restart) setReward(noReward);
       const { gained = 0, level = null } = award ?? {};
@@ -88,12 +85,16 @@ function LessonRun({ course, lesson }: { course: Course; lesson: Lesson }) {
       if (question && committed.phase === "solving" && committed.index === next.index) {
         announce([spokenVerdict(question, committed.entries[next.index]), gained > 0 && t.xpGain(gained), level && t.levelNew(level)].filter(Boolean).join(". "), verdictRegion);
       }
-    } finally {
+    };
+    const write = pending.current ? pending.current.then(perform) : perform();
+    pending.current = write;
+    setSaving(true);
+    return write.finally(() => {
       if (pending.current === write) {
         pending.current = null;
-        setSaving(false);
+        if (mounted.current) setSaving(false);
       }
-    }
+    });
   };
   const summary = state.phase === "summary";
   useEffect(() => {
@@ -103,7 +104,8 @@ function LessonRun({ course, lesson }: { course: Course; lesson: Lesson }) {
   }, [summary]);
   useLayoutEffect(() => {
     document.getElementById("screen-title")?.focus({ preventScroll: true });
-    return () => { pending.current = null; };
+    mounted.current = true;
+    return () => { mounted.current = false; };
   }, []);
 
   const coursePath = `/course/${encodeURIComponent(course.slug)}`;

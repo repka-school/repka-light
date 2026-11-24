@@ -2,10 +2,10 @@
 // loaded into another. The file has its own version, apart from the storage
 // key's: a file written by an older site is upgraded step by step on import,
 // and one written by a newer site is refused rather than half-read.
-import { fromStored, isDay, isDrillScore, isDrillTime, isRecord, toStored, upgradeV1, type Saved, type Stored } from "./storage";
+import { fromStored, isDay, isDraft, isDrillScore, isDrillTime, isRecord, toStored, upgradeV1, type Saved, type Stored } from "./storage";
 
 export const BACKUP_FORMAT = "repka-light-backup";
-export const BACKUP_VERSION = 8;
+export const BACKUP_VERSION = 9;
 /** A real backup is a few hundred kilobytes at most; anything far larger is not one. */
 export const BACKUP_MAX_BYTES = 5 * 1024 * 1024;
 
@@ -37,6 +37,8 @@ const upgrades: Record<number, (old: Record<string, unknown>) => Record<string, 
   6: (old) => old,
   // Version 7 did not keep what each game gave on its last day. The new field is optional.
   7: (old) => old,
+  // Version 8 kept checked answers only. A draft is an optional fourth entry field.
+  8: (old) => old,
 };
 
 export type ImportError = "unreadable" | "notJson" | "notBackup" | "tooNew" | "tooLarge";
@@ -69,16 +71,22 @@ function legacyRun(run: unknown) {
       typeof entry.seen === "boolean" && typeof entry.opened === "boolean");
 }
 
-function packedRun(run: unknown) {
+function packedEntry(entry: unknown, version: number) {
+  if (!Array.isArray(entry) || !indexIn(entry[0], 4)) return false;
+  if (entry.length >= 2 && entry[1] !== 0 && !choices(entry[1])) return false;
+  if (entry.length < 3) return true;
+  if (entry.length === 3) return choices(entry[2]);
+  return version >= 9 && entry.length === 4 && entry[2] === 0 && isDraft(entry[3]);
+}
+
+function packedRun(run: unknown, version: number) {
   return Array.isArray(run) && typeof run[0] === "string" && indexIn(run[1], run.length - 3)
-    && (run[2] === 0 || run[2] === 1) && run.slice(3).every((entry) =>
-      Array.isArray(entry) && entry.length <= 3 && indexIn(entry[0], 4) &&
-      (entry.length < 2 || entry[1] === 0 || choices(entry[1])) && (entry.length < 3 || choices(entry[2])));
+    && (run[2] === 0 || run[2] === 1) && run.slice(3).every((entry) => packedEntry(entry, version));
 }
 
 const courseFields: Record<string, Validator> = {
   results: (r) => Array.isArray(r) && ["f", "s", "w"].includes(r[0]) && r.slice(1).every(Number.isInteger),
-  xp: amount, runs: packedRun, drills: isDrillScore, bestAnswerTimeTenths: isDrillTime, drillBestTenths: isDrillTime,
+  xp: amount, drills: isDrillScore, bestAnswerTimeTenths: isDrillTime, drillBestTenths: isDrillTime,
   drillDays: (r) => Array.isArray(r) && r.length === 2 && isDay(r[0]) && isDrillScore(r[1]) && r[1] > 0,
 };
 
@@ -95,8 +103,11 @@ function validPayload(file: Record<string, unknown>, version: number) {
       (r.outcome === "first" || r.outcome === "second" || r.outcome === "wrong") && typeof r.at === "string")
       && mapOf(file.runs, legacyRun) && (version === 1 || mapOf(file.xp, amount));
   }
-  return mapOf(file.courses, (course) => isRecord(course) && Object.entries(course).every(([key, value]) =>
-    key === "last" ? typeof value === "string" : Object.hasOwn(courseFields, key) && mapOf(value, courseFields[key])));
+  return mapOf(file.courses, (course) => isRecord(course) && Object.entries(course).every(([key, value]) => {
+    if (key === "last") return typeof value === "string";
+    if (key === "runs") return mapOf(value, (run) => packedRun(run, version));
+    return Object.hasOwn(courseFields, key) && mapOf(value, courseFields[key]);
+  }));
 }
 
 export async function readBackup(file: Pick<File, "size" | "text">): Promise<ImportResult> {
