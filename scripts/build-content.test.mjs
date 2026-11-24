@@ -234,6 +234,29 @@ describe("a pack", () => {
     expect(fs.readdirSync(path.join(out, "media", "demo", "images")).sort()).toEqual(["extra.png", "graph.png"]);
   });
 
+  it.each([{}, { alt: "  " }, { alt: "Иллюстрация к заданию" }])("requires a description for every question image", (metadata) => {
+    const task = {
+      status: "active", question: { text: "Сколько точек?", images: [{ file: "dots.png", ...metadata }] },
+      answer: { kind: "single", options: [{ id: 1, text: "2" }, { id: 2, text: "3", correct: true }] },
+    };
+    expect(() => builtCard({ task: JSON.stringify(task), files: { "dots.png": "picture" } })).toThrow("demo/a/one: picture dots.png needs alt text");
+  });
+
+  it("uses reviewed image descriptions in imported packs and accepts an inline description when needed", () => {
+    const task = {
+      status: "active",
+      question: {
+        html: '<img src="first.png" alt="Фото"><img src="second.png" alt="От B к C проведена дуга.">',
+        images: [{ file: "first.png", alt: "Точки A и B соединены отрезком." }, { file: "second.png" }],
+      },
+      answer: { kind: "single", options: [{ id: 1, text: "A", correct: true }, { id: 2, text: "B" }] },
+    };
+    const files = { "pack.yaml": "id: demo\norigin: scraped", "first.png": "image", "second.png": "image" };
+    const card = builtCard({ task: JSON.stringify(task), files });
+    expect(card.body).toContain('alt="Точки A и B соединены отрезком."');
+    expect(card.body).toContain('alt="От B к C проведена дуга."');
+  });
+
   it("builds a multi answer with every right option", () => {
     expect(builtCard({ task: question([[1, "a", true], [2, "b"], [3, "c", true]], { kind: "multi" }) })).toMatchObject({ answerKind: "multi", correct: [1, 3] });
   });
@@ -284,7 +307,7 @@ describe("a pack", () => {
       source: { url: "https://example.test/contest/problem" },
       question: { html: '<p>Выбери рисунок.</p><img width="32" src="/photos/choices.gif"><p>Продолжение.</p>' },
       answer: {
-        kind: "multi", picture: { file: "options.png", original_url: "https://example.test/photos/choices.gif" },
+        kind: "multi", picture: { file: "options.png", alt: "А — круг, Б — квадрат.", original_url: "https://example.test/photos/choices.gif" },
         options: [{ id: 5, label: "Б", correct: true }, { id: 1, label: "А" }],
       },
       explanation: {},
@@ -294,11 +317,13 @@ describe("a pack", () => {
     buildContent({ root, out, base: "/site/" });
     const [card] = JSON.parse(fs.readFileSync(path.join(out, "demo.json"), "utf8")).modules[0].lessons[0].cards;
     expect(card).toMatchObject({
-      body: '<p>Выбери рисунок.</p><img src="/site/content/media/demo/options.png" alt="Изображение вариантов ответа А–Б" loading="lazy"><p>Продолжение.</p>',
+      body: '<p>Выбери рисунок.</p><img src="/site/content/media/demo/options.png" alt="А — круг, Б — квадрат." loading="lazy"><p>Продолжение.</p>',
       answerKind: "multi", correct: [5], hideOptions: false, explanation: null,
       choices: [{ id: 5, label: "Б", text: "", html: "" }, { id: 1, label: "А", text: "", html: "" }],
     });
     expect(fs.readFileSync(path.join(out, "media", "demo", "options.png"), "utf8")).toBe("local image");
+    delete task.answer.picture.alt;
+    expect(() => builtCard({ task: JSON.stringify(task), files: { "options.png": "local image" } })).toThrow(/options.png needs alt text/);
     task.answer.hide = true;
     expect(() => builtCard({ task: JSON.stringify(task) })).toThrow(/options cannot be hidden/);
     task.answer.hide = false;

@@ -113,7 +113,7 @@ bold label such as `<strong>А)</strong>`. The build moves a complete run of
 labelled options into the answer tiles and preserves its HTML and MathML.
 For a single image showing all options, use `answer.picture.file` and
 omit each option's `text`. The image appears in the question and the
-learner selects by label.
+learner selects by label. Use `answer.picture.alt` to describe each labelled option.
 
 The build accepts courses with modules, top-level lessons, or a flat
 `tasks` list. A flat list becomes one lesson. A member such as
@@ -160,7 +160,10 @@ keeps the HTML tags a task may use, including `div`, `span`, `u`, `s`, `hr` and
 
 An inline `<img>` can reference a pack file or the `original_url` of a
 listed image. The build keeps it in place, appends any other listed images
-and serves them from the local pack.
+and serves them from the local pack. Each question image needs an explicit
+description on the inline `<img alt="…">` or in `question.images[].alt`.
+Give the labels, positions, connections or grid entries a learner needs to
+solve the task by listening. Leave the reasoning and conclusion to the learner.
 
 Answers are checked in the browser, so the right answers are in the published
 files.

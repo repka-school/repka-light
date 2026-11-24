@@ -132,7 +132,7 @@ function readPack(root, packId, base) {
     return `${base}content/media/${packId}/${file.split("/").map(encodeURIComponent).join("/")}`;
   };
   const readMarkup = (part, where) => part?.html?.trim() ? parseMarkup(part.html, where, imported) : null;
-  const body = (part, where, { nodes = readMarkup(part, where), sourceURL, answerPicture, answerAlt, role = IMAGE_ALT } = {}) => {
+  const body = (part, where, { nodes = readMarkup(part, where), sourceURL, answerPicture, requireAlt = false, role = IMAGE_ALT } = {}) => {
     if (!hasBody(part)) throw new Error(`${where}: nothing to show`);
     const refs = part.images ?? [];
     const candidates = answerPicture ? [...refs, answerPicture] : refs;
@@ -148,8 +148,15 @@ function readPack(root, packId, base) {
       const { file } = ref;
       if (placed.has(file)) return "";
       placed.add(file);
-      const description = file === answerPicture?.file ? answerAlt : alt?.trim().replace(/\s+/g, " ") || ref.alt || role;
-      return `<img src="${escapeHtml(image(file, where))}" alt="${escapeHtml(description)}" loading="lazy">`;
+      const src = image(file, where);
+      // The pack's editor can override an imported caption in the image list.
+      const descriptions = imported ? [ref.alt, alt] : [alt, ref.alt];
+      if (file === answerPicture?.file) descriptions.unshift(answerPicture.alt);
+      const description = descriptions.find((value) => typeof value === "string" && value.trim())?.trim().replace(/\s+/g, " ");
+      if (requireAlt && (!description || description === IMAGE_ALT || /^Изображение вариантов ответа \S+–\S+$/u.test(description))) {
+        throw new Error(`${where}: picture ${file} needs alt text describing its contents`);
+      }
+      return `<img src="${escapeHtml(src)}" alt="${escapeHtml(description || role)}" loading="lazy">`;
     };
     const inlineImage = (src, alt) => {
       const url = resolved(src);
@@ -158,7 +165,7 @@ function readPack(root, packId, base) {
         if (imported) return "";
         throw new Error(`${where}: inline picture ${src} is missing from images`);
       }
-      return picture(ref, imported ? undefined : alt);
+      return picture(ref, requireAlt || !imported ? alt : undefined);
     };
     let html = nodes ? renderMarkup(nodes, { where, renderImage: inlineImage }).html : part.text?.trim() ? textToHtml(part.text) : "";
     for (const ref of candidates) html += picture(ref);
@@ -205,14 +212,12 @@ function readPack(root, packId, base) {
     const choices = presentOptions(nodes, options.map((o, i) => ({ id: o.id, label: labels[i] || LETTERS[i], text: String(o.text ?? "") })), { where, picture: answerPicture });
     const hideOptions = answer.hide === true;
     if (hideOptions && choices.some(({ html }) => !html)) throw new Error(`${where}: options cannot be hidden when shown in the question`);
-    const orderedLabels = choices.map(({ label }) => label).sort();
-    const answerAlt = `Изображение вариантов ответа ${orderedLabels[0]}–${orderedLabels.at(-1)}`;
     const hint = task.learning?.hint;
     return {
       id,
       kind: "question",
       answerKind: answer.kind,
-      body: body(task.question, where, { nodes, sourceURL, answerPicture, answerAlt }),
+      body: body(task.question, where, { nodes, sourceURL, answerPicture, requireAlt: true }),
       hideOptions,
       points: task.points ?? null,
       choices,
