@@ -26,6 +26,9 @@ test("a nickname and a picture are saved as they change and shown in the header"
   await expect(page.locator("#nav-profile")).toHaveAccessibleName("Маша К., профиль");
   await page.locator("label.picture-choice", { has: page.locator('input[value="kitten"]') }).click();
   await page.locator("label.picture-choice", { has: page.locator('input[value="sea"]') }).click();
+  const headerPicture = page.locator("#nav-profile .picture");
+  await expect(headerPicture).toHaveAttribute("data-avatar", "kitten");
+  await expect(headerPicture).toHaveAttribute("data-frame", "sea");
   expect((await stored(page)).profile).toEqual({ name: "Маша К.", avatar: "kitten", frame: "sea" });
 
   await page.reload();
@@ -39,6 +42,7 @@ test("a nickname stops at its longest length", async ({ page }) => {
   await page.goto("profile");
   await page.locator("#nickname").fill("я".repeat(40));
   await expect(page.locator("#nickname")).toHaveValue("я".repeat(32));
+  await expect(page.locator("#nav-profile")).toHaveAccessibleName(`${"я".repeat(32)}, профиль`);
   expect((await stored(page)).profile.name).toBe("я".repeat(32));
 });
 
@@ -109,6 +113,7 @@ test("a backup downloaded in one browser brings everything to another", async ({
 test("a file that is not a backup is refused with its reason, and nothing saved is touched", async ({ page, site }) => {
   await solveOne(page, site);
   await page.locator("#nav-profile").click();
+  await expect(page.locator(".settings-row-text").first()).toHaveText("Сохранено результатов: 1.");
   const before = await stored(page);
   const refused: [text: string, reason: RegExp][] = [
     ["{oops", /Этот файл не удалось прочитать/],
@@ -127,6 +132,7 @@ test("a file that is not a backup is refused with its reason, and nothing saved 
 test("a loaded file can be declined", async ({ page, site }) => {
   await solveOne(page, site);
   await page.locator("#nav-profile").click();
+  await expect(page.locator(".settings-row-text").first()).toHaveText("Сохранено результатов: 1.");
   const before = await stored(page);
   await page.locator('input[type="file"]').setInputFiles(file('{"format":"repka-light-backup","version":4,"exportedAt":"2026-03-04T05:06:07.000Z","profile":{"name":"Чужой","avatar":null,"frame":"none"},"courses":{}}'));
   const dialog = page.getByRole("dialog");

@@ -1,21 +1,53 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { apply, starter } from "@/homestead/rules";
+import { mergeRun, withRun, type Saved, type SavedRun } from "./storage";
 
 const KEY = "repka-light.v1";
 const task = { id: "c/l/t", points: 3 };
+
+/** Hold the origin's write lock until the test lets waiting tabs run, one at a time. */
+function heldLock() {
+  type OnLock = (lock: Lock) => unknown;
+  let release!: () => void;
+  let tail = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const request = vi.fn((name: string, optionsOrCallback: LockOptions | OnLock, callback?: OnLock) => {
+    expect(name).toBe(KEY);
+    const run = typeof optionsOrCallback === "function" ? optionsOrCallback : callback!;
+    const result = tail.then(() => run({ name, mode: "exclusive" }));
+    tail = result.then(() => undefined, () => undefined);
+    return result;
+  });
+  return { release, request };
+}
+
+type BrowserOptions = {
+  broken?: boolean;
+  held?: Map<string, string>;
+  locks?: ReturnType<typeof heldLock> | null;
+};
+
+function availableLock() {
+  const locks = heldLock();
+  locks.release();
+  return locks;
+}
 
 /**
  * The store loaded in a browser of its own: `items` is what its storage holds,
  * and `otherTab` writes there as another tab of the site would. A `broken`
  * storage refuses every read and write.
  */
-async function load(items: Record<string, string> = {}, { broken = false } = {}) {
-  const held = new Map(Object.entries(items));
+async function load(items: Record<string, string> = {}, { broken = false, held = new Map(Object.entries(items)), locks = availableLock() }: BrowserOptions = {}) {
   const listeners: ((event: { key: string | null }) => void)[] = [];
   const refuse = () => {
     throw new Error("storage is off");
   };
+  const navigator = locks ? { locks } : {};
+  vi.stubGlobal("navigator", navigator);
   vi.stubGlobal("window", {
+    navigator,
     localStorage: broken ? { getItem: refuse, setItem: refuse } : { getItem: (key: string) => held.get(key) ?? null, setItem: (key: string, value: string) => void held.set(key, value) },
     addEventListener: (type: string, listener: (event: { key: string | null }) => void) => type === "storage" && listeners.push(listener),
   });
@@ -47,8 +79,8 @@ describe("the saved state", () => {
 
   it("is written through as it changes, and is there after a reload", async () => {
     const first = await load();
-    first.store.saveProfile({ name: "  Петя  ", avatar: "kitten" });
-    first.store.saveRun("c/l", { cards: "k", index: 0, phase: "solving", entries: [{ first: [1], final: null, seen: false, opened: false }] });
+    await first.store.saveProfile({ name: "  Петя  ", avatar: "kitten" });
+    await first.store.saveRun((saved) => withRun(saved, "c/l", { cards: "k", index: 0, phase: "solving", entries: [{ first: [1], final: null, seen: false, opened: false }] }));
     expect(first.written()).toEqual({ version: 2, profile: { name: "Петя", avatar: "kitten", frame: "none" }, courses: { c: { runs: { l: ["k", 0, 0, [0, [1]]] } } } });
 
     const again = await load(Object.fromEntries(first.held));
@@ -57,16 +89,27 @@ describe("the saved state", () => {
 
   it("is not written when a change changes nothing", async () => {
     const { store, held } = await load();
-    store.grantXp([task]);
-    store.replaceSaved(store.getSaved());
+    await store.grantXp([task]);
+    await store.replaceSaved(store.getSaved());
     expect(held.has(KEY)).toBe(false);
   });
 
   it("lasts for the visit in a browser that refuses storage", async () => {
     const { store } = await load({}, { broken: true });
     expect(store.getSaved().results).toEqual({});
-    expect(store.saveResult(task, "first", [2])).toBe(30);
+    expect(await store.saveResult(task, "first", [2])).toEqual({ gained: 30, level: null });
     expect(store.getSaved().results["c/l/t"].outcome).toBe("first");
+  });
+
+  it("keeps successive actions in memory when the browser has no shared locking API", async () => {
+    const { store, held } = await load({}, { locks: null });
+    const writes = vi.spyOn(held, "set");
+    await store.saveProfile({ name: "Петя" });
+    expect(await store.saveResult(task, "first", [1])).toEqual({ gained: 30, level: null });
+    expect(store.getSaved()).toMatchObject({
+      profile: { name: "Петя" }, results: { "c/l/t": { outcome: "first", choices: [1] } }, xp: { "c/l/t": 30 },
+    });
+    expect(writes).not.toHaveBeenCalled();
   });
 });
 
@@ -75,16 +118,16 @@ describe("saving a task's result", () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date("2026-03-04T05:06:07.000Z"));
     const { store, written } = await load();
-    expect(store.saveResult(task, "second", [2])).toBe(15);
+    expect(await store.saveResult(task, "second", [2])).toEqual({ gained: 15, level: null });
     expect(store.getSaved()).toMatchObject({ results: { "c/l/t": { outcome: "second", choices: [2] } }, last: { c: "2026-03-04T05:06:07.000Z" }, xp: { "c/l/t": 15 } });
     expect(written().courses).toEqual({ c: { last: "2026-03-04T05:06:07.000Z", results: { "l/t": ["s", 2] }, xp: { "l/t": 15 } } });
   });
 
   it("adds only the rest when the task is later solved better, and nothing for a repeat", async () => {
     const { store } = await load();
-    store.saveResult(task, "second", [2]);
-    expect(store.saveResult(task, "first", [1])).toBe(15);
-    expect(store.saveResult(task, "first", [1])).toBe(0);
+    await store.saveResult(task, "second", [2]);
+    expect(await store.saveResult(task, "first", [1])).toEqual({ gained: 15, level: null });
+    expect(await store.saveResult(task, "first", [1])).toEqual({ gained: 0, level: null });
     expect(store.getSaved().xp).toEqual({ "c/l/t": 30 });
   });
 
@@ -92,16 +135,16 @@ describe("saving a task's result", () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date("2026-03-04T05:06:07.000Z"));
     const { store } = await load();
-    store.saveResult(task, "first", [1]);
+    await store.saveResult(task, "first", [1]);
     vi.setSystemTime(new Date("2026-03-05T00:00:00.000Z"));
-    expect(store.saveResult(task, "wrong", [4])).toBe(0);
+    expect(await store.saveResult(task, "wrong", [4])).toEqual({ gained: 0, level: null });
     expect(store.getSaved().results["c/l/t"]).toEqual({ outcome: "first", choices: [1] });
     expect(store.getSaved().last).toEqual({ c: "2026-03-05T00:00:00.000Z" });
   });
 
   it("gives nothing for a miss", async () => {
     const { store } = await load();
-    expect(store.saveResult(task, "wrong", [4])).toBe(0);
+    expect(await store.saveResult(task, "wrong", [4])).toEqual({ gained: 0, level: null });
     expect(store.getSaved().xp).toEqual({});
   });
 });
@@ -109,9 +152,9 @@ describe("saving a task's result", () => {
 describe("experience for results saved earlier", () => {
   it("is given once, for the tasks named", async () => {
     const { store } = await load({ [KEY]: '{"version":2,"courses":{"c":{"results":{"l/t":["f",2],"l/u":["s",1]}}}}' });
-    store.grantXp([task]);
+    await store.grantXp([task]);
     expect(store.getSaved().xp).toEqual({ "c/l/t": 30 });
-    store.grantXp([task, { id: "c/l/u", points: 1 }]);
+    await store.grantXp([task, { id: "c/l/u", points: 1 }]);
     expect(store.getSaved().xp).toEqual({ "c/l/t": 30, "c/l/u": 5 });
   });
 });
@@ -119,14 +162,14 @@ describe("experience for results saved earlier", () => {
 describe("the reset", () => {
   it("takes the results, practice times and passes, and leaves the profile, the experience and the homestead", async () => {
     const { store, written } = await load();
-    store.saveProfile({ name: "Петя" });
-    store.saveResult(task, "first", [1]);
-    store.saveRun("c/l", { cards: "k", index: 0, phase: "solving", entries: [{ first: null, final: [1], seen: false, opened: false }] });
+    await store.saveProfile({ name: "Петя" });
+    await store.saveResult(task, "first", [1]);
+    await store.saveRun((saved) => withRun(saved, "c/l", { cards: "k", index: 0, phase: "solving", entries: [{ first: null, final: [1], seen: false, opened: false }] }));
     const planted = apply(starter(), { action: "plant", at: [2, 5], seed: "common" }, 30, "2026-03-04");
     if (!planted.ok) throw new Error(planted.reason);
-    store.saveHomestead(planted.home);
+    await store.saveHomestead(planted.home);
 
-    store.resetProgress();
+    await store.resetProgress();
     expect(store.getSaved()).toEqual({ profile: { name: "Петя", avatar: null, frame: "none" }, results: {}, last: {}, runs: {}, xp: { "c/l/t": 30 }, homestead: planted.home });
     expect(written().courses).toEqual({ c: { xp: { "l/t": 30 } } });
   });
@@ -135,8 +178,8 @@ describe("the reset", () => {
 describe("an imported backup", () => {
   it("takes the place of everything saved", async () => {
     const { store, written } = await load();
-    store.saveResult(task, "first", [1]);
-    store.replaceSaved({ profile: { name: "Маша", avatar: null, frame: "none" }, results: { "d/t": { outcome: "second", choices: [3] } }, last: {}, runs: {}, xp: {} });
+    await store.saveResult(task, "first", [1]);
+    await store.replaceSaved({ profile: { name: "Маша", avatar: null, frame: "none" }, results: { "d/t": { outcome: "second", choices: [3] } }, last: {}, runs: {}, xp: {} });
     expect(Object.keys(store.getSaved().results)).toEqual(["d/t"]);
     expect(written().courses).toEqual({ d: { results: { t: ["s", 3] } } });
   });
@@ -144,6 +187,47 @@ describe("an imported backup", () => {
 
 describe("another tab of the site", () => {
   const theirs = '{"version":2,"profile":{"name":"Маша","avatar":null,"frame":"none"},"courses":{}}';
+
+  it("saves both tabs' answers to different cards, including their run entries, in one write per answer", async () => {
+    const blank = { first: null, final: null, seen: false, opened: false };
+    const previous: SavedRun = { cards: "k", index: 0, phase: "solving", entries: [blank, blank] };
+    const firstRun: SavedRun = { ...previous, entries: [{ ...blank, final: [1] }, blank] };
+    const secondRun: SavedRun = { ...previous, index: 1, entries: [blank, { ...blank, first: [3], final: [2] }] };
+    const locks = heldLock();
+    const first = await load({ [KEY]: JSON.stringify({ version: 2, courses: { c: { runs: { l: ["k", 0, 0, [0], [0]] } } } }) }, { locks });
+    const second = await load({}, { held: first.held, locks });
+    const writes = vi.spyOn(first.held, "set");
+
+    const applyRun = (run: SavedRun) => (saved: Saved) => withRun(saved, "c/l", mergeRun(saved.runs["c/l"], previous, run));
+    const answer1 = first.store.saveResult(task, "first", [1], applyRun(firstRun));
+    const answer2 = second.store.saveResult({ id: "c/l/u", points: 2 }, "second", [2], applyRun(secondRun));
+    expect(writes).not.toHaveBeenCalled();
+    expect(first.store.getSaved().runs["c/l"]).toEqual(firstRun);
+    expect(second.store.getSaved().runs["c/l"]).toEqual(secondRun);
+    locks.release();
+    expect(await Promise.all([answer1, answer2])).toEqual([{ gained: 30, level: null }, { gained: 10, level: null }]);
+
+    expect(writes).toHaveBeenCalledTimes(2);
+    expect(JSON.parse(writes.mock.calls[0][1]).courses.c).toMatchObject({
+      results: { "l/t": ["f", 1] }, xp: { "l/t": 30 }, runs: { l: ["k", 0, 0, [0, 0, [1]], [0]] },
+    });
+    expect(first.written().courses.c).toMatchObject({
+      results: { "l/t": ["f", 1], "l/u": ["s", 2] }, xp: { "l/t": 30, "l/u": 10 }, runs: { l: ["k", 1, 0, [0, 0, [1]], [0, [3], [2]]] },
+    });
+    expect(second.store.getSaved().xp).toEqual({ "c/l/t": 30, "c/l/u": 10 });
+    expect(locks.request).toHaveBeenCalledTimes(2);
+  });
+
+  it("gives experience and announces a level-up to the first tab to settle the same answer", async () => {
+    const locks = heldLock();
+    const first = await load({ [KEY]: '{"version":2,"courses":{"c":{"xp":{"earlier":90}}}}' }, { locks });
+    const second = await load({}, { held: first.held, locks });
+    const answer1 = first.store.saveResult(task, "first", [1]);
+    const answer2 = second.store.saveResult(task, "first", [1]);
+    locks.release();
+    expect(await Promise.all([answer1, answer2])).toEqual([{ gained: 30, level: 2 }, { gained: 0, level: null }]);
+    expect(first.written().courses.c.xp).toEqual({ earlier: 90, "l/t": 30 });
+  });
 
   it("is followed when it changes the saved state", async () => {
     const { store, otherTab } = await load();
@@ -159,7 +243,7 @@ describe("another tab of the site", () => {
 
   it("is ignored when it writes under another key", async () => {
     const { store, otherTab } = await load();
-    store.saveProfile({ name: "Петя" });
+    await store.saveProfile({ name: "Петя" });
     const before = store.getSaved();
     otherTab("something-else", "1");
     expect(store.getSaved()).toBe(before);
@@ -169,7 +253,7 @@ describe("another tab of the site", () => {
 describe("the homestead", () => {
   it("is the starter one until it is changed, with all the experience free", async () => {
     const { store } = await load();
-    store.saveResult(task, "first", [1]);
+    await store.saveResult(task, "first", [1]);
     expect(store.homesteadOf(store.getSaved())).toEqual(starter());
     expect(store.getSaved().homestead).toBeUndefined();
     expect(store.freeXpOf(store.getSaved())).toBe(30);
@@ -177,10 +261,10 @@ describe("the homestead", () => {
 
   it("is saved as it changes, and what was spent there is no longer free", async () => {
     const { store, written } = await load();
-    store.saveResult(task, "first", [1]);
+    await store.saveResult(task, "first", [1]);
     const bought = apply(store.homesteadOf(store.getSaved()), { action: "buy", seed: "common" }, 30, "2026-03-04");
     if (!bought.ok) throw new Error(bought.reason);
-    store.saveHomestead(bought.home);
+    await store.saveHomestead(bought.home);
     expect(store.homesteadOf(store.getSaved())).toEqual(bought.home);
     expect(store.freeXpOf(store.getSaved())).toBe(5);
     expect(written().homestead).toMatchObject({ spent: 25, seeds: { common: 2 } });

@@ -1,19 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router";
-import { announce } from "@/ui/components/Announcer";
+import { Announcer, announce } from "@/ui/components/Announcer";
 import { Button } from "@/ui/components/ui/button";
 import { Page, SiteFooter, SiteHeader } from "@/components/Chrome";
 import { LoadError, Loading, NotFound } from "@/components/LoadState";
 import { loadCourse, useLoaded } from "@/content/load";
 import { drillOf, isQuestion, lessonsOf, questionsOf, type Course, type Lesson } from "@/content/types";
-import { hasMistakes, open, outcomeOf, reduce, snapshot, type Action } from "@/lesson/session";
+import { hasMistakes, lessonStep, open, outcomeOf, reduce, type Action } from "@/lesson/session";
 import { spokenVerdict } from "@/lesson/words";
 import { lessonPath } from "@/screens/CourseScreen";
 import { QuestionView } from "@/screens/QuestionView";
 import { SummaryView } from "@/screens/SummaryView";
 import { DrillLesson } from "@/screens/DrillLesson";
 import { getSaved, grantXp, saveResult, saveRun } from "@/store/store";
-import { standingOf, totalXp } from "@/store/xp";
 import { t } from "@/strings";
 
 /** A lesson of a course: its cards one at a time, then the summary. */
@@ -40,39 +39,61 @@ export function LessonScreen() {
 /** What this visit's answers have added: experience by task, and the level the last level-up reached. */
 type Reward = { gains: Record<string, number>; level: number | null };
 const noReward: Reward = { gains: {}, level: null };
-const levelNow = () => standingOf(totalXp(getSaved().xp)).level;
+const verdictRegion = "lesson-verdict";
 
 function LessonRun({ course, lesson }: { course: Course; lesson: Lesson }) {
   const runKey = `${course.slug}/${lesson.slug}`;
   const [reward, setReward] = useState(noReward);
   // Results saved before experience was counted earn theirs now.
-  useEffect(() => grantXp(lessonsOf(course).flatMap(questionsOf)), [course]);
-  const [state, setState] = useState(() => {
+  useEffect(() => {
+    void grantXp(lessonsOf(course).flatMap(questionsOf));
+  }, [course]);
+  const readRun = () => {
     const saved = getSaved();
     return open(lesson, saved, saved.runs[runKey]);
-  });
-  // Every step is saved as it happens, so a reload loses nothing.
-  const apply = (action: Action) => {
-    const next = reduce(lesson, state, action);
-    // A new pass counts its own experience.
-    if (action.type === "restart" || action.type === "retryMistakes") setReward(noReward);
-    if (next !== state) {
-      setState(next);
-      saveRun(runKey, snapshot(lesson, next));
-    }
-    return next;
   };
-  // Checking an answer says the verdict aloud and, once the task is settled, saves its result and gives its experience.
-  const check = () => {
-    const card = lesson.cards[state.index];
-    const entry = apply({ type: "check" }).entries[state.index];
-    if (!isQuestion(card) || entry === state.entries[state.index]) return;
-    const outcome = outcomeOf(entry);
-    const before = levelNow();
-    const gained = outcome && entry.final ? saveResult(card, outcome, entry.final.choices) : 0;
-    const level = levelNow() > before ? levelNow() : null;
-    if (gained > 0) setReward((r) => ({ gains: { ...r.gains, [card.id]: gained }, level: level ?? r.level }));
-    announce([spokenVerdict(card, entry), gained > 0 && t.xpGain(gained), level && t.levelNew(level)].filter(Boolean).join(". "));
+  const [state, setState] = useState(readRun);
+  const current = useRef(state);
+  const pending = useRef<Promise<unknown> | null>(null);
+  const [saving, setSaving] = useState(false);
+  const apply = async (action: Action) => {
+    if (pending.current) return;
+    const before = current.current;
+    const next = reduce(lesson, before, action);
+    if (next === before) return;
+    if (action.type === "select") {
+      current.current = next;
+      setState(next);
+      return;
+    }
+
+    const restart = action.type === "restart" || action.type === "retryMistakes";
+    const change = lessonStep(lesson, runKey, before, next, restart);
+    const card = lesson.cards[next.index];
+    const question = action.type === "check" && isQuestion(card) ? card : null;
+    const entry = next.entries[next.index];
+    const outcome = question && outcomeOf(entry);
+    const write = question && outcome && entry.final ? saveResult(question, outcome, entry.final.choices, change) : saveRun(change);
+    pending.current = write;
+    setSaving(true);
+    try {
+      const award = await write;
+      if (pending.current !== write) return;
+      const committed = readRun();
+      current.current = committed;
+      setState(committed);
+      if (restart) setReward(noReward);
+      const { gained = 0, level = null } = award ?? {};
+      if (gained > 0) setReward((r) => ({ gains: { ...r.gains, [card.id]: gained }, level: level ?? r.level }));
+      if (question && committed.phase === "solving" && committed.index === next.index) {
+        announce([spokenVerdict(question, committed.entries[next.index]), gained > 0 && t.xpGain(gained), level && t.levelNew(level)].filter(Boolean).join(". "), verdictRegion);
+      }
+    } finally {
+      if (pending.current === write) {
+        pending.current = null;
+        setSaving(false);
+      }
+    }
   };
   const summary = state.phase === "summary";
   useEffect(() => {
@@ -80,8 +101,9 @@ function LessonRun({ course, lesson }: { course: Course; lesson: Lesson }) {
     window.scrollTo(0, 0);
     document.getElementById("screen-title")?.focus({ preventScroll: true });
   }, [summary]);
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.getElementById("screen-title")?.focus({ preventScroll: true });
+    return () => { pending.current = null; };
   }, []);
 
   const coursePath = `/course/${encodeURIComponent(course.slug)}`;
@@ -91,7 +113,7 @@ function LessonRun({ course, lesson }: { course: Course; lesson: Lesson }) {
     return (
       <>
         <SiteHeader />
-        <main id="app">
+        <main id="app" aria-busy={saving}>
           <SummaryView
             lesson={lesson}
             state={state}
@@ -135,7 +157,8 @@ function LessonRun({ course, lesson }: { course: Course; lesson: Lesson }) {
   return (
     <div className="solving-page">
       <SiteHeader />
-      <main id="app">
+      <main id="app" aria-busy={saving}>
+        <Announcer key={state.index} id={verdictRegion} />
         <QuestionView
           lesson={lesson}
           state={state}
@@ -145,7 +168,7 @@ function LessonRun({ course, lesson }: { course: Course; lesson: Lesson }) {
           onGoTo={(index) => apply({ type: "goTo", index })}
           onSelect={(id) => apply({ type: "select", id })}
           onOpenOptions={() => apply({ type: "openOptions" })}
-          onCheck={check}
+          onCheck={() => apply({ type: "check" })}
           onNext={() => apply({ type: "next" })}
         />
       </main>

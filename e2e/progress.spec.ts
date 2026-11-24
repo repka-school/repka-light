@@ -3,7 +3,7 @@
 // already saved in a browser, read by the page as it loads.
 import type { QuestionCard } from "../src/content/types";
 import { standingOf } from "../src/store/xp";
-import { amount, coursePath, expect, feedback, goToCard, heading, isQuestion, openLesson, passLesson, questionsOf, solve, STORAGE_KEY, stored, test, xpOf } from "./support";
+import { amount, coursePath, expect, expectNumber, feedback, goToCard, heading, inCourse, isQuestion, openLesson, passLesson, questionsOf, solve, STORAGE_KEY, stored, test, xpOf } from "./support";
 
 test("the index page leads into the courses, and back into a started one", async ({ page, site, baseURL }) => {
   const only = site.index.courses.length === 1;
@@ -111,4 +111,42 @@ test("a second tab of the site follows what the first one saves", async ({ page,
   // No reload in the first tab.
   await expect(page.locator(`[data-lesson="${lesson.slug}"]`)).toHaveClass(/is-partial/);
   await expect(page.locator(".course-next-title")).toHaveText("Твой прогресс");
+});
+
+test("two tabs settling different questions keep both answers in the same lesson run", async ({ page, context, site }, testInfo) => {
+  const lesson = site.lessons.find((candidate) => questionsOf(candidate).length >= 2);
+  if (!lesson) throw new Error("the published course needs a lesson with two questions");
+  const [first, second] = questionsOf(lesson);
+  const firstIndex = lesson.cards.indexOf(first);
+  const secondIndex = lesson.cards.indexOf(second);
+
+  // Exercise the IndexedDB fallback in phone Chromium and native Web Locks in the other projects.
+  if (testInfo.project.name === "phone") {
+    await context.addInitScript(() => Object.defineProperty(navigator, "locks", { value: undefined }));
+  }
+  // Both tabs keep their original view until reload, as when a storage notification arrives late.
+  await context.addInitScript((key) => {
+    window.addEventListener("storage", (event) => {
+      if (event.key === key) event.stopImmediatePropagation();
+    }, true);
+  }, STORAGE_KEY);
+  const other = await context.newPage();
+  await Promise.all([openLesson(page, site, lesson), openLesson(other, site, lesson)]);
+  await goToCard(page, lesson, firstIndex);
+  await goToCard(other, lesson, secondIndex);
+  await Promise.all([solve(page, first), solve(other, second, "second")]);
+
+  const firstId = inCourse(site, first.id);
+  const secondId = inCourse(site, second.id);
+  await expect.poll(async () => (await stored(page))?.courses[site.course.slug]).toMatchObject({
+    results: { [firstId]: ["f", ...first.correct], [secondId]: ["s", ...second.correct] },
+    xp: { [firstId]: xpOf(first, "first"), [secondId]: xpOf(second, "second") },
+  });
+
+  await goToCard(page, lesson, secondIndex);
+  await expectNumber(page, secondIndex, "second");
+  await page.reload();
+  await expect(page.locator(".lesson-title-line")).toHaveText(lesson.title);
+  await expectNumber(page, firstIndex, "first");
+  await expectNumber(page, secondIndex, "second");
 });

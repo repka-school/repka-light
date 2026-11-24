@@ -82,12 +82,16 @@ export function DrillLesson({ course, lesson, theory, drill }: { course: Course;
     if (!finished || savedRun.current === run) return;
     savedRun.current = run;
     const tenths = Math.round(run.totalAnswerMs / 100);
-    setOutcome({ tenths, ...saveDrillResult(drill.id, run.score, tenths) });
+    void saveDrillResult(drill.id, run.score, tenths).then((result) => {
+      if (savedRun.current === run) setOutcome({ tenths, ...result });
+    });
+    return () => { savedRun.current = null; };
   }, [drill.id, finished, run]);
 
   const start = () => {
     const questions = drillQuestions(drill);
     const cardStartedAt = performance.now();
+    savedRun.current = null;
     setOutcome(null);
     setSeconds(DRILL_SECONDS);
     setRun({ questions, cardStartedAt, totalAnswerMs: 0, index: 0, deadline: cardStartedAt + turnTime, selected: null, score: 0 });

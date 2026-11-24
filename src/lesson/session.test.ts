@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Lesson, QuestionCard } from "@/content/types";
-import { allAnswered, cardState, checkable, countOf, doneCount, hasAnswers, hasMistakes, lessonState, marksOf, open, outcomeOf, primaryAction, questionNumber, reduce, restore, sameAsFirst, setsOf, snapshot, start, type Action, type State } from "./session";
+import { empty } from "@/store/storage";
+import { allAnswered, cardState, checkable, countOf, doneCount, hasAnswers, hasMistakes, lessonState, lessonStep, marksOf, open, outcomeOf, primaryAction, questionNumber, reduce, restore, sameAsFirst, setsOf, snapshot, start, type Action, type State } from "./session";
 
 const question = (id: string, correct: number[], answerKind: QuestionCard["answerKind"] = "single"): QuestionCard => ({
   id,
@@ -24,6 +25,25 @@ const lesson: Lesson = {
 const run = (state: State, ...actions: Action[]) => actions.reduce((s, a) => reduce(lesson, s, a), state);
 const fresh = () => start(lesson, {}, "fresh");
 const saved = (outcome: "first" | "second" | "wrong") => ({ outcome, choices: [2] });
+
+describe("saving an open lesson", () => {
+  it("moving on after another tab resets progress keeps the cleared entries", () => {
+    const answered = run(fresh(), { type: "next" }, { type: "select", id: 2 }, { type: "check" });
+    const move = lessonStep(lesson, "c/l", answered, run(answered, { type: "next" }), false);
+    const result = move(empty());
+    expect(result.runs["c/l"].index).toBe(2);
+    expect(result.runs["c/l"].entries).toEqual(snapshot(lesson, fresh()).entries);
+  });
+
+  it("keeps a previously solved question when writing the first pass for older results", () => {
+    const existing = { ...empty(), results: { q1: saved("first") } };
+    const before = open(lesson, existing, undefined);
+    const reveal = lessonStep(lesson, "c/l", before, run(before, { type: "openOptions" }), false);
+    const result = reveal(existing);
+    expect(result.runs["c/l"].entries[1].final).toEqual([2]);
+    expect(result.runs["c/l"].entries[2].opened).toBe(true);
+  });
+});
 
 describe("start", () => {
   it("opens a new lesson at its theory card", () => {

@@ -50,7 +50,9 @@ function CourseOutline({ course }: { course: Course }) {
   const saved = useSaved();
   const lessons = lessonsOf(course);
   // Results saved before experience was counted earn theirs now.
-  useEffect(() => grantXp(lessonsOf(course).flatMap(questionsOf)), [course]);
+  useEffect(() => {
+    void grantXp(lessonsOf(course).flatMap(questionsOf));
+  }, [course]);
   // The first lesson not finished carries the filled button.
   const primary = lessons.find((l) => standing(course.slug, l, saved) !== "finished");
   const questionIds = lessons.flatMap((l) => questionsOf(l).map((q) => q.id));

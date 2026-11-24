@@ -202,6 +202,9 @@ is published.
 The browser stores progress under the `localStorage` key `repka-light.v1`.
 Within that record, each course has its own task results, lesson runs, drill
 records and XP. The storage format is defined in [storage.ts](src/store/storage.ts).
+Tabs serialize writes with Web Locks or an IndexedDB transaction. Checking an
+answer saves the lesson step, task result and XP together. A tab that cannot
+coordinate writes or access storage keeps changes in memory for that visit.
 
 `results` is what progress counts. `outcome` is how a task ended: `first`
 (right on the first try), `second` (right on the second) or `wrong`. A better

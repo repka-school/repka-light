@@ -1,7 +1,7 @@
 // The state of one run through a lesson, and the rules of answering: two
 // tries per question, never a third. Pure logic: no DOM, no strings, no storage.
 import { isQuestion, type Card, type Lesson, type QuestionCard } from "@/content/types";
-import { cardsKey, type Outcome, type Saved, type SavedRun } from "@/store/storage";
+import { cardsKey, mergeRun, withRun, type Outcome, type Saved, type SavedRun } from "@/store/storage";
 
 /** A settled answer: the set that settled it and whether it was right. */
 export type Final = { choices: number[]; correct: boolean };
@@ -139,6 +139,17 @@ export function open(lesson: Lesson, saved: Pick<Saved, "results">, run: SavedRu
   const kept = run ? restore(lesson, run) : null;
   if (kept) return kept;
   return start(lesson, saved.results, lessonState(lesson, saved.results) === "finished" ? "fresh" : "continue");
+}
+
+/** Reopen the latest valid pass under the store lock, including changes from other tabs. */
+export function lessonStep(lesson: Lesson, key: string, before: State, next: State, restart: boolean) {
+  const run = snapshot(lesson, next);
+  if (restart) return (saved: Saved) => withRun(saved, key, run);
+  const previous = snapshot(lesson, before);
+  return (saved: Saved) => {
+    const current = snapshot(lesson, open(lesson, saved, saved.runs[key]));
+    return withRun(saved, key, mergeRun(current, previous, run));
+  };
 }
 
 /** Whether a pass has any question not solved on the first try: one to retry. */

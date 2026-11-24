@@ -317,7 +317,24 @@ export const withPractice = (saved: Saved, taskId: string, at: string): Saved =>
 
 export const withProfile = (saved: Saved, patch: Partial<Profile>): Saved => ({ ...saved, profile: cleanProfile({ ...saved.profile, ...patch }) });
 
-/** Keeps a lesson's pass as the learner left it. */
+/** Three snapshots of the same lesson. Apply this step's changes to the latest saved entries. */
+export function mergeRun(current: SavedRun, previous: SavedRun, next: SavedRun): SavedRun {
+  const entries = next.entries.map((entry, index) => {
+    const latest = current.entries[index];
+    const before = previous.entries[index];
+    // The two attempts belong together. A late first try cannot undo a settled answer.
+    const settled = entry.final !== null && before.final === null;
+    const tried = entry.first !== null && before.first === null && latest.final === null;
+    return {
+      first: settled || tried ? entry.first : latest.first,
+      final: settled ? entry.final : latest.final,
+      seen: latest.seen || (entry.seen && !before.seen),
+      opened: latest.opened || (entry.opened && !before.opened),
+    };
+  });
+  return { ...next, entries };
+}
+
 export const withRun = (saved: Saved, key: string, run: SavedRun): Saved => ({ ...saved, runs: { ...saved.runs, [key]: run } });
 
 /**

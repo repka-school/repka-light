@@ -9,7 +9,7 @@ import { Picture } from "@/ui/pictures/Picture";
 import { Eyebrow, Page } from "@/components/Chrome";
 import { NAME_MAX } from "@/store/storage";
 import { BACKUP_MAX_BYTES, backupFileName, fromBackup, toBackup, type ImportError } from "@/store/backup";
-import { replaceSaved, resetProgress, saveProfile, useSaved } from "@/store/store";
+import { getSaved, replaceSaved, resetProgress, saveProfile, useSaved } from "@/store/store";
 import type { Saved } from "@/store/storage";
 import { avatarNames, frameNames, silhouetteName, t } from "@/strings";
 
@@ -41,7 +41,7 @@ export function ProfileScreen() {
   const [incoming, setIncoming] = useState<{ saved: Saved; exportedAt: string } | null>(null);
   const [importError, setImportError] = useState<ImportError | null>(null);
   const exportBackup = () => {
-    download(backupFileName(), JSON.stringify(toBackup(all), null, 2));
+    download(backupFileName(), JSON.stringify(toBackup(getSaved()), null, 2));
     announce(t.backupDone);
   };
   const pickFile = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -54,16 +54,18 @@ export function ProfileScreen() {
     if (read.ok) setIncoming({ saved: read.saved, exportedAt: read.exportedAt });
     else setImportError(read.error);
   };
-  const confirmImport = () => {
+  const confirmImport = async () => {
     if (!incoming) return;
-    replaceSaved(incoming.saved);
+    const complete = replaceSaved(incoming.saved);
     setName(incoming.saved.profile.name);
     setIncoming(null);
+    await complete;
     announce(t.importDone);
   };
-  const reset = () => {
-    resetProgress();
+  const reset = async () => {
+    const complete = resetProgress();
     setConfirming(false);
+    await complete;
     announce(t.resetDone);
   };
   return (
