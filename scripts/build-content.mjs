@@ -10,6 +10,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
+import { Transformer } from "@napi-rs/image";
 import { escapeHtml, parseMarkup, renderMarkup } from "./content-markup.mjs";
 import { presentOptions } from "./content-options.mjs";
 import { drillCards } from "./drill-content.mjs";
@@ -114,12 +115,29 @@ function writer(out) {
   return { put, sweep };
 }
 
+const pictureFormats = new Map([[".png", "png"], [".jpg", "jpeg"], [".jpeg", "jpeg"], [".webp", "webp"]]);
+
+function readPicture(local, where) {
+  const expected = pictureFormats.get(path.extname(local).toLowerCase());
+  if (!expected) throw new Error(`${where}: unsupported picture format ${path.basename(local)}`);
+  const bytes = fs.readFileSync(local);
+  try {
+    const image = new Transformer(bytes);
+    if (image.metadataSync().format !== expected) throw new Error("file type differs from its extension");
+    image.rawPixelsSync();
+  } catch (cause) {
+    throw new Error(`${where}: invalid ${expected} picture ${path.basename(local)}`, { cause });
+  }
+  return bytes;
+}
+
 function readPack(root, packId, base) {
+  if (typeof packId !== "string" || !PLAIN_SLUG.test(packId)) throw new Error(`invalid pack name ${packId}`);
   const packDir = path.join(root, "packs", packId);
   const pack = readYaml(path.join(packDir, "pack.yaml"));
   if (pack.id !== packId) throw new Error(`${packId}: pack.yaml names the pack ${pack.id}`);
   const imported = pack.origin === "scraped";
-  const media = new Set();
+  const media = new Map();
 
   const image = (file, where) => {
     if (typeof file !== "string" || file.split("/").some((part) => !part || part === "." || part === ".." || part.includes("\\"))) {
@@ -128,7 +146,7 @@ function readPack(root, packId, base) {
     const local = path.join(packDir, file);
     if (!fs.statSync(local, { throwIfNoEntry: false })?.isFile()) throw new Error(`${where}: missing picture ${file}`);
     if (!fs.realpathSync(local).startsWith(fs.realpathSync(packDir) + path.sep)) throw new Error(`${where}: picture is outside the pack ${file}`);
-    media.add(file);
+    if (!media.has(file)) media.set(file, readPicture(local, where));
     return `${base}content/media/${packId}/${file.split("/").map(encodeURIComponent).join("/")}`;
   };
   const readMarkup = (part, where) => part?.html?.trim() ? parseMarkup(part.html, where, imported) : null;
@@ -228,7 +246,7 @@ function readPack(root, packId, base) {
   };
 
   const writeMedia = (put) => {
-    for (const file of media) put(path.join("media", packId, file), fs.readFileSync(path.join(packDir, file)));
+    for (const [file, bytes] of media) put(path.join("media", packId, file), bytes);
   };
   return { packDir, card, image, body, writeMedia };
 }

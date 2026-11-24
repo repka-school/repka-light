@@ -3,12 +3,15 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
+import { Transformer } from "@napi-rs/image";
 import { basePath, buildContent, textToHtml, THEORY_PICTURES } from "./build-content.mjs";
 import { parseMarkup, renderMarkup } from "./content-markup.mjs";
 import { theoryPictureIds } from "../src/ui/pictures/TheoryPicture.tsx";
 import { DRILL_ROUNDS, drillQuestions } from "../src/lesson/drill";
 
 const courses = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "courses");
+const pixel = Transformer.fromRgbaPixels(Buffer.from([32, 64, 128, 255]), 1, 1);
+const png = pixel.pngSync();
 const checkedHtml = (source, where) => renderMarkup(parseMarkup(source, where), { where }).html;
 const temps = [];
 const temp = () => {
@@ -192,6 +195,25 @@ describe("the bundled courses", () => {
 });
 
 describe("a pack", () => {
+  const imageCourse = (name, bytes) => ({
+    course: `title: Demo\ncover: {file: ${name}}\ntasks: [a/one]\n`,
+    files: { [name]: bytes },
+  });
+  it.each([["one.png", png], ["one.jpeg", pixel.jpegSync()], ["one.webp", pixel.webpLosslessSync()],
+  ])("publishes the decoded raster %s", (name, bytes) => {
+    const out = temp();
+    buildContent({ root: fixture(imageCourse(name, bytes)), out });
+    expect(fs.readFileSync(path.join(out, "media", "demo", name))).toEqual(bytes);
+  });
+
+  it.each([["one.html", Buffer.from("ordinary text"), /unsupported picture format/],
+    ["one.jpg", png, /invalid jpeg picture/], ["one.png", png.subarray(0, 25), /invalid png picture/],
+  ])("rejects %s before publishing it", (name, bytes, error) => {
+    const out = temp();
+    expect(() => buildContent({ root: fixture(imageCourse(name, bytes)), out })).toThrow(error);
+    expect(fs.existsSync(path.join(out, "media", "demo", name))).toBe(false);
+  });
+
   it("builds a question with lettered options and its right answer", () => {
     const out = temp();
     buildContent({ root: fixture(), out });
@@ -223,7 +245,7 @@ describe("a pack", () => {
     const root = fixture({ task });
     const images = path.join(root, "packs", "demo", "images");
     fs.mkdirSync(images);
-    for (const file of ["graph.png", "extra.png"]) fs.writeFileSync(path.join(images, file), file);
+    for (const file of ["graph.png", "extra.png"]) fs.writeFileSync(path.join(images, file), png);
     const out = temp();
     buildContent({ root, out, base: "/site/" });
     const [card] = JSON.parse(fs.readFileSync(path.join(out, "demo.json"), "utf8")).modules[0].lessons[0].cards;
@@ -239,7 +261,7 @@ describe("a pack", () => {
       status: "active", question: { text: "Сколько точек?", images: [{ file: "dots.png", ...metadata }] },
       answer: { kind: "single", options: [{ id: 1, text: "2" }, { id: 2, text: "3", correct: true }] },
     };
-    expect(() => builtCard({ task: JSON.stringify(task), files: { "dots.png": "picture" } })).toThrow("demo/a/one: picture dots.png needs alt text");
+    expect(() => builtCard({ task: JSON.stringify(task), files: { "dots.png": png } })).toThrow("demo/a/one: picture dots.png needs alt text");
   });
 
   it("uses reviewed image descriptions in imported packs and accepts an inline description when needed", () => {
@@ -251,7 +273,7 @@ describe("a pack", () => {
       },
       answer: { kind: "single", options: [{ id: 1, text: "A", correct: true }, { id: 2, text: "B" }] },
     };
-    const files = { "pack.yaml": "id: demo\norigin: scraped", "first.png": "image", "second.png": "image" };
+    const files = { "pack.yaml": "id: demo\norigin: scraped", "first.png": png, "second.png": png };
     const card = builtCard({ task: JSON.stringify(task), files });
     expect(card.body).toContain('alt="Точки A и B соединены отрезком."');
     expect(card.body).toContain('alt="От B к C проведена дуга."');
@@ -313,7 +335,7 @@ describe("a pack", () => {
       explanation: {},
     };
     const out = temp();
-    const root = fixture({ task: JSON.stringify(task), files: { "options.png": "local image" } });
+    const root = fixture({ task: JSON.stringify(task), files: { "options.png": png } });
     buildContent({ root, out, base: "/site/" });
     const [card] = JSON.parse(fs.readFileSync(path.join(out, "demo.json"), "utf8")).modules[0].lessons[0].cards;
     expect(card).toMatchObject({
@@ -321,9 +343,9 @@ describe("a pack", () => {
       answerKind: "multi", correct: [5], hideOptions: false, explanation: null,
       choices: [{ id: 5, label: "Б", text: "", html: "" }, { id: 1, label: "А", text: "", html: "" }],
     });
-    expect(fs.readFileSync(path.join(out, "media", "demo", "options.png"), "utf8")).toBe("local image");
+    expect(fs.readFileSync(path.join(out, "media", "demo", "options.png"))).toEqual(png);
     delete task.answer.picture.alt;
-    expect(() => builtCard({ task: JSON.stringify(task), files: { "options.png": "local image" } })).toThrow(/options.png needs alt text/);
+    expect(() => builtCard({ task: JSON.stringify(task), files: { "options.png": png } })).toThrow(/options.png needs alt text/);
     task.answer.hide = true;
     expect(() => builtCard({ task: JSON.stringify(task) })).toThrow(/options cannot be hidden/);
     task.answer.hide = false;
@@ -469,7 +491,7 @@ describe("two packs", () => {
     fs.writeFileSync(path.join(root, "packs", "more", "tasks", "a", "one.yaml"), question([[1, "a", true], [2, "b"]], {
       more: "explanation:\n  images: [{file: graph.png}]\n",
     }));
-    fs.writeFileSync(path.join(root, "packs", "more", "graph.png"), "picture");
+    fs.writeFileSync(path.join(root, "packs", "more", "graph.png"), png);
     const out = temp();
     expect(buildContent({ root, out }).courses[0]).toMatchObject({ lessons: 1, questions: ["more/a/one"] });
     const [lesson] = JSON.parse(fs.readFileSync(path.join(out, "demo.json"), "utf8")).modules[0].lessons;

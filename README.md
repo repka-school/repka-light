@@ -158,6 +158,9 @@ solutions and formatted answer lines can use native MathML. The build
 keeps the HTML tags a task may use, including `div`, `span`, `u`, `s`, `hr` and
 `tfoot`, and filters out unsupported markup and attributes.
 
+Course pictures may be PNG, JPEG or WebP. The build decodes each file and
+checks its format against its extension before publishing it.
+
 An inline `<img>` can reference a pack file or the `original_url` of a
 listed image. The build keeps it in place, appends any other listed images
 and serves them from the local pack. Each question image needs an explicit
